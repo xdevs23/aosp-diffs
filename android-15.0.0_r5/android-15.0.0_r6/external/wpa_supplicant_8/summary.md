@@ -1,0 +1,21 @@
+```
+47af8d90: Get RSN overriding feature support (Sunil Ravi <sunilravi@google.com>)
+c1ac7ed4: Update supplicant service to use supplicant AIDL V4 interface. (Sunil Ravi <sunilravi@google.com>)
+7f769296: [wpa_supplicant] cumilative patch from commit 92374d59d (Sunil Ravi <sunilravi@google.com>)
+99c035e5: Revert "Revert "[wpa_supplicant] cumilative patch from commit 4b..." (Sunil Ravi <sunilravi@google.com>)
+b0ac25f1: Revert "Revert "[wpa_supplicant] cumilative patch from commit 3a..." (Sunil Ravi <sunilravi@google.com>)
+36412a5f: wifi: Upgrade hostapd hal version (Les Lee <lesl@google.com>)
+4b85f375: Define vintf fragment as a module (Kiyoung Kim <kiyoungkim@google.com>)
+92f7d0cb: Define vintf fragment as a module (Kiyoung Kim <kiyoungkim@google.com>)
+dbf19649: Add mutex to the supplicant aidl_return_util to support multiple clients... (Gabriel Biren <gbiren@google.com>)
+b853dacb: Define vintf fragment as a module (Kiyoung Kim <kiyoungkim@google.com>)
+043a796b: Replace soong config module types with selects (Cole Faust <colefaust@google.com>)
+0b99b523: Replace soong config module types with selects (Cole Faust <colefaust@google.com>)
+c0b26cf5: Revert "[wpa_supplicant] cumilative patch from commit 3a5d1a7e6" (Sunil Ravi <sunilravi@google.com>)
+642da9dd: Revert "[wpa_supplicant] cumilative patch from commit 4b755c967" (Sunil Ravi <sunilravi@google.com>)
+eb83e2a5: Revert "[wpa_supplicant] cumilative patch from commit 3a5d1a7e6" (Sunil Ravi <sunilravi@google.com>)
+88611417: Revert "[wpa_supplicant] cumilative patch from commit 4b755c967" (Sunil Ravi <sunilravi@google.com>)
+af399a8b: [wpa_supplicant] cumilative patch from commit 4b755c967 (Sunil Ravi <sunilravi@google.com>)
+72e0122a: [wpa_supplicant] cumilative patch from commit 3a5d1a7e6 (Sunil Ravi <sunilravi@google.com>)
+```
+

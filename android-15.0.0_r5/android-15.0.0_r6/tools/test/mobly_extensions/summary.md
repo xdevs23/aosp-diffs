@@ -1,0 +1,20 @@
+```
+b3cbc32: results_uploader v0.6.1 release notes (Xianyuan Jia <xianyuanjia@google.com>)
+ef3dcc9: [results_uploader] Automatically retrieve API keys from GCP for Resultst... (Xianyuan Jia <xianyuanjia@google.com>)
+7baa27a: [results_uploader] Supply API key for Resultstore uploads (Xianyuan Jia <xianyuanjia@google.com>)
+5b1c35f: [local_mobly_runner] Add support for running Mobly tests packaged as whe... (Xianyuan Jia <xianyuanjia@google.com>)
+3168115: [results_uploader] Update pyproject.toml for 0.6 release (Xianyuan Jia <xianyuanjia@google.com>)
+13ea0f8: results_uploader v0.6 release notes (Xianyuan Jia <xianyuanjia@google.com>)
+a14e1e5: [results_uploader] Move version number info from label to invocation pro... (Xianyuan Jia <xianyuanjia@google.com>)
+85276cc: [results_uploader] Enable specification of custom labels to invocations (Xianyuan Jia <xianyuanjia@google.com>)
+ef4a5b1: If aconfig.pb files are missing from a partition, skip instead of raisin... (Xianyuan Jia <xianyuanjia@google.com>)
+c3b0ddd: [results_uploader] Report the uploader version as an invocation label (Xianyuan Jia <xianyuanjia@google.com>)
+8b5054a: [results_uploader] Add `visible: True` as a target attribute (Xianyuan Jia <xianyuanjia@google.com>)
+04962c3: [results_uploader] Upload raw Mobly logs directly from original director... (Xianyuan Jia <xianyuanjia@google.com>)
+0cdb161: results_uploader v0.5.1 release notes (Xianyuan Jia <xianyuanjia@google.com>)
+40ba989: [results_uploader] Add skip_if_exists=True to GCS upload command (Xianyuan Jia <xianyuanjia@google.com>)
+9f1d932: [results_uploader] Increase default GCS timeout, and enable custom value... (Xianyuan Jia <xianyuanjia@google.com>)
+9bd9f9a: results_uploader v0.5 release notes (Xianyuan Jia <xianyuanjia@google.com>)
+977f0b4: [results_uploader] Remove trailing '/' in _UNDECLARED_OUTPUTS dir (Xianyuan Jia <xianyuanjia@google.com>)
+```
+

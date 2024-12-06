@@ -1,0 +1,23 @@
+```
+c487264: hwtrust: Csr parsing supports degenerate DICE chains (Daniel d'Andrada <dandrader@google.com>)
+0e5653b: Update Android for Rust 1.81.0 (Chris Wailes <chriswailes@google.com>)
+55a232b: hwtrust: Add "component instance name" field (Daniel d'Andrada <dandrader@google.com>)
+590e49f: Add the `allow-any-mode` option for factory-csr and csr (Karuna Wadhera <kwadhera@google.com>)
+982b1a1: hwtrust: Add "component instance name" field (Daniel d'Andrada <dandrader@google.com>)
+9f45dfc: Pass in allow_any_mode when verifying DICE chains (Karuna Wadhera <kwadhera@google.com>)
+710a919: Enable mode checking (Karuna Wadhera <kwadhera@google.com>)
+38e77a5: Revert^4 "Change authorization hash size validat..." (Karuna Wadhera <kwadhera@google.com>)
+f80e5d5: Revert^4 "Change mode validation for DICE chain certs" (Karuna Wadhera <kwadhera@google.com>)
+e6ae7d8: Add MTE / HWASan globals check to sanitizer-status (Florian Mayer <fmayer@google.com>)
+82cab3a: Allow malformed config descriptor in degenerate chains (Seth Moore <sethmo@google.com>)
+92c9b45: xz_decoder_fuzzer: Bug fix (kunal rai <kunal.rai@ittiam.com>)
+a1be0f0: PEM encode logged certificates (Brandon Weeks <bweeks@google.com>)
+f7618c0: xz_decoder_fuzzer: Bug fix (kunal rai <kunal.rai@ittiam.com>)
+dd8a419: Revert^3 "Change mode validation for DICE chain certs" (Karuna Wadhera <kwadhera@google.com>)
+902fc62: Revert "Revert^2 "Change authorization hash size validation for ..." (Karuna Wadhera <kwadhera@google.com>)
+b0a6d71: Revert^2 "Change mode validation for DICE chain certs" (Karuna Wadhera <kwadhera@google.com>)
+bce929a: Revert^2 "Change authorization hash size validation for DICE chain certs... (Karuna Wadhera <kwadhera@google.com>)
+ec12169: Add security verion to config descriptor (Andrew Scull <ascull@google.com>)
+6590bf1: Use structured errors for FieldValue (Andrew Scull <ascull@google.com>)
+```
+

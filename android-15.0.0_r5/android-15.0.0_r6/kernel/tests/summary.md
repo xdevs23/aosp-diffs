@@ -1,0 +1,20 @@
+```
+029eb2d: Fix wrong description in help message. (Betty Zhou <bettyzhou@google.com>)
+43fbcd6: Add flash_device.sh to flash kernel & platform mixed builds. (Betty Zhou <bettyzhou@google.com>)
+68a7034: Rebuild platform or kernel if repo path is provided. (Betty Zhou <bettyzhou@google.com>)
+45881d8: Change fetch_artifact script path to allow short link usage. (Betty Zhou <bettyzhou@google.com>)
+f7bd641: Fix a few errors in kernel/tests/tools scripts. (Betty Zhou <bettyzhou@google.com>)
+f7c7c58: Add shell script to launch_cvd and run_tests. (Betty Zhou <bettyzhou@google.com>)
+52bf478: Add tools directory in kernel/test repo. (Betty Zhou <bettyzhou@google.com>)
+56f489f: Support kernels that make SOCK_DESTROY work on FIN_WAIT sockets. (Lorenzo Colitti <lorenzo@google.com>)
+d1c8601: Support expecting a RST after a FIN. (Lorenzo Colitti <lorenzo@google.com>)
+599b4d8: Ensure TcpBaseTest class members always exist. (Lorenzo Colitti <lorenzo@google.com>)
+033bb59: net-test: print out 'hidden' kernel architecture as well (Maciej Żenczykowski <maze@google.com>)
+6a86673: Remove testMinRequiredKernelVersion from kernel_feature_test.py (Maciej Żenczykowski <maze@google.com>)
+963dd2e: net-test: introduce HAVE_USEROPT_PIO_FIX (Maciej Żenczykowski <maze@google.com>)
+415a681: Add test for PIO p flag (Patrick Rohr <prohr@google.com>)
+1daf7b5: Add convenience methods for fetching vendor API level. (Lorenzo Colitti <lorenzo@google.com>)
+79cb292: net-test: fix nduseropt parsing when multiple are present (Maciej Żenczykowski <maze@google.com>)
+0ec1252: net-test: Require SO_NETNS_COOKIE support for all 5.10+ kernels (Maciej Żenczykowski <maze@google.com>)
+```
+

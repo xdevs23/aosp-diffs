@@ -1,0 +1,22 @@
+```
+e67cdf6: Trusty: Build host modules against prebuilts (Jaewan Kim <jaewan@google.com>)
+11152b3: test-map: Ignore module causes when checking tainted kernels (Andrei Homescu <ahomescu@google.com>)
+c6d82ff: build-config: Remove qemu-generic-arm64l32-test-debug (Andrei Homescu <ahomescu@google.com>)
+ce54144: Update Trusty build to Android Rust 1.80.1 (Stephen Hines <srhines@google.com>)
+790058a: Include the desktop-arm64 and desktop-x86_64 projects (Allen Webb <allenwebb@google.com>)
+fc20448: Trusty: Remove pkg-config from check_system_dependencies.sh (Jaewan Kim <jaewan@google.com>)
+ef78c81: Trusty: Use xxd from prebuilt (Jaewan Kim <jaewan@google.com>)
+ead5c5e: scripts: Update genReport.py to support multiple objects (minghsi <minghsi@google.com>)
+0213bd8: scripts: Archive trusty image package if available (Stephen Crane <cranes@google.com>)
+f53e6a8: Update genReport.py to support lcov format (minghsi <minghsi@google.com>)
+1b4fc8f: Reapply "test-map: Migrate `storage-td-clear-test` to use `reboot`" (Weston Carvalho <westoncarvalho@google.com>)
+a68a4d5: scripts: Support reboots without factory reset (Weston Carvalho <westoncarvalho@google.com>)
+b50062c: rust: update toolchain version to 1.79.0 (Pixel Trusty Team Automation <mdb.pixel-trusty-t...)
+3bd1f36: test-map: Fix name of binary for binderRpcToTrustyTest (Andrei Homescu <ahomescu@google.com>)
+153486e: Revert "scripts: Add support for reboots that don't factory reset" (Stephen Crane (xWF) <cranes@google.com>)
+e06192f: Revert "test-map: Migrate `storage-td-clear-test` to use `reboot`" (Stephen Crane (xWF) <cranes@google.com>)
+8e89266: test-map: Migrate `storage-td-clear-test` to use `reboot` (Weston Carvalho <westoncarvalho@google.com>)
+b79fd31: scripts: run_tests: Add --android option (Andrei Homescu <ahomescu@google.com>)
+00c81a5: scripts: Add support for reboots that don't factory reset (Weston Carvalho <westoncarvalho@google.com>)
+```
+

@@ -1,0 +1,23 @@
+```
+ba038bb: usertests-inc.mk: remove HWCryptoHAL (Armelle Laine <armellel@google.com>)
+26c7aff: trusty: add return value test for munmap() calls (Mike McTernan <mikemcternan@google.com>)
+bcd9f28: hwcryptohal: Allow update_aad to be dead code (Andrei Homescu <ahomescu@google.com>)
+d82244c: Refactor slice-based type (Orlando Arbildo <oarbildo@google.com>)
+569a485: Refactored AIDL based newtype (Orlando Arbildo <oarbildo@google.com>)
+6e9a146: tz: remove hwrng bench for coverage builds (Snehal <snehalreddy@google.com>)
+d7a0ff7: trusty: sample: Add entropy to fake rng provider (Manu Sareena <msareena@google.com>)
+cb7d52c: Refactor HwCrypto sample code (Orlando Arbildo <oarbildo@google.com>)
+b402f6e: Add trusty rust tests for hwcrypto phase 2 (Steven Ray <stevenray@google.com>)
+0ee50f4: Refactored AIDL type reference (Orlando Arbildo <oarbildo@google.com>)
+1a9aafd: Include policy on key derivation (Orlando Arbildo <oarbildo@google.com>)
+d480b3c: Implement clearKeyImport for AES and HMAC (Orlando Arbildo <oarbildo@google.com>)
+e20a689: Connect cmd parser code to IPC (Orlando Arbildo <oarbildo@google.com>)
+60a1a8c: Add Symmetric operations (Orlando Arbildo <oarbildo@google.com>)
+faebbaa: Add copy step (Orlando Arbildo <oarbildo@google.com>)
+29e04f7: Add memory mapping steps (Orlando Arbildo <oarbildo@google.com>)
+8961f39: Base implementation of command parser state machine (Orlando Arbildo <oarbildo@google.com>)
+8084b74: Initial Empty Trusty implementation for HWCryptoOperations (Orlando Arbildo <oarbildo@google.com>)
+3b6f0e6: rust_no_std: Avoid name collision for Vec::try_with_capacity (Andrei Homescu <ahomescu@google.com>)
+632a6a0: app/sample: Example usage of PMU (Raphael Herouart <rherouart@google.com>)
+```
+

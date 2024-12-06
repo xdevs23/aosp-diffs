@@ -1,0 +1,22 @@
+```
+5f9917255: Ignore the first day of the week tests for UAE. (Almaz Mingaleev <mingaleev@google.com>)
+e497f573d: Remove NDK exports (Steven Moreland <smoreland@google.com>)
+ecbd8e149: Regenerate ICU data to include CLDR patches. (Almaz Mingaleev <mingaleev@google.com>)
+08bf75fc5: Enable art/tools/ahat to use libicu_jni (Nelson Li <nelsonli@google.com>)
+687a6ccd4: Open icu4j-host visibility to //vendor (Herbert Xue <herbertxue@google.com>)
+98ff5338a: Re-generate ICU date for CN and DK (Victor Chang <vichang@google.com>)
+57e1601b7: Migrate to "ravenwood-postsubmit" (Makoto Onuki <omakoto@google.com>)
+f4be77c63: Add art's fuzzer to the visibility (Ioana-Teodora Isar <ioanaisar@google.com>)
+414d28e9d: Re-generate ICU data from CLDR cherry-pick (Victor Chang <vichang@google.com>)
+71ab6e2a8: Revert "Revert "Disable from-text stub generation for i18n.modul..." (Jihoon Kang <jihoonkang@google.com>)
+fe2595a8a: Revert "Disable from-text stub generation for i18n.module.intra...." (Liana Kazanova <lkazanova@google.com>)
+ecec06f53: add aconfig new storage read library (Zhi Dou <zhidou@google.com>)
+8dfcf64f4: Support ICU on Ravenwood (Makoto Onuki <omakoto@google.com>)
+d8c15a66a: Add test for u_errorName (Victor Chang <vichang@google.com>)
+e100ed2c6: Add test for u_charFromName (Victor Chang <vichang@google.com>)
+ea286c9a4: Baseline Lint FlaggedApi violations (Mårten Kongstad <amhk@google.com>)
+adc7a45af: Remove unused build targets. (Almaz Mingaleev <mingaleev@google.com>)
+e19e5e5a8: Baseline Lint FlaggedApi violations (Mårten Kongstad <amhk@google.com>)
+caed47084: Disable from-text stub generation for i18n.module.intra.core.api (Jihoon Kang <jihoonkang@google.com>)
+```
+

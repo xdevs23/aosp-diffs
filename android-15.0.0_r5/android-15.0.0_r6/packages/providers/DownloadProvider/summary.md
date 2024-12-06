@@ -1,0 +1,22 @@
+```
+d49b28ed: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+691fec5a: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+7f98553c: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+a037ae74: Change runner to androidx.test.runner.AndroidJUnitRunner so that @Ignore... (Ram Peri <ramperi@google.com>)
+29acf470: Reapply "Merge 24Q3 to AOSP main" (Xin Li <delphij@google.com>)
+0d60ccc7: Revert "Merge 24Q3 to AOSP main" (Pechetty Sravani (xWF) <pechetty@google.com>)
+5440ee76: Make java_sdk_library dependencies explicit (Jihoon Kang <jihoonkang@google.com>)
+a768d1da: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+6fc5d010: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+bc4c1c99: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+6a344375: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+e74442d2: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+3909240c: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+4b439529: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+4615b1f5: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+13ad8c41: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+c93c11b6: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+8d3be5f1: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+c5d740b5: Change runner to androidx.test.runner.AndroidJUnitRunner so that @Ignore... (Ram Peri <ramperi@google.com>)
+```
+

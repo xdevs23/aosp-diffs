@@ -1,0 +1,20 @@
+```
+41b6b7a: Guard uporbestats apex behind a flag. (Yu-Ting Tseng <yutingtseng@google.com>)
+4ec8eec: Stop adding a page_size offset in uprobestats (Yu-Ting Tseng <yutingtseng@google.com>)
+625f707: Make uprobestats probe setUidTempAllowlistStateLSP (Yu-Ting Tseng <yutingtseng@google.com>)
+2996051: Generate AOSP keys for UprobeStats (Matt Gilbride <mattgilbride@google.com>)
+709d9ef: Remove spurious bpf_syscall_wrappers from header_libs (Maciej Żenczykowski <maze@google.com>)
+8fc2c28: Handle multiple probes with generic eBPF (Matt Gilbride <mattgilbride@google.com>)
+dd47d7e: Move uprobestats-test from postsubmit to presubmit (Matt Gilbride <mattgilbride@google.com>)
+1379499: Adds call timestamp bpf and updates smoke test (Matt Gilbride <mattgilbride@google.com>)
+e643b2c: Adds PAGE_OFFSET constant accounting for ELF delta (Matt Gilbride <mattgilbride@google.com>)
+b80014d: Add basic smoke test for UprobeStats that can run in CI (Matt Gilbride <mattgilbride@google.com>)
+839a3fd: uprobestats: Remove BTF and cflags from Android.bp (Maciej Żenczykowski <maze@google.com>)
+56e14f5: Fix unused variable warning in BitmapAllocation.c (Maciej Żenczykowski <maze@google.com>)
+8abe9ac: Add macro to log in UprobeStatss if debug constant is set (Matt Gilbride <mattgilbride@google.com>)
+e7277ee: Adhere to Android C++ style guidelines (Matt Gilbride <mattgilbride@google.com>)
+3fd4a2f: Add ability for UprobeStats to write to StatsD (Matt Gilbride <mattgilbride@google.com>)
+be3b559: Add an initial generic eBPF program (Matt Gilbride <mattgilbride@google.com>)
+d1f8fb9: Add rpath to libuprobestats_client. (Yu-Ting Tseng <yutingtseng@google.com>)
+```
+
