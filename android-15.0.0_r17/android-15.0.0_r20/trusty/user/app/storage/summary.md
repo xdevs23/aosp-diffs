@@ -1,0 +1,22 @@
+```
+d963aa4: storage: Add method to AIDL impl (Weston Carvalho <westoncarvalho@google.com>)
+bc4fb9c: storage: Make test handle storage disconnects (Weston Carvalho <westoncarvalho@google.com>)
+40cf1c9: storage: Keep AIDL sessions alive across reconnect (Weston Carvalho <westoncarvalho@google.com>)
+320e038: storage: Correctly track `storage_sevice` init (Weston Carvalho <westoncarvalho@google.com>)
+57c87f9: storage: Stop tearing down block devices on proxy reconnect (Weston Carvalho <westoncarvalho@google.com>)
+2546e2d: storage-unittest: fix StorageInitNoCommitCleanupTest (Armelle Laine <armellel@google.com>)
+3e4b004: storage: Make `block_device_tipc` support reconnect (Weston Carvalho <westoncarvalho@google.com>)
+1ec3956: Add dirgroup for trusty genrule (Inseob Kim <inseob@google.com>)
+80cdb34: storage: Extract nsp fs init/destroy fn (Weston Carvalho <westoncarvalho@google.com>)
+251cdd2: storage: Extract tdp fs init/destroy fn (Weston Carvalho <westoncarvalho@google.com>)
+e67eaa6: storage: Extract ns fs init/destroy fn (Weston Carvalho <westoncarvalho@google.com>)
+b2faff3: storage: Extract rpmb fs init/destroy fn (Weston Carvalho <westoncarvalho@google.com>)
+5a190dd: storage: Un-split NS filesystem initialization (Weston Carvalho <westoncarvalho@google.com>)
+38e0e8f: storage: Refactor rpmb partition start/size calcs (Weston Carvalho <westoncarvalho@google.com>)
+f5d8efe: host tests: rule.mk add unittest host lib dependency (Armelle Laine <armellel@google.com>)
+fb77f3f: storage: Change `check_storage_size` to set size (Weston Carvalho <westoncarvalho@google.com>)
+aaaca9e: storage: Change args for `rpmb_check` (Weston Carvalho <westoncarvalho@google.com>)
+fbfc6cc: storage: Separate client code in `block_device_tipc` (Weston Carvalho <westoncarvalho@google.com>)
+857f8a1: storage: Add logging to block_device_tipc_init (Stephen Crane <cranes@google.com>)
+```
+

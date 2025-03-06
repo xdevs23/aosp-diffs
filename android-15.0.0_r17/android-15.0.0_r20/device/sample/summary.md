@@ -1,0 +1,21 @@
+```
+a8b7652: APN Bug - Modify/Add APN Configuration for KOODO - 352352887 (Kenneth Nunez <kenneth.nunez@telus.com>)
+098c816: APN Bug - Modify/Add APN Configuration for TELUS. Issue ID 352352886 (Kenneth Nunez <kenneth.nunez@telus.com>)
+5e7e07b: Change APN name for 20412 according to KPN request in b/373613975 (Puger Pamungkas <pugerp@google.com>)
+e204ab2: Modify Jawwal apn to sample apns (Haneen <haneen.masaeed@jawwal.ps>)
+4741aa0: Updating Orange Spain APN settings (Marc Poppleton <marc.poppleton@orange.com>)
+a6bdc1a: Add apns-full-conf.xml module for Soong-built GSI (Inseob Kim <inseob@google.com>)
+be30191: Add APN configuration for Rcell (2646) (valeenonline100 <valeenonline100@gmail.com>)
+0bcfbd8: apn: Update APN configurations for Carrier Pivotel (Steve Chan <steve.chan@pivotel.com.au>)
+f02356c: Fixing shatelmobile carrier name from shatelmonil to shatelmobile (hassan <h_yeganeh@shatelmobile.com>)
+3e28e13: Added mobi APN config for mcc313mnc460 (Jesus Rojas <jesus@mobi.com>)
+ccc3ec6: Removing Orange Entreprise APN configuration as requested by Orange Fran... (Marc Poppleton <marc.poppleton@orange.com>)
+c3d1205: Add Sparkle APN (Diego Tafuto <diego.tafuto@tisparkle.com>)
+68312a6: Adding CarrierID to Webbing settings (Tiago <tiago@iamwebbing.com>)
+1011799: Add TATA MOVE apn for TATA Netherland(204-07,901-54) and Tata UK (234-27... (MOVE AOSP <move_aosp@tatacommunications.com>)
+e70b781: Merge internet and MMS APN for H3G to fix MMS issue (Wenting Xiong <wenting.xa.xiong@sony.com>)
+67f0b59: APN Bug - Modify/Add APN Configuration for Public Mobile - 352345932 (Kenneth Nunez <kenneth.nunez@telus.com>)
+3418446: APN Bug - Remove APN for Koodo - 352345931 (Kenneth Nunez <kenneth.nunez@telus.com>)
+f20ebaf: APN Bug - Remove APN Configuration for TELUS Mobility - 352345930 (Kenneth Nunez <kenneth.nunez@telus.com>)
+```
+

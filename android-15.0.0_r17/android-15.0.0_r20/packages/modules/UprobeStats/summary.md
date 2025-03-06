@@ -1,0 +1,22 @@
+```
+80c135b: Conditionally use flags in mainline container (Yu-Ting Tseng <yutingtseng@google.com>)
+600e8d7: Add uprobestats_mainline_flags_java_lib (Yu-Ting Tseng <yutingtseng@google.com>)
+f48ca31: Add uprobestats-mainline-presubmit (Yu-Ting Tseng <yutingtseng@google.com>)
+d1b462d: Fix: use executable_method_file_offsets API in Guardrail (Matt Gilbride <mattgilbride@google.com>)
+367ebd2: Fix: remove debug logging from UprobeStats (Matt Gilbride <mattgilbride@google.com>)
+660d38e: Call ABinderProcess_startThreadPool (Yu-Ting Tseng <yutingtseng@google.com>)
+2b1bc59: Update per const changes to dynamic_instrumentation_manager (Matt Gilbride <mattgilbride@google.com>)
+33de0b3: Mirror uprobestats system flags in Mainline (Yu-Ting Tseng <yutingtseng@google.com>)
+02624d0: Add an EXECUTABLE_METHOD_FILE_OFFSETS flag to mirror ART (Matt Gilbride <mattgilbride@google.com>)
+37c4995: Integrate with getExecutableMethodFileOffsets API (Matt Gilbride <mattgilbride@google.com>)
+5f4f9b5: Create uprobestats-protos for use in CTS. (Yu-Ting Tseng <yutingtseng@google.com>)
+66ebcc6: Fork platform bpfloader to uprobestatsbpfload (Yu-Ting Tseng <yutingtseng@google.com>)
+1c885d3: Move libuprobestats_client into Mainline (Yu-Ting Tseng <yutingtseng@google.com>)
+f0ba53d: Add uprobestats files to its apex (Yu-Ting Tseng <yutingtseng@google.com>)
+9fdfac7: Fork bpf_header and bpf_syscall_wrappers (Yu-Ting Tseng <yutingtseng@google.com>)
+eccff6b: Add a placeholder uprobestatsbpfload binary (Yu-Ting Tseng <yutingtseng@google.com>)
+d11af24: Use ctl.start to start uprobestats service (Yu-Ting Tseng <yutingtseng@google.com>)
+a55a86a: Remove unnecessary copy & paste. (Elliott Hughes <enh@google.com>)
+756add7: Log updateDeviceIdleTempAllowlist via Hummingbird (Yu-Ting Tseng <yutingtseng@google.com>)
+```
+

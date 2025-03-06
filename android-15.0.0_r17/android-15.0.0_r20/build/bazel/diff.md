@@ -1,0 +1,5271 @@
+```diff
+diff --git a/ci/b_build_test.sh b/ci/b_build_test.sh
+deleted file mode 100755
+index e0c65b6c..00000000
+--- a/ci/b_build_test.sh
++++ /dev/null
+@@ -1,21 +0,0 @@
+-#!/bin/bash -eu
+-# Copyright (C) 2023 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#      http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-# Build all _stable_ build targets with b to ensure that the workflow
+-# hasn't stopped working. This is a shortened version of bp2build.sh
+-source "$(dirname $0)/target_lists.sh"
+-
+-# Disable BES for CI
+-build/bazel/bin/b build --config=ci --config=android --disable_bes --  ${STABLE_BUILD_TARGETS[@]}
+diff --git a/ci/b_test.sh b/ci/b_test.sh
+deleted file mode 100755
+index 58071082..00000000
+--- a/ci/b_test.sh
++++ /dev/null
+@@ -1,34 +0,0 @@
+-#!/bin/bash -eu
+-
+-# Copyright (C) 2023 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#      http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-# Verifies that the b invocations properly record metrics and their exit codes.
+-build/bazel/bin/b build libcore:all
+-
+-build/bazel/scripts/analyze_build
+-
+-if [[ ! $(grep '"exitCode": 0' out/analyze_build_output/bazel_metrics.json) ]]; then
+-   echo "Failed to locate bazel exit code in metrics output"
+-   exit 1
+-fi
+-
+-build/bazel/bin/b build --config=ci libcore:nonexistent_module &> /dev/null || true
+-
+-build/bazel/scripts/analyze_build
+-
+-if [[ ! $(grep '"exitCode": 1' out/analyze_build_output/bazel_metrics.json) ]]; then
+-   echo "Failed to locate bazel exit code in metrics output"
+-   exit 1
+-fi
+diff --git a/ci/bp2build.sh b/ci/bp2build.sh
+deleted file mode 100755
+index 7ccbc3a8..00000000
+--- a/ci/bp2build.sh
++++ /dev/null
+@@ -1,118 +0,0 @@
+-#!/bin/bash -eux
+-# Verifies that bp2build-generated BUILD files result in successful Bazel
+-# builds.
+-#
+-# This verification script is designed to be used for continuous integration
+-# tests, though may also be used for manual developer verification.
+-
+-#######
+-# Setup
+-#######
+-
+-# Set the test output directories.
+-SOURCE_ROOT="$(dirname $0)/../../.."
+-OUT_DIR=$(realpath ${OUT_DIR:-${SOURCE_ROOT}/out})
+-if [[ -z ${DIST_DIR+x} ]]; then
+-  DIST_DIR="${OUT_DIR}/dist"
+-  echo "DIST_DIR not set. Using ${OUT_DIR}/dist. This should only be used for manual developer testing."
+-fi
+-
+-# Before you add flags to this list, cosnider adding it to the "ci" bazelrc
+-# config instead of this list so that flags are not duplicated between scripts
+-# and bazelrc, and bazelrc is the Bazel-native way of organizing flags.
+-FLAGS=(
+-  --config=bp2build
+-  --config=ci
+-)
+-FLAGS="${FLAGS[@]}"
+-
+-source "$(dirname $0)/build_with_bazel.sh"
+-source "$(dirname $0)/target_lists.sh"
+-
+-###############
+-# Build and test targets for device target platform.
+-###############
+-
+-build_for_device BUILD_TARGETS TEST_TARGETS DEVICE_ONLY_TARGETS
+-
+-declare -a host_targets
+-host_targets+=( "${BUILD_TARGETS[@]}" )
+-host_targets+=( "${TEST_TARGETS[@]}" )
+-host_targets+=( "${HOST_ONLY_TEST_TARGETS[@]}" )
+-
+-build_and_test_for_host ${host_targets[@]}
+-
+-#########################################################################
+-# Check that rule wrappers have the same providers as the rules they wrap
+-#########################################################################
+-
+-source "$(dirname $0)/../rules/java/wrapper_test.sh"
+-test_wrapper_providers
+-
+-###################
+-# bp2build progress
+-###################
+-
+-function get_soong_names_from_queryview() {
+-  names=$( build/bazel/bin/bazel query --config=ci --config=queryview --output=xml "${@}" \
+-    | awk -F'"' '$2 ~ /soong_module_name/ { print $4 }' \
+-    | sort -u )
+-  echo "${names[@]}"
+-}
+-
+-# Generate bp2build progress reports and graphs for these modules into the dist
+-# dir so that they can be downloaded from the CI artifact list.
+-BP2BUILD_PROGRESS_MODULES=(
+-  NetworkStackNext  # not updatable but will be
+-  android_module_lib_stubs_current
+-  android_stubs_current
+-  android_system_server_stubs_current
+-  android_system_stubs_current
+-  android_test_stubs_current
+-  build-tools  # host sdk
+-  com.android.runtime  # not updatable but will be
+-  core-lambda-stubs  # DefaultLambdaStubsPath, StableCorePlatformBootclasspathLibraries
+-  core-public-stubs-system-modules
+-  ext  # FrameworkLibraries
+-  framework  # FrameworkLibraries
+-  framework-minus-apex
+-  framework-res # sdk dep Framework Res Module
+-  legacy-core-platform-api-stubs-system-modules
+-  legacy.core.platform.api.stubs
+-  platform-tools  # host sdk
+-  sdk
+-  stable-core-platform-api-stubs-system-modules  # StableCorePlatformSystemModules
+-  stable.core.platform.api.stubs # StableCorePlatformBootclasspathLibraries
+-)
+-
+-# Query for some module types of interest so that we don't have to hardcode the
+-# lists
+-"${SOURCE_ROOT}/build/soong/soong_ui.bash" --make-mode BP2BUILD_VERBOSE=1 --skip-soong-tests queryview
+-rm -f out/ninja_build
+-
+-# Only apexes/apps that specify updatable=1 are mainline modules, the other are
+-# "just" apexes/apps. Often this is not specified in the process of becoming a
+-# mainline module as enables a number of validations.
+-# Ignore defaults and test rules.
+-APEX_QUERY='attr(updatable, 1, //...) - kind("_defaults rule", //...) - kind("apex_test_ rule", //...)'
+-APEX_VNDK_QUERY="kind(\"apex_vndk rule\", //...)"
+-
+-BP2BUILD_PROGRESS_MODULES+=( $(get_soong_names_from_queryview "${APEX_QUERY}"" + ""${APEX_VNDK_QUERY}" ) )
+-
+-bp2build_progress_script="//build/bazel/scripts/bp2build_progress:bp2build_progress"
+-bp2build_progress_output_dir="${DIST_DIR}/bp2build-progress"
+-mkdir -p "${bp2build_progress_output_dir}"
+-
+-report_args=""
+-for m in "${BP2BUILD_PROGRESS_MODULES[@]}"; do
+-  report_args="$report_args -m ""${m}"
+-  if [[ "${m}" =~ (media.swcodec|neuralnetworks)$ ]]; then
+-    build/bazel/bin/bazel run ${FLAGS} --config=linux_x86_64 "${bp2build_progress_script}" -- graph  -m "${m}" --out-file=$( realpath "${bp2build_progress_output_dir}" )"/${m}_graph.dot"
+-  fi
+-done
+-
+-build/bazel/bin/bazel run ${FLAGS} --config=linux_x86_64 "${bp2build_progress_script}" -- \
+-  report ${report_args} \
+-  --proto-file=$( realpath "${bp2build_progress_output_dir}" )"/bp2build-progress.pb" \
+-  --out-file=$( realpath "${bp2build_progress_output_dir}" )"/progress_report.txt" \
+-  --bp2build-metrics-location=$( realpath "${DIST_DIR}" )"/logs" \
+diff --git a/ci/dist/BUILD b/ci/dist/BUILD
+deleted file mode 100644
+index 0ae05549..00000000
+--- a/ci/dist/BUILD
++++ /dev/null
+@@ -1,14 +0,0 @@
+-load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
+-
+-# bazel run --package_path=out/soong/workspace //build/bazel/ci/dist:mainline_modules -- --dist_dir=/tmp/dist
+-# TODO(jingwen): use a split transition on --platforms to dist all 4 architectures in a single invocation.
+-copy_to_dist_dir(
+-    name = "mainline_modules",
+-    data = [
+-        "//frameworks/av/apex:com.android.media.swcodec",
+-        "//packages/modules/NeuralNetworks/apex:com.android.neuralnetworks",
+-        "//packages/modules/adb/apex:com.android.adbd",
+-        "//system/timezone/apex:com.android.tzdata",
+-    ],
+-    flat = True,
+-)
+diff --git a/ci/mixed_droid.sh b/ci/mixed_droid.sh
+deleted file mode 100755
+index 5796fdda..00000000
+--- a/ci/mixed_droid.sh
++++ /dev/null
+@@ -1,32 +0,0 @@
+-#!/bin/bash -eu
+-# Verifies Bazel "staging mode"  succeeds when building "droid".
+-# This verification script is designed to be used for continuous integration
+-# tests, though may also be used for manual developer verification.
+-
+-if [[ -z ${DIST_DIR+x} ]]; then
+-  echo "DIST_DIR not set. Using out/dist. This should only be used for manual developer testing."
+-  DIST_DIR="out/dist"
+-fi
+-if [[ -z ${TARGET_PRODUCT+x} ]]; then
+-  echo "TARGET_PRODUCT not set. Have you run lunch?"
+-  exit 1
+-fi
+-
+-# Run a mixed build of "droid"
+-build/soong/soong_ui.bash --make-mode \
+-  --mk-metrics \
+-  --bazel-mode-staging \
+-  BP2BUILD_VERBOSE=1 \
+-  BAZEL_STARTUP_ARGS="--max_idle_secs=5" \
+-  BAZEL_BUILD_ARGS="--color=no --curses=no --show_progress_rate_limit=5" \
+-  droid platform_tests \
+-  dist DIST_DIR=$DIST_DIR
+-
+-# Verify there are artifacts under the out directory that originated from bazel.
+-echo "Verifying OUT_DIR contains bazel-out..."
+-if find out/ -type d -name bazel-out &>/dev/null; then
+-  echo "bazel-out found."
+-else
+-  echo "bazel-out not found. This may indicate that mixed builds are silently not running."
+-  exit 1
+-fi
+diff --git a/ci/mixed_e2e.sh b/ci/mixed_e2e.sh
+deleted file mode 100755
+index 50d2470a..00000000
+--- a/ci/mixed_e2e.sh
++++ /dev/null
+@@ -1,26 +0,0 @@
+-#!/bin/bash -eu
+-
+-set -o pipefail
+-
+-# Copyright (C) 2023 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#      http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-
+-# This test suite contains a number of end to end tests verifying Bazel's integration
+-# with Soong in Android builds.
+-
+-TOP="$(readlink -f "$(dirname "$0")"/../../..)"
+-"$TOP/build/bazel/ci/determinism_test.sh"
+-"$TOP/build/bazel/ci/mixed_mode_toggle.sh"
+-"$TOP/build/bazel/ci/ensure_allowlist_integrity.sh"
+diff --git a/ci/mixed_mode_toggle.sh b/ci/mixed_mode_toggle.sh
+deleted file mode 100755
+index 0d88daaf..00000000
+--- a/ci/mixed_mode_toggle.sh
++++ /dev/null
+@@ -1,98 +0,0 @@
+-#!/bin/bash -eux
+-
+-# Copyright (C) 2022 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#      http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-#
+-# Verifies mixed builds does not run if neither --bazel-mode-dev nor --bazel-mode
+-# is set.
+-# This verification script is designed to be used for continuous integration
+-# tests, though may also be used for manual developer verification.
+-
+-if [[ -z ${OUT_DIR+x} ]]; then
+-  OUT_DIR="out"
+-fi
+-
+-if [[ -z ${DIST_DIR+x} ]]; then
+-  echo "DIST_DIR not set. Using ${OUT_DIR}/dist. This should only be used for manual developer testing."
+-  DIST_DIR="${OUT_DIR}/dist"
+-fi
+-
+-# Generate the ninja file with default setting. We expect Bazel to be enabled by
+-# default.
+-build/soong/soong_ui.bash --make-mode \
+-  --mk-metrics \
+-  BAZEL_STARTUP_ARGS="--max_idle_secs=5" \
+-  BAZEL_BUILD_ARGS="--color=no --curses=no --show_progress_rate_limit=5" \
+-  TARGET_PRODUCT=aosp_arm64 \
+-  TARGET_BUILD_VARIANT=userdebug \
+-  com.android.tzdata \
+-  dist DIST_DIR=$DIST_DIR
+-
+-# PLEASE NOTE - IF TZDATA IS EVER REMOVED FROM THE PROD ALLOWLIST, THIS _WILL_ FAIL
+-# Should that happen, look into reverting to the assertions on bazel-out or switching
+-sentinel_file="${OUT_DIR}/bazel/output/execroot/__main__/bazel-out/*/bin/system/timezone/apex/com.android.tzdata.apex"
+-
+-if [[ $(ls ${sentinel_file} | wc -l) -ne 1 ]]; then
+-  echo "Expected a single configuration of tzdata files under bazel-out"
+-  exit 1
+-fi
+-
+-# Default setting should contain bazel-out, as *at least* tzdata is allowlisted for
+-# default prod mode.
+-if [[ $(grep -L "bazel-out" ${OUT_DIR}/soong/build.aosp_arm64.ninja) ]]; then
+-  echo "Expected default build to reference bazel-out"
+-  exit 1
+-fi
+-
+-# Regenerate the ninja file with BUILD_BROKEN override. This should have mixed builds
+-# disabled.
+-build/soong/soong_ui.bash --make-mode \
+-  --mk-metrics \
+-  BUILD_BROKEN_DISABLE_BAZEL=true \
+-  BAZEL_STARTUP_ARGS="--max_idle_secs=5" \
+-  BAZEL_BUILD_ARGS="--color=no --curses=no --show_progress_rate_limit=5" \
+-  TARGET_PRODUCT=aosp_arm64 \
+-  TARGET_BUILD_VARIANT=userdebug \
+-  nothing \
+-  dist DIST_DIR=$DIST_DIR
+-
+-# Note - we could m clean and assert that the bazel build doesn't exist, but this is
+-# a better use of time
+-if [[ ! $(grep -L "bazel-out" ${OUT_DIR}/soong/build.aosp_arm64.ninja) ]]; then
+-  echo "Expected BUILD_BROKEN override to not reference bazel-out"
+-  exit 1
+-fi
+-
+-build/soong/soong_ui.bash --make-mode clean
+-
+-# Rerun default setting. This verifies that removing BUILD_BROKEN_DISABLE_BAZEL
+-# causes analysis to be rerun.
+-build/soong/soong_ui.bash --make-mode \
+-  --mk-metrics \
+-  BAZEL_STARTUP_ARGS="--max_idle_secs=5" \
+-  BAZEL_BUILD_ARGS="--color=no --curses=no --show_progress_rate_limit=5" \
+-  TARGET_PRODUCT=aosp_arm64 \
+-  TARGET_BUILD_VARIANT=userdebug \
+-  com.android.tzdata \
+-  dist DIST_DIR=$DIST_DIR
+-
+-if [[ $(ls ${sentinel_file} | wc -l) -ne 1 ]]; then
+-  echo "Expected a single configuration of tzdata files under bazel-out"
+-  exit 1
+-fi
+-
+-if [[ $(grep -L "bazel-out" ${OUT_DIR}/soong/build.aosp_arm64.ninja) ]]; then
+-  echo "Expected default build rerun to reference bazel-out"
+-  exit 1
+-fi
+diff --git a/ci/multiproduct_analysis.sh b/ci/multiproduct_analysis.sh
+deleted file mode 100755
+index aa4765f9..00000000
+--- a/ci/multiproduct_analysis.sh
++++ /dev/null
+@@ -1,98 +0,0 @@
+-#!/bin/bash -eux
+-
+-source "$(dirname $0)/target_lists.sh"
+-cd "$(dirname $0)/../../.."
+-OUT_DIR=$(realpath ${OUT_DIR:-out})
+-DIST_DIR=$(realpath ${DIST_DIR:-out/dist})
+-
+-
+-read -ra PRODUCTS <<<"$(build/soong/soong_ui.bash --dumpvar-mode all_named_products)"
+-
+-FAILED_PRODUCTS=()
+-PRODUCTS_WITH_BP2BUILD_DIFFS=()
+-
+-function report {
+-  # Turn off -x so that we can see the printfs more clearly
+-  set +x
+-  # check if FAILED_PRODUCTS is not empty
+-  if (( ${#FAILED_PRODUCTS[@]} )); then
+-    printf "Failed products:\n" >&2
+-    printf '%s\n' "${FAILED_PRODUCTS[@]}" >&2
+-  fi
+-  if (( ${#PRODUCTS_WITH_BP2BUILD_DIFFS[@]} )); then
+-    printf "\n\nProducts that produced different bp2build files from aosp_arm64:\n" >&2
+-    printf '%s\n' "${PRODUCTS_WITH_BP2BUILD_DIFFS[@]}" >&2
+-
+-    # TODO(b/261023967): Don't fail the build until every product is OK and we want to prevent backsliding.
+-    # exit 1
+-  fi
+-
+-  # TODO(b/262192655): Support riscv64 products in Bazel.
+-  for product in "${FAILED_PRODUCTS[@]}"; do
+-    if [[ "$product" != *"riscv64"* ]]; then
+-      exit 1
+-    fi
+-  done
+-}
+-
+-trap report EXIT
+-
+-rm -rf "${DIST_DIR}/multiproduct_analysis"
+-mkdir -p "${DIST_DIR}/multiproduct_analysis"
+-
+-# Create zip of the bp2build files for aosp_arm64. We'll check that all other products produce
+-# identical bp2build files.
+-# We have to run tar and gzip as separate commands because tar with -z doesn't provide an option
+-# to not include a timestamp in the gzip header. (--mtime is only for the tar parts, not gzip)
+-export TARGET_PRODUCT="aosp_arm64"
+-build/soong/soong_ui.bash --make-mode --skip-soong-tests bp2build
+-tar c --mtime='1970-01-01' -C out/soong/bp2build . | gzip -n > "${DIST_DIR}/multiproduct_analysis/reference_bp2build_files_aosp_arm64.tar.gz"
+-
+-total=${#PRODUCTS[@]}
+-count=1
+-
+-for product in "${PRODUCTS[@]}"; do
+-  echo "Product ${count}/${total}: ${product}"
+-
+-  # Ensure that all processes later use the same TARGET_PRODUCT.
+-  export TARGET_PRODUCT="${product}"
+-
+-  # Re-run product config and bp2build for every TARGET_PRODUCT.
+-  build/soong/soong_ui.bash --make-mode --skip-soong-tests bp2build
+-  # Remove the ninja_build output marker file to communicate to buildbot that this is not a regular Ninja build, and its
+-  # output should not be parsed as such.
+-  rm -f out/ninja_build
+-
+-  rm -f out/multiproduct_analysis_current_bp2build_files.tar.gz
+-  tar c --mtime='1970-01-01' -C out/soong/bp2build . | gzip -n > "${DIST_DIR}/multiproduct_analysis/bp2build_files_${product}.tar.gz"
+-  if diff -q "${DIST_DIR}/multiproduct_analysis/bp2build_files_${product}.tar.gz" "${DIST_DIR}/multiproduct_analysis/reference_bp2build_files_aosp_arm64.tar.gz"; then
+-    rm -f "${DIST_DIR}/multiproduct_analysis/bp2build_files_${product}.tar.gz"
+-  else
+-    PRODUCTS_WITH_BP2BUILD_DIFFS+=("${product}")
+-  fi
+-
+-  STARTUP_FLAGS=(
+-    # Keep the Bazel server alive, package cache hot and reduce excessive I/O
+-    # and wall time by ensuring that max_idle_secs is longer than bp2build which
+-    # runs in every loop. bp2build takes ~20 seconds to run, so set this to a
+-    # minute to account for resource contention, but still ensure that the bazel
+-    # server doesn't stick around after.
+-    --max_idle_secs=60
+-  )
+-
+-  FLAGS=(
+-    --config=bp2build
+-    --config=ci
+-    --nobuild
+-    --keep_going
+-  )
+-
+-  build/bazel/bin/bazel ${STARTUP_FLAGS[@]} build ${FLAGS[@]} --config=linux_x86_64 -- ${BUILD_TARGETS} || \
+-    FAILED_PRODUCTS+=("${product} --config=linux_x86_64")
+-
+-  build/bazel/bin/bazel ${STARTUP_FLAGS[@]} build ${FLAGS[@]} --config=android -- ${BUILD_TARGETS} || \
+-    FAILED_PRODUCTS+=("${product} --config=android")
+-
+-  count=$((count+1))
+-done
+-
+diff --git a/ci/target_lists.sh b/ci/target_lists.sh
+deleted file mode 100644
+index f1f4ed62..00000000
+--- a/ci/target_lists.sh
++++ /dev/null
+@@ -1,128 +0,0 @@
+-#!/usr/bin/env bash
+-
+-###############
+-# Build and test targets for device target platform.
+-###############
+-BUILD_TARGETS=(
+-  //art/...
+-  //bionic/...
+-  //bootable/recovery/tools/recovery_l10n/...
+-  //build/...
+-  //cts/...
+-  //development/...
+-  //external/rust/crates/rustc-demangle-capi:librustc_demangle_static
+-  //frameworks/av/media/liberror:libexpectedutils_test
+-  //frameworks/av/media/module/foundation:libstagefright_foundation
+-  //frameworks/base:framework-javastream-protos
+-  //frameworks/base/api:merge_annotation_zips_test
+-  //frameworks/base/services/core:statslog-art-java-gen
+-  //frameworks/base/tools/aapt2:aapt2_tests
+-  //frameworks/base/tools/processors/immutability:ImmutabilityAnnotation
+-  //frameworks/native/cmds/installd:run_dex2oat_test
+-  //frameworks/native/libs/binder/tests:binderUtilsHostTest
+-  //frameworks/native/libs/fakeservicemanager:fakeservicemanager_test
+-  //hardware/...
+-  //libnativehelper/...
+-  //packages/modules/adb/...
+-  //packages/modules/common/...
+-  //packages/modules/CaptivePortalLogin/...
+-  //packages/modules/NeuralNetworks/...
+-  //packages/modules/Wifi/...
+-  //prebuilts/clang/host/linux-x86:all
+-  //prebuilts/build-tools/tests/...
+-  //prebuilts/runtime/...
+-  //prebuilts/rust/linux-x86/...
+-  //prebuilts/tools/...
+-  //platform_testing/...
+-  //system/libbase:libbase
+-  //system/core/libcutils:libcutils
+-  //system/core/libutils:libutils
+-  //system/unwinding/libunwindstack:libunwindstack
+-  //tools/apksig/...
+-  //tools/asuite/...
+-  //tools/platform-compat/...
+-
+-  # TODO: b/305044271 - Fix linking error caused by fdo transition
+-  -//art/libartbase:all
+-  -//art/libdexfile:all
+-  # TODO(b/266459895): remove these after re-enabling libunwindstack
+-  -//bionic/libc/malloc_debug:libc_malloc_debug
+-  -//bionic/libfdtrack:libfdtrack
+-  -//frameworks/av/media/codec2/hal/hidl/1.0/utils:libcodec2_hidl@1.0
+-  -//frameworks/av/media/codec2/hal/hidl/1.1/utils:libcodec2_hidl@1.1
+-  -//frameworks/av/media/codec2/hal/hidl/1.2/utils:libcodec2_hidl@1.2
+-  -//frameworks/av/media/module/bqhelper:libstagefright_bufferqueue_helper_novndk
+-  -//frameworks/av/media/module/codecserviceregistrant:libmedia_codecserviceregistrant
+-  -//frameworks/av/services/mediacodec:mediaswcodec
+-  -//frameworks/native/libs/gui:libgui
+-  -//frameworks/native/libs/gui:libgui_bufferqueue_static
+-  -//frameworks/native/opengl/libs:libEGL
+-  -//frameworks/native/opengl/libs:libGLESv2
+-)
+-
+-DEVICE_ONLY_TARGETS=(
+-  //frameworks/native/services/surfaceflinger:libSurfaceFlingerProp
+-  //frameworks/base/cmds/idmap2:libidmap2_policies
+-  //frameworks/base/core/res:framework-res
+-  //frameworks/ex/common:android-common
+-  //frameworks/native/opengl/tests/testViewport:TestViewport
+-)
+-
+-TEST_TARGETS=(
+-  //build/bazel/...
+-  //prebuilts/clang/host/linux-x86:all
+-  //prebuilts/sdk:toolchains_have_all_prebuilts
+-)
+-
+-HOST_ONLY_TEST_TARGETS=(
+-  //build/make/tools/aconfig:aconfig
+-  //frameworks/base/tools/lint/common:AndroidCommonLint
+-  //frameworks/base/tools/processors/immutability:ImmutabilityAnnotationProcessorHostLibrary
+-  //frameworks/base/tools/processors/view_inspector:libview-inspector-annotation-processor
+-  //tools/trebuchet:AnalyzerKt
+-  //tools/metalava/metalava:metalava
+-  # This is explicitly listed to prevent b/294514745
+-  //packages/modules/adb:adb_test
+-  # TODO (b/282953338): these tests depend on adb which is unconverted
+-  -//packages/modules/adb:adb_integration_test_adb
+-  -//packages/modules/adb:adb_integration_test_device
+-  # TODO - b/297952899: this test is flaky in b builds
+-  -//build/soong/cmd/zip2zip:zip2zip-test
+-)
+-
+-# These targets are used to ensure that the aosp-specific rule wrappers forward
+-# all providers of the underlying rule.
+-EXAMPLE_WRAPPER_TARGETS=(
+-  # java_import wrapper
+-  //build/bazel/examples/java/com/bazel:hello_java_import
+-  # java_library wrapper
+-  //build/bazel/examples/java/com/bazel:hello_java_lib
+-  # kt_jvm_library wrapper
+-  //build/bazel/examples/java/com/bazel:some_kotlin_lib
+-  # android_library wrapper
+-  //build/bazel/examples/android_app/java/com/app:applib
+-  # android_binary wrapper
+-  //build/bazel/examples/android_app/java/com/app:app
+-  # aar_import wrapper
+-  //build/bazel/examples/android_app/java/com/app:import
+-)
+-
+-# These targets are used for CI and are expected to be very
+-# unlikely to become incompatible or broken.
+-STABLE_BUILD_TARGETS=(
+-  //packages/modules/adb/crypto/tests:adb_crypto_test
+-  //packages/modules/adb/pairing_auth/tests:adb_pairing_auth_test
+-  //packages/modules/adb/pairing_connection/tests:adb_pairing_connection_test
+-  //packages/modules/adb/tls/tests:adb_tls_connection_test
+-  //packages/modules/adb:adbd_test
+-  //frameworks/base/api:api_fingerprint
+-  //packages/modules/adb/apex:com.android.adbd
+-  //packages/modules/NeuralNetworks/apex:com.android.neuralnetworks
+-  //system/timezone/apex:com.android.tzdata
+-  //packages/modules/NeuralNetworks/runtime:libneuralnetworks
+-  //packages/modules/NeuralNetworks/runtime:libneuralnetworks_static
+-  //system/timezone/testing/data/test1/apex:test1_com.android.tzdata
+-  //system/timezone/testing/data/test3/apex:test3_com.android.tzdata
+-  //packages/modules/adb/apex:test_com.android.adbd
+-  //packages/modules/NeuralNetworks/apex/testing:test_com.android.neuralnetworks
+-)
+diff --git a/examples/queryview/README.md b/examples/queryview/README.md
+deleted file mode 100644
+index 2e285b61..00000000
+--- a/examples/queryview/README.md
++++ /dev/null
+@@ -1,37 +0,0 @@
+-# Examples of Bazel queries in the QueryView
+-
+-**Warning**: This feature is undergoing active development and the generated
+-Bazel BUILD files and other user-facing APIs will change without warning. We
+-recommend to use this feature for learning, exploration, information gathering
+-and debugging purposes only.
+-
+-## Usage
+-
+-Setup your AOSP product config and create the queryview directory:
+-
+-```
+-source build/envsetup.sh
+-lunch aosp_arm # or your preferred target
+-m queryview
+-```
+-
+-Then, run `bazel query` with the `queryview` config, and `--query_file` pointing
+-to the file containing the query expression to run for the current product
+-configuration:
+-
+-```
+-bazel query --config=queryview --query_file=build/bazel/examples/queries/android_app.txt
+-```
+-
+-Alternatively, you can also write the expression directly in the command:
+-
+-```
+-bazel query --config=queryview 'kind("android_app rule", //...)'
+-```
+-
+-## Examples
+-
+-*   `android_apps`: lists all `android_app` modules for the current product configuration
+-*   `nocrt`: modules with `nocrt: True`
+-*   `apex_available`: modules with `//apex_available:platform` in the `apex_available` list property
+-*   `libc_variant`: all variants for `libc`
+diff --git a/examples/queryview/android_apps.txt b/examples/queryview/android_apps.txt
+deleted file mode 100644
+index 40477e61..00000000
+--- a/examples/queryview/android_apps.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-kind("android_app rule", //...)
+diff --git a/examples/queryview/apex_available.txt b/examples/queryview/apex_available.txt
+deleted file mode 100644
+index 15b3f806..00000000
+--- a/examples/queryview/apex_available.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-attr(apex_available, //apex_available:platform, //...)
+diff --git a/examples/queryview/libc.txt b/examples/queryview/libc.txt
+deleted file mode 100644
+index 7279775c..00000000
+--- a/examples/queryview/libc.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-attr(module_name, \Alibc$, //bionic/libc:all)
+diff --git a/examples/queryview/nocrt.txt b/examples/queryview/nocrt.txt
+deleted file mode 100644
+index e9576a11..00000000
+--- a/examples/queryview/nocrt.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-attr(nocrt, 1, //...)
+diff --git a/examples/queryview/run_all_queries.sh b/examples/queryview/run_all_queries.sh
+deleted file mode 100755
+index 2a1bb881..00000000
+--- a/examples/queryview/run_all_queries.sh
++++ /dev/null
+@@ -1,30 +0,0 @@
+-#!/bin/bash
+-#
+-# Copyright (C) 2020 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#      http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-set -euo pipefail
+-
+-function run_query() {
+-  local f=$1; shift;
+-  bazel query --config=queryview --query_file="${f}"
+-}
+-
+-function run_all_queries() {
+-  for f in $(ls -1 | grep .txt); do
+-    run_query "${f}"
+-  done
+-}
+-
+-run_all_queries
+diff --git a/scripts/bp2build_progress/BUILD.bazel b/scripts/bp2build_progress/BUILD.bazel
+deleted file mode 100644
+index 5129535f..00000000
+--- a/scripts/bp2build_progress/BUILD.bazel
++++ /dev/null
+@@ -1,79 +0,0 @@
+-# Copyright (C) 2022 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#   http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-py_library(
+-    name = "dependency_analysis",
+-    srcs = ["dependency_analysis.py"],
+-    imports = ["."],
+-    visibility = ["//visibility:public"],
+-    deps = ["//build/soong/ui/metrics:metrics-py-proto"],
+-)
+-
+-py_library(
+-    name = "queryview_xml",
+-    testonly = True,
+-    srcs = ["queryview_xml.py"],
+-    imports = ["."],
+-    visibility = ["//visibility:public"],
+-)
+-
+-py_library(
+-    name = "soong_module_json",
+-    testonly = True,
+-    srcs = ["soong_module_json.py"],
+-    imports = ["."],
+-    visibility = ["//visibility:public"],
+-)
+-
+-py_test(
+-    name = "dependency_analysis_test",
+-    size = "small",
+-    srcs = ["dependency_analysis_test.py"],
+-    python_version = "PY3",
+-    deps = [
+-        ":dependency_analysis",
+-        ":queryview_xml",
+-        ":soong_module_json",
+-    ],
+-)
+-
+-py_binary(
+-    name = "bp2build_progress",
+-    srcs = ["bp2build_progress.py"],
+-    visibility = ["//visibility:public"],
+-    deps = [
+-        ":dependency_analysis",
+-        "//build/soong/ui/metrics/bp2build_progress_metrics_proto:bp2build_py_proto",
+-    ],
+-)
+-
+-py_test(
+-    name = "bp2build_progress_test",
+-    size = "small",
+-    srcs = ["bp2build_progress_test.py"],
+-    python_version = "PY3",
+-    deps = [
+-        ":bp2build_progress",
+-        ":dependency_analysis",
+-        ":queryview_xml",
+-        ":soong_module_json",
+-    ],
+-)
+-
+-py_binary(
+-    name = "bp2build_module_dep_infos",
+-    srcs = ["bp2build_module_dep_infos.py"],
+-    visibility = ["//visibility:public"],
+-    deps = [":dependency_analysis"],
+-)
+diff --git a/scripts/bp2build_progress/README.md b/scripts/bp2build_progress/README.md
+deleted file mode 100644
+index 5394d253..00000000
+--- a/scripts/bp2build_progress/README.md
++++ /dev/null
+@@ -1,70 +0,0 @@
+-# bp2build progress graphs
+-
+-This directory contains tools to generate reports and .png graphs of the
+-bp2build conversion progress, for any module.
+-
+-This tool relies on `json-module-graph` and `bp2build` to be buildable targets
+-for this branch.
+-
+-## Prerequisites
+-
+-* `/usr/bin/dot`: turning dot graphviz files into .pngs
+-
+-Tip: `--use_queryview=true` runs `bp2build_progress.py` with queryview.
+-
+-## Instructions
+-
+-### Syntax
+-
+-```sh
+-b run //build/bazel/scripts/bp2build_progress -- <mode> <flags> ...
+-```
+-
+-Flags:
+-
+-* --module, -m : Name(s) of Soong module(s). Multiple modules only supported for report.
+-* --type, -t : Type(s) of Soong module(s). Multiple modules only supported in report mode.
+-* --package-dir, -p: Package directory for Soong modules. Single package directory only supported for report.
+-* --recursive, -r: Whether to perform recursive search when --package-dir or -p flag is passed.
+-* --use-queryview: Whether to use queryview or module_info.
+-* --ignore-by-name : Comma-separated list. When building the tree of transitive dependencies, will not follow dependency edges pointing to module names listed by this flag.
+-* --ignore-java-auto-deps : Whether to ignore automatically added java deps.
+-* --banchan : Whether to run Soong in a banchan configuration rather than lunch.
+-* --show-converted, -s : Show bp2build-converted modules in addition to the unconverted dependencies to see full dependencies post-migration. By default converted dependencies are not shown.
+-* --hide-unconverted-modules-reasons: Hide unconverted modules reasons of heuristics and bp2build_metrics.pb. By default unconverted modules reasons are shown.
+-
+-### Examples
+-
+-#### Generate the report for a module, e.g. adbd
+-
+-```sh
+-b run //build/bazel/scripts/bp2build_progress:bp2build_progress \
+-  -- report -m <module-name>
+-```
+-
+-or:
+-
+-```sh
+-b run //build/bazel/scripts/bp2build_progress:bp2build_progress \
+-  -- report -m <module-name> --use-queryview
+-```
+-
+-When running in report mode, you can also write results to a proto with the flag
+-`--proto-file`
+-
+-#### Generate the graph for a module, e.g. adbd
+-
+-```sh
+-b run //build/bazel/scripts/bp2build_progress:bp2build_progress \
+-  -- graph -m adbd -o /tmp/graph.in && \
+-  dot -Tpng -o /tmp/graph.png /tmp/graph.in
+-```
+-
+-or:
+-
+-```sh
+-b run //build/bazel/scripts/bp2build_progress:bp2build_progress \
+-  -- graph -m adbd --use-queryview -o /tmp/graph.in && \
+-  dot -Tpng -o /tmp/graph.png /tmp/graph.in
+-```
+-Note: Currently, file output paths cannot be relative (b/283512659).
+diff --git a/scripts/bp2build_progress/bp2build_module_dep_infos.py b/scripts/bp2build_progress/bp2build_module_dep_infos.py
+deleted file mode 100755
+index 9d6ea54c..00000000
+--- a/scripts/bp2build_progress/bp2build_module_dep_infos.py
++++ /dev/null
+@@ -1,186 +0,0 @@
+-#!/usr/bin/env python3
+-#
+-# Copyright (C) 2022 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#   http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-"""A script to produce a csv report of all modules of a given type.
+-
+-There is one output row per module of the input type, each column corresponds
+-to one of the fields of the _ModuleTypeInfo named tuple described below.
+-The script allows to ignore certain dependency edges based on the target module
+-name, or the dependency tag name.
+-
+-Usage:
+-  ./bp2build-module-dep-infos.py -m <module type>
+-                                 --ignore-by-name <modules to ignore>
+-"""
+-
+-import argparse
+-import collections
+-import csv
+-import sys
+-import dependency_analysis
+-
+-_ModuleTypeInfo = collections.namedtuple(
+-    "_ModuleTypeInfo",
+-    [
+-        # map of module type to the set of properties used by modules
+-        # of the given type in the dependency tree.
+-        "type_to_properties",
+-        # [java modules only] list of source file extensions used by this module.
+-        "java_source_extensions",
+-    ],
+-)
+-
+-
+-def _get_java_source_extensions(module):
+-  out = set()
+-  if "Module" not in module:
+-    return out
+-  if "Java" not in module["Module"]:
+-    return out
+-  if "SourceExtensions" not in module["Module"]["Java"]:
+-    return out
+-  if module["Module"]["Java"]["SourceExtensions"]:
+-    out.update(module["Module"]["Java"]["SourceExtensions"])
+-  return out
+-
+-
+-def module_type_info_from_json(
+-    module_graph, module_type, ignored_dep_names, ignore_java_auto_deps
+-):
+-  """Builds a map of module name to _ModuleTypeInfo for each module of module_type.
+-
+-  Dependency edges pointing to modules in ignored_dep_names are not followed.
+-  """
+-
+-  modules_of_type = set()
+-
+-  def filter_by_type(json):
+-    if json["Type"] == module_type:
+-      modules_of_type.add(json["Name"])
+-      return True
+-    return False
+-
+-  # dictionary of module name to _ModuleTypeInfo.
+-
+-  type_infos = {}
+-
+-  def update_infos(module, deps):
+-    module_name = module["Name"]
+-    info = type_infos.get(
+-        module_name,
+-        _ModuleTypeInfo(
+-            java_source_extensions=set(),
+-            type_to_properties=collections.defaultdict(set),
+-        ),
+-    )
+-
+-    java_source_extensions = _get_java_source_extensions(module)
+-
+-    if module["Type"]:
+-      info.type_to_properties[module["Type"]].update(
+-          dependency_analysis.get_property_names(module)
+-      )
+-
+-    for dep_name in deps:
+-      for dep_type, dep_type_properties in type_infos[
+-          dep_name
+-      ].type_to_properties.items():
+-        info.type_to_properties[dep_type].update(dep_type_properties)
+-        java_source_extensions.update(
+-            type_infos[dep_name].java_source_extensions
+-        )
+-
+-    info.java_source_extensions.update(java_source_extensions)
+-    # for a module, collect all properties and java source extensions specified by
+-    # transitive dependencies and the module itself
+-    type_infos[module_name] = info
+-
+-  dependency_analysis.visit_json_module_graph_post_order(
+-      module_graph,
+-      ignored_dep_names,
+-      ignore_java_auto_deps,
+-      filter_by_type,
+-      update_infos,
+-  )
+-
+-  return {
+-      name: info for name, info in type_infos.items() if name in modules_of_type
+-  }
+-
+-
+-def _write_output(file_handle, type_infos):
+-  writer = csv.writer(file_handle)
+-  writer.writerow([
+-      "module name",
+-      "properties",
+-      "java source extensions",
+-  ])
+-  for module, module_type_info in type_infos.items():
+-    writer.writerow([
+-        module,
+-        (
+-            '["%s"]'
+-            % '"\n"'.join(
+-                [
+-                    "%s: %s" % (mtype, ",".join(properties))
+-                    for mtype, properties in module_type_info.type_to_properties.items()
+-                ]
+-            )
+-            if len(module_type_info.type_to_properties)
+-            else "[]"
+-        ),
+-        (
+-            '["%s"]' % '", "'.join(module_type_info.java_source_extensions)
+-            if len(module_type_info.java_source_extensions)
+-            else "[]"
+-        ),
+-    ])
+-
+-
+-def main():
+-  parser = argparse.ArgumentParser()
+-  parser.add_argument("--module-type", "-m", help="name of Soong module type.")
+-  parser.add_argument(
+-      "--ignore-by-name",
+-      default="",
+-      help=(
+-          "Comma-separated list. When building the tree of transitive"
+-          " dependencies, will not follow dependency edges pointing to module"
+-          " names listed by this flag."
+-      ),
+-  )
+-  parser.add_argument(
+-      "--ignore-java-auto-deps",
+-      action="store_true",
+-      help="whether to ignore automatically added java deps",
+-  )
+-  args = parser.parse_args()
+-
+-  module_type = args.module_type
+-  ignore_by_name = args.ignore_by_name
+-
+-  module_graph = dependency_analysis.get_json_module_type_info(module_type)
+-  type_infos = module_type_info_from_json(
+-      module_graph,
+-      module_type,
+-      ignore_by_name.split(","),
+-      args.ignore_java_auto_deps,
+-  )
+-
+-  _write_output(sys.stdout, type_infos)
+-
+-
+-if __name__ == "__main__":
+-  main()
+diff --git a/scripts/bp2build_progress/bp2build_progress.py b/scripts/bp2build_progress/bp2build_progress.py
+deleted file mode 100755
+index 14063624..00000000
+--- a/scripts/bp2build_progress/bp2build_progress.py
++++ /dev/null
+@@ -1,936 +0,0 @@
+-#!/usr/bin/env python3
+-#
+-# Copyright (C) 2021 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#   http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-import argparse
+-import collections
+-import dataclasses
+-import datetime
+-import functools
+-import os.path
+-import subprocess
+-import sys
+-from typing import DefaultDict, Dict, FrozenSet, List, Optional, Set, Tuple
+-import xml
+-from bp2build_metrics_proto.bp2build_metrics_pb2 import Bp2BuildMetrics, UnconvertedReasonType
+-import bp2build_pb2
+-import dependency_analysis
+-
+-
+-@dataclasses.dataclass(frozen=True, order=True)
+-class GraphFilterInfo:
+-  module_names: Set[str] = dataclasses.field(default_factory=set)
+-  module_types: Set[str] = dataclasses.field(default_factory=set)
+-  package_dir: str = dataclasses.field(default_factory=str)
+-  recursive: bool = dataclasses.field(default_factory=bool)
+-
+-
+-@dataclasses.dataclass(frozen=True, order=True)
+-class ModuleInfo:
+-  name: str
+-  kind: str
+-  dirname: str
+-  created_by: Optional[str]
+-  reasons_from_heuristics: FrozenSet[str] = frozenset()
+-  reason_from_metric: str = ""
+-  props: FrozenSet[str] = frozenset()
+-  num_deps: int = 0
+-  converted: bool = False
+-
+-  def __str__(self):
+-    converted = " (converted)" if self.converted else ""
+-    return f"{self.name} [{self.kind}] [{self.dirname}]{converted}"
+-
+-  def short_string(self, converted: Set[str]):
+-    converted = " (c)" if self.is_converted(converted) else ""
+-    return f"{self.name} [{self.kind}]{converted}"
+-
+-  def get_reasons_from_heuristics(self):
+-    if len(self.reasons_from_heuristics) == 0:
+-      return ""
+-    return (
+-        "unconverted reasons from heuristics: {reasons_from_heuristics}"
+-        .format(reasons_from_heuristics=", ".join(self.reasons_from_heuristics))
+-    )
+-
+-  def get_reason_from_metric(self):
+-    if len(self.reason_from_metric) == 0:
+-      return ""
+-    return "unconverted reason from metric: {reason_from_metric}".format(
+-        reason_from_metric=self.reason_from_metric
+-    )
+-
+-  def is_converted(self, converted: Dict[str, Set[str]]):
+-    return self.name in converted and self.kind in converted[self.name]
+-
+-  def is_skipped(self):
+-    # these are implementation details of another module type that can never be
+-    # created in a BUILD file
+-    return ".go_android/soong" in self.kind and (
+-        self.kind.endswith("__loadHookModule")
+-        or self.kind.endswith("__topDownMutatorModule")
+-    )
+-
+-  def is_converted_or_skipped(self, converted: Dict[str, Set[str]]):
+-    return self.is_converted(converted) or self.is_skipped()
+-
+-
+-@dataclasses.dataclass(frozen=True, order=True)
+-class DepInfo:
+-  direct_deps: Set[ModuleInfo] = dataclasses.field(default_factory=set)
+-  transitive_deps: Set[ModuleInfo] = dataclasses.field(default_factory=set)
+-
+-  def all_deps(self):
+-    return set.union(self.direct_deps, self.transitive_deps)
+-
+-
+-@dataclasses.dataclass(frozen=True, order=True)
+-class InputModule:
+-  module: ModuleInfo
+-  num_deps: int = 0
+-  num_unconverted_deps: int = 0
+-
+-  def __str__(self):
+-    total = self.num_deps
+-    converted = self.num_deps - self.num_unconverted_deps
+-    percent = 100
+-    if self.num_deps > 0:
+-      percent = converted / self.num_deps * 100
+-    return f"{self.module.name}: {percent:.1f}% ({converted}/{total}) converted"
+-
+-
+-@dataclasses.dataclass(frozen=True)
+-class ReportData:
+-  total_deps: Set[ModuleInfo]
+-  unconverted_deps: Set[str]
+-  all_unconverted_modules: Dict[str, Set[ModuleInfo]]
+-  blocked_modules: Dict[ModuleInfo, Set[str]]
+-  blocked_modules_transitive: Dict[ModuleInfo, Set[str]]
+-  dirs_with_unconverted_modules: Set[str]
+-  kind_of_unconverted_modules: Set[str]
+-  converted: Dict[str, Set[str]]
+-  show_converted: bool
+-  hide_unconverted_modules_reasons: bool
+-  package_dir: str
+-  input_modules: Set[InputModule] = dataclasses.field(default_factory=set)
+-  input_types: Set[str] = dataclasses.field(default_factory=set)
+-
+-
+-# Generate a dot file containing the transitive closure of the module.
+-def generate_dot_file(
+-    modules: Dict[ModuleInfo, DepInfo],
+-    converted: Dict[str, Set[str]],
+-    show_converted: bool,
+-):
+-  # Check that all modules in the argument are in the list of converted modules
+-  all_converted = lambda modules: all(
+-      m.is_converted(converted) for m in modules
+-  )
+-
+-  dot_entries = []
+-
+-  for module, dep_info in sorted(modules.items()):
+-    deps = dep_info.direct_deps
+-    if module.is_converted(converted):
+-      if show_converted:
+-        color = "dodgerblue"
+-      else:
+-        continue
+-    elif all_converted(deps):
+-      color = "yellow"
+-    else:
+-      color = "tomato"
+-
+-    dot_entries.append(
+-        f'"{module.name}" [label="{module.name}\\n{module.kind}" color=black,'
+-        f" style=filled, fillcolor={color}]"
+-    )
+-    dot_entries.extend(
+-        f'"{module.name}" -> "{dep.name}"'
+-        for dep in sorted(deps)
+-        if show_converted or not dep.is_converted(converted)
+-    )
+-
+-  return """
+-digraph mygraph {{
+-  node [shape=box];
+-
+-  %s
+-}}
+-""" % "\n  ".join(dot_entries)
+-
+-
+-def get_transitive_unconverted_deps(
+-    cache: Dict[DepInfo, Set[DepInfo]],
+-    module: ModuleInfo,
+-    modules: Dict[ModuleInfo, DepInfo],
+-    converted: Dict[str, Set[str]],
+-) -> Set[str]:
+-  if module in cache:
+-    return cache[module]
+-  unconverted_deps = set()
+-  dep = modules[module]
+-  for d in dep.direct_deps:
+-    if d.is_converted_or_skipped(converted):
+-      continue
+-    unconverted_deps.add(d)
+-    transitive = get_transitive_unconverted_deps(cache, d, modules, converted)
+-    unconverted_deps = unconverted_deps.union(transitive)
+-  cache[module] = unconverted_deps
+-  return unconverted_deps
+-
+-
+-# Filter modules based on the module and graph_filter
+-def module_matches_filter(module, graph_filter):
+-  dirname = module.dirname + "/"
+-  if graph_filter.package_dir is not None:
+-    if graph_filter.recursive:
+-      return dirname.startswith(graph_filter.package_dir)
+-    return dirname == graph_filter.package_dir
+-  return (
+-      module.name in graph_filter.module_names
+-      or module.kind in graph_filter.module_types
+-  )
+-
+-
+-def unconverted_reasons_from_heuristics(
+-    module, unconverted_transitive_deps, props_by_converted_module_type
+-):
+-  """Heuristics for determining the reason for unconverted module"""
+-  reasons = []
+-  if module.converted:
+-    raise RuntimeError(
+-        "Heuristics should not be run on converted module %s" % module.name
+-    )
+-  if module.kind in props_by_converted_module_type:
+-    props_diff = module.props.difference(
+-        props_by_converted_module_type[module.kind]
+-    )
+-    if len(props_diff) != 0:
+-      reasons.append(
+-          "unconverted properties: [%s]" % ", ".join(sorted(props_diff))
+-      )
+-  else:
+-    reasons.append("type missing converter")
+-  if len(unconverted_transitive_deps) > 0:
+-    reasons.append("unconverted dependencies")
+-  return frozenset(reasons)
+-
+-
+-# Generate a report for each module in the transitive closure, and the blockers for each module
+-def generate_report_data(
+-    modules: Dict[ModuleInfo, DepInfo],
+-    converted: Set[str],
+-    graph_filter: GraphFilterInfo,
+-    props_by_converted_module_type: DefaultDict[str, Set[str]],
+-    use_queryview: bool,
+-    bp2build_metrics: Bp2BuildMetrics,
+-    hide_unconverted_modules_reasons: bool = False,
+-    show_converted: bool = False,
+-) -> ReportData:
+-  # Map of [number of unconverted deps] to list of entries,
+-  # with each entry being the string: "<module>: <comma separated list of unconverted modules>"
+-  blocked_modules = collections.defaultdict(set)
+-  blocked_modules_transitive = collections.defaultdict(set)
+-
+-  # Map of unconverted modules to the modules they're blocking
+-  # (i.e. reverse deps)
+-  all_unconverted_modules = collections.defaultdict(set)
+-
+-  dirs_with_unconverted_modules = set()
+-  kind_of_unconverted_modules = collections.defaultdict(int)
+-
+-  input_all_deps = set()
+-  input_unconverted_deps = set()
+-  input_modules = set()
+-
+-  transitive_deps_by_dep_info = {}
+-
+-  for module, dep_info in sorted(modules.items()):
+-    deps = dep_info.direct_deps
+-    unconverted_deps = set(
+-        dep for dep in deps if not dep.is_converted_or_skipped(converted)
+-    )
+-
+-    unconverted_transitive_deps = get_transitive_unconverted_deps(
+-        transitive_deps_by_dep_info, module, modules, converted
+-    )
+-
+-    # ModuleInfo.reason_from_metric will be an empty string if the module is converted or --use-queryview flag is passed
+-    unconverted_module_reason_from_metrics = ""
+-    if (
+-        module.name in bp2build_metrics.unconvertedModules
+-        and not use_queryview
+-        and not hide_unconverted_modules_reasons
+-    ):
+-      # TODO(b/291642059): Concatenate the value of UnconvertedReason.detail field with unconverted_module_reason_from_metrics.
+-      unconverted_module_reason_from_metrics = UnconvertedReasonType.Name(
+-          bp2build_metrics.unconvertedModules[module.name].type
+-      )
+-
+-    unconverted_module_reasons_from_heuristics = (
+-        unconverted_reasons_from_heuristics(
+-            module, unconverted_transitive_deps, props_by_converted_module_type
+-        )
+-        if not (
+-            module.is_skipped()
+-            or module.is_converted(converted)
+-            or use_queryview
+-            or hide_unconverted_modules_reasons
+-        )
+-        else frozenset()
+-    )
+-
+-    # replace deps count with transitive deps rather than direct deps count
+-    module = ModuleInfo(
+-        module.name,
+-        module.kind,
+-        module.dirname,
+-        module.created_by,
+-        unconverted_module_reasons_from_heuristics,
+-        unconverted_module_reason_from_metrics,
+-        module.props,
+-        len(dep_info.all_deps()),
+-        module.is_converted(converted),
+-    )
+-
+-    for dep in unconverted_transitive_deps:
+-      all_unconverted_modules[dep].add(module)
+-
+-    if not module.is_skipped() and (
+-        not module.is_converted(converted) or show_converted
+-    ):
+-      if show_converted:
+-        full_deps = set(dep for dep in deps)
+-        blocked_modules[module].update(full_deps)
+-        full_deps = set(dep for dep in dep_info.all_deps())
+-        blocked_modules_transitive[module].update(full_deps)
+-      else:
+-        blocked_modules[module].update(unconverted_deps)
+-        blocked_modules_transitive[module].update(unconverted_transitive_deps)
+-
+-    if not module.is_converted_or_skipped(converted):
+-      dirs_with_unconverted_modules.add(module.dirname)
+-      kind_of_unconverted_modules[module.kind] += 1
+-
+-    if module_matches_filter(module, graph_filter):
+-      transitive_deps = dep_info.all_deps()
+-      input_modules.add(
+-          InputModule(
+-              module, len(transitive_deps), len(unconverted_transitive_deps)
+-          )
+-      )
+-      input_all_deps.update(transitive_deps)
+-      input_unconverted_deps.update(unconverted_transitive_deps)
+-
+-  kinds = set(
+-      f"{k}: {kind_of_unconverted_modules[k]}"
+-      for k in kind_of_unconverted_modules.keys()
+-  )
+-
+-  return ReportData(
+-      input_modules=input_modules,
+-      input_types=graph_filter.module_types,
+-      total_deps=input_all_deps,
+-      unconverted_deps=input_unconverted_deps,
+-      all_unconverted_modules=all_unconverted_modules,
+-      blocked_modules=blocked_modules,
+-      blocked_modules_transitive=blocked_modules_transitive,
+-      dirs_with_unconverted_modules=dirs_with_unconverted_modules,
+-      kind_of_unconverted_modules=kinds,
+-      converted=converted,
+-      show_converted=show_converted,
+-      hide_unconverted_modules_reasons=hide_unconverted_modules_reasons,
+-      package_dir=graph_filter.package_dir,
+-  )
+-
+-
+-def generate_proto(report_data):
+-  message = bp2build_pb2.Bp2buildConversionProgress(
+-      root_modules=[m.module.name for m in report_data.input_modules],
+-      num_deps=len(report_data.total_deps),
+-  )
+-  for (
+-      module,
+-      unconverted_deps,
+-  ) in report_data.blocked_modules_transitive.items():
+-    message.unconverted.add(
+-        name=module.name,
+-        directory=module.dirname,
+-        type=module.kind,
+-        unconverted_deps={d.name for d in unconverted_deps},
+-        num_deps=module.num_deps,
+-        # when the module is converted or queryview is being used, an empty list will be assigned
+-        unconverted_reasons_from_heuristics=list(
+-            module.reasons_from_heuristics
+-        ),
+-    )
+-  return message
+-
+-
+-def generate_report(report_data):
+-  report_lines = []
+-  if len(report_data.input_types) > 0:
+-    input_module_str = ", ".join(
+-        str(i) for i in sorted(report_data.input_types)
+-    )
+-  else:
+-    input_module_str = ", ".join(
+-        str(i) for i in sorted(report_data.input_modules)
+-    )
+-
+-  report_lines.append("# bp2build progress report for: %s\n" % input_module_str)
+-
+-  if report_data.show_converted:
+-    report_lines.append(
+-        "# progress report includes data both for converted and unconverted"
+-        " modules"
+-    )
+-
+-  total = len(report_data.total_deps)
+-  unconverted = len(report_data.unconverted_deps)
+-  converted = total - unconverted
+-  if total > 0:
+-    percent = converted / total * 100
+-  else:
+-    percent = 100
+-  report_lines.append(f"Percent converted: {percent:.2f} ({converted}/{total})")
+-  report_lines.append(f"Total unique unconverted dependencies: {unconverted}")
+-
+-  report_lines.append(
+-      "Ignored module types: %s\n" % sorted(dependency_analysis.IGNORED_KINDS)
+-  )
+-  report_lines.append("# Transitive dependency closure:")
+-
+-  current_count = -1
+-  for module, unconverted_transitive_deps in sorted(
+-      report_data.blocked_modules_transitive.items(), key=lambda x: len(x[1])
+-  ):
+-    count = len(unconverted_transitive_deps)
+-    if current_count != count:
+-      report_lines.append(f"\n{count} unconverted transitive deps remaining:")
+-      current_count = count
+-    unconverted_deps = report_data.blocked_modules.get(module, set())
+-    unconverted_deps = set(
+-        d.short_string(report_data.converted) for d in unconverted_deps
+-    )
+-    report_lines.append(f"{module}")
+-    if not report_data.hide_unconverted_modules_reasons:
+-      report_lines.append("\tunconverted due to:")
+-      reason_from_metric = module.get_reason_from_metric()
+-      reasons_from_heuristics = module.get_reasons_from_heuristics()
+-      if reason_from_metric != "":
+-        report_lines.append(f"\t\t{reason_from_metric}")
+-      if reasons_from_heuristics != "":
+-        report_lines.append(f"\t\t{reasons_from_heuristics}")
+-    if len(unconverted_deps) == 0:
+-      report_lines.append('\tdirect deps:')
+-    else:
+-      report_lines.append(
+-        "\tdirect deps: {deps}".format(deps=", ".join(sorted(unconverted_deps)))
+-      )
+-
+-  report_lines.append("\n")
+-  report_lines.append("# Unconverted deps of {}:\n".format(input_module_str))
+-  for count, dep in sorted(
+-      (
+-          (len(unconverted), dep)
+-          for dep, unconverted in report_data.all_unconverted_modules.items()
+-      ),
+-      reverse=True,
+-  ):
+-    report_lines.append(
+-        "%s: blocking %d modules"
+-        % (dep.short_string(report_data.converted), count)
+-    )
+-
+-  report_lines.append("\n")
+-  report_lines.append(
+-      "# Dirs with unconverted modules:\n\n{}".format(
+-          "\n".join(sorted(report_data.dirs_with_unconverted_modules))
+-      )
+-  )
+-
+-  report_lines.append("\n")
+-  report_lines.append(
+-      "# Kinds with unconverted modules:\n\n{}".format(
+-          "\n".join(sorted(report_data.kind_of_unconverted_modules))
+-      )
+-  )
+-
+-  report_lines.append("\n")
+-  if report_data.show_converted:
+-    report_lines.append(
+-      "# Converted modules:\n\n%s" % "\n".join(sorted(report_data.converted))
+-    )
+-  else:
+-    report_lines.append("# Converted modules not shown")
+-
+-  report_lines.append("\n")
+-  report_lines.append(
+-      "Generated by:"
+-      " https://cs.android.com/android/platform/superproject/+/master:build/bazel/scripts/bp2build_progress/bp2build_progress.py"
+-  )
+-  report_lines.append(
+-      "Generated at: %s"
+-      % datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S %z")
+-  )
+-
+-  return "\n".join(report_lines)
+-
+-
+-def adjacency_list_from_json(
+-    module_graph: ...,
+-    ignore_by_name: List[str],
+-    ignore_java_auto_deps: bool,
+-    graph_filter: GraphFilterInfo,
+-    collect_transitive_dependencies: bool = True,
+-) -> Dict[ModuleInfo, Set[ModuleInfo]]:
+-  def filtering(json):
+-    module = ModuleInfo(
+-        name=json["Name"],
+-        created_by=json["CreatedBy"],
+-        kind=json["Type"],
+-        dirname=os.path.dirname(json["Blueprint"]),
+-    )
+-    return module_matches_filter(module, graph_filter)
+-
+-  module_adjacency_list = {}
+-  name_to_info = {}
+-
+-  def collect_dependencies(module, deps_names):
+-    module_info = None
+-    name = module["Name"]
+-    props = dependency_analysis.get_properties(module)
+-    converted = (
+-        props.get("Bazel_module.Bp2build_available", "false") == "true"
+-        or props.get("Bazel_module.Label", "") != ""
+-    )
+-    name_to_info.setdefault(
+-        name,
+-        ModuleInfo(
+-            name=name,
+-            created_by=module["CreatedBy"],
+-            kind=module["Type"],
+-            props=frozenset(
+-                prop for prop in dependency_analysis.get_property_names(module)
+-            ),
+-            dirname=os.path.dirname(module["Blueprint"]),
+-            num_deps=len(deps_names),
+-            converted=converted,
+-        ),
+-    )
+-
+-    module_info = name_to_info[name]
+-
+-    # ensure module_info added to adjacency list even with no deps
+-    module_adjacency_list.setdefault(module_info, DepInfo())
+-    for dep in deps_names:
+-      # this may occur if there is a cycle between a module and created_by
+-      # module
+-      if not dep in name_to_info:
+-        continue
+-      dep_module_info = name_to_info[dep]
+-      module_adjacency_list[module_info].direct_deps.add(dep_module_info)
+-      if collect_transitive_dependencies:
+-        transitive_dep_info = module_adjacency_list.get(
+-            dep_module_info, DepInfo()
+-        )
+-        module_adjacency_list[module_info].transitive_deps.update(
+-            transitive_dep_info.all_deps()
+-        )
+-
+-  dependency_analysis.visit_json_module_graph_post_order(
+-      module_graph,
+-      ignore_by_name,
+-      ignore_java_auto_deps,
+-      filtering,
+-      collect_dependencies,
+-  )
+-
+-  return module_adjacency_list
+-
+-
+-def adjacency_list_from_queryview_xml(
+-    module_graph: xml.etree.ElementTree,
+-    graph_filter: GraphFilterInfo,
+-    ignore_by_name: List[str],
+-    collect_transitive_dependencies: bool = True,
+-) -> Dict[ModuleInfo, DepInfo]:
+-  def filtering(module):
+-    return (
+-        module.name in graph_filter.module_names
+-        or module.kind in graph_filter.module_types
+-    )
+-
+-  module_adjacency_list = collections.defaultdict(set)
+-  name_to_info = {}
+-
+-  def collect_dependencies(module, deps_names):
+-    module_info = None
+-    name_to_info.setdefault(
+-        module.name,
+-        ModuleInfo(
+-            name=module.name,
+-            kind=module.kind,
+-            dirname=module.dirname,
+-            # required so that it cannot be forgotten when updating num_deps
+-            created_by=None,
+-            num_deps=len(deps_names),
+-        ),
+-    )
+-    module_info = name_to_info[module.name]
+-
+-    # ensure module_info added to adjacency list even with no deps
+-    module_adjacency_list.setdefault(module_info, DepInfo())
+-    for dep in deps_names:
+-      dep_module_info = name_to_info[dep]
+-      module_adjacency_list[module_info].direct_deps.add(dep_module_info)
+-      if collect_transitive_dependencies:
+-        transitive_dep_info = module_adjacency_list.get(
+-            dep_module_info, DepInfo()
+-        )
+-        module_adjacency_list[module_info].transitive_deps.update(
+-            transitive_dep_info.all_deps()
+-        )
+-
+-  dependency_analysis.visit_queryview_xml_module_graph_post_order(
+-      module_graph, ignore_by_name, filtering, collect_dependencies
+-  )
+-
+-  return module_adjacency_list
+-
+-
+-# this function gets map of converted module types to set of properties for heuristics
+-def get_props_by_converted_module_type(module_graph, converted, ignore_by_name):
+-  props_by_converted_module_type = collections.defaultdict(set)
+-
+-  def collect_module_props(module):
+-    props = set(prop for prop in dependency_analysis.get_property_names(module))
+-    if module["Type"] not in props_by_converted_module_type:
+-      props_by_converted_module_type[module["Type"]] = props
+-    else:
+-      props_by_converted_module_type[module["Type"]].update(props)
+-
+-  for module in module_graph:
+-    if module[
+-        "Name"
+-    ] not in converted or dependency_analysis.ignore_json_module(
+-        module, ignore_by_name
+-    ):
+-      continue
+-    collect_module_props(module)
+-
+-  return props_by_converted_module_type
+-
+-
+-def get_module_adjacency_list_and_props_by_converted_module_type(
+-    graph_filter: GraphFilterInfo,
+-    use_queryview: bool,
+-    ignore_by_name: List[str],
+-    converted: Set[str],
+-    target_product: dependency_analysis.TargetProduct,
+-    ignore_java_auto_deps: bool = False,
+-    collect_transitive_dependencies: bool = True,
+-) -> Tuple[Dict[ModuleInfo, DepInfo], DefaultDict[str, Set[str]]]:
+-  # The main module graph containing _all_ modules in the Soong build,
+-  # and the list of converted modules.
+-
+-  # Map of converted modules types to the set of properties.
+-  # This is only used in heuristics implementation.
+-  props_by_converted_module_type = collections.defaultdict(set)
+-
+-  try:
+-    if use_queryview:
+-      if len(graph_filter.module_names) > 0:
+-        module_graph = dependency_analysis.get_queryview_module_info(
+-            graph_filter.module_names, target_product
+-        )
+-      else:
+-        module_graph = dependency_analysis.get_queryview_module_info_by_type(
+-            graph_filter.module_types, target_product
+-        )
+-
+-      module_adjacency_list = adjacency_list_from_queryview_xml(
+-          module_graph,
+-          graph_filter,
+-          ignore_by_name,
+-          collect_transitive_dependencies,
+-      )
+-    else:
+-      module_graph = dependency_analysis.get_json_module_info(target_product)
+-      module_adjacency_list = adjacency_list_from_json(
+-          module_graph,
+-          ignore_by_name,
+-          ignore_java_auto_deps,
+-          graph_filter,
+-          collect_transitive_dependencies,
+-      )
+-      props_by_converted_module_type = get_props_by_converted_module_type(
+-          module_graph, converted, ignore_by_name
+-      )
+-  except subprocess.CalledProcessError as err:
+-    sys.exit(f"""Error running: '{' '.join(err.cmd)}':"
+-Stdout:
+-{err.stdout.decode('utf-8') if err.stdout else ''}
+-Stderr:
+-{err.stderr.decode('utf-8') if err.stderr else ''}""")
+-
+-  return module_adjacency_list, props_by_converted_module_type
+-
+-
+-def add_manual_conversion_to_converted(
+-    converted: Dict[str, Set[str]], module_adjacency_list: Dict[ModuleInfo, DepInfo]
+-) -> Set[str]:
+-  modules_by_name = {m.name: m for m in module_adjacency_list.keys()}
+-
+-  converted_modules = collections.defaultdict(set)
+-  converted_modules.update(converted)
+-
+-  def _update_converted(module_name):
+-    if module_name in converted_modules:
+-      return True
+-    if module_name not in modules_by_name:
+-      return False
+-    module = modules_by_name[module_name]
+-    if module.converted:
+-      converted_modules[module_name].add(module.kind)
+-      return True
+-    return False
+-
+-  for module in modules_by_name.keys():
+-    _update_converted(module)
+-
+-  return converted_modules
+-
+-
+-def main():
+-  parser = argparse.ArgumentParser()
+-  parser.add_argument("mode", help="mode: graph or report")
+-  parser.add_argument(
+-      "--product",
+-      help="Product to collect module graph for. (Optional)",
+-      required=False,
+-      default="aosp_cf_arm64_phone",
+-  )
+-  parser.add_argument(
+-      "--module",
+-      "-m",
+-      action="append",
+-      help=(
+-          "name(s) of Soong module(s). Multiple modules only supported for"
+-          " report"
+-      ),
+-  )
+-  parser.add_argument(
+-      "--type",
+-      "-t",
+-      action="append",
+-      help=(
+-          "type(s) of Soong module(s). Multiple modules only supported for"
+-          " report"
+-      ),
+-  )
+-  parser.add_argument(
+-      "--package-dir",
+-      "-p",
+-      action="store",
+-      help=(
+-          "package directory for Soong modules. Single package directory only"
+-          " supported for report."
+-      ),
+-  )
+-  parser.add_argument(
+-      "--recursive",
+-      "-r",
+-      action="store_true",
+-      help=(
+-          "whether to perform recursive search when --package-dir flag is"
+-          " passed."
+-      ),
+-  )
+-  parser.add_argument(
+-      "--use-queryview",
+-      action="store_true",
+-      help="whether to use queryview or module_info",
+-  )
+-  parser.add_argument(
+-      "--ignore-by-name",
+-      default="",
+-      help=(
+-          "Comma-separated list. When building the tree of transitive"
+-          " dependencies, will not follow dependency edges pointing to module"
+-          " names listed by this flag."
+-      ),
+-  )
+-  parser.add_argument(
+-      "--ignore-java-auto-deps",
+-      action="store_true",
+-      default=True,
+-      help="whether to ignore automatically added java deps",
+-  )
+-  parser.add_argument(
+-      "--banchan",
+-      action="store_true",
+-      help="whether to run Soong in a banchan configuration rather than lunch",
+-  )
+-  # TODO(b/283512659): Fix the relative path bug and update the README file
+-  parser.add_argument(
+-      "--proto-file",
+-      help="Path to write proto output",
+-  )
+-  # TODO(b/283512659): Fix the relative path bug and update the README file
+-  parser.add_argument(
+-      "--out-file",
+-      "-o",
+-      type=argparse.FileType("w"),
+-      default="-",
+-      help="Path to write output, if omitted, writes to stdout",
+-  )
+-  parser.add_argument(
+-      "--show-converted",
+-      "-s",
+-      action="store_true",
+-      help=(
+-          "Show bp2build-converted modules in addition to the unconverted"
+-          " dependencies to see full dependencies post-migration. By default"
+-          " converted dependencies are not shown"
+-      ),
+-  )
+-  parser.add_argument(
+-      # This flag is only relevant when used by the CI script. Don't use it when running b command independently.
+-      "--bp2build-metrics-location",
+-      default=os.path.join(dependency_analysis.SRC_ROOT_DIR, "out"),
+-      help=(
+-          "Path to get bp2build_metrics, if omitted, gets bp2build_metrics from"
+-          " the SRC_ROOT_DIR/out directory"
+-      ),
+-  )
+-  parser.add_argument(
+-      "--hide-unconverted-modules-reasons",
+-      action="store_true",
+-      help=(
+-          "Hide unconverted modules reasons of heuristics and"
+-          " bp2build_metrics.pb. By default unconverted modules reasons are"
+-          " shown"
+-      ),
+-  )
+-  args = parser.parse_args()
+-
+-  if args.proto_file and args.mode == "graph":
+-    sys.exit(f"Proto file only supported for report mode, not {args.mode}")
+-
+-  mode = args.mode
+-  use_queryview = args.use_queryview
+-  ignore_by_name = args.ignore_by_name.split(",")
+-  ignore_java_auto_deps = args.ignore_java_auto_deps
+-  target_product = dependency_analysis.TargetProduct(
+-      banchan_mode=args.banchan,
+-      product=args.product,
+-  )
+-  modules = set(args.module) if args.module is not None else set()
+-  types = set(args.type) if args.type is not None else set()
+-  recursive = args.recursive
+-  package_dir = (
+-      os.path.normpath(args.package_dir) + "/"
+-      if args.package_dir
+-      else args.package_dir
+-  )
+-  bp2build_metrics_location = args.bp2build_metrics_location
+-  graph_filter = GraphFilterInfo(modules, types, package_dir, recursive)
+-
+-  if package_dir is None:
+-    if len(modules) == 0 and len(types) == 0:
+-      sys.exit("Must specify at least one module, type or package directory")
+-    if recursive:
+-      sys.exit("Cannot support --recursive with modules or types")
+-  if package_dir is not None:
+-    if args.use_queryview:
+-      sys.exit("Can only support the package directory with json module graph")
+-    if args.mode == "graph":
+-      sys.exit(f"Cannot support --package-dir with mode graph")
+-    if len(modules) > 0 or len(types) > 0:
+-      sys.exit("Can only support either modules, types or package directory")
+-  if len(modules) > 0 and len(types) > 0 and args.use_queryview:
+-    sys.exit("Can only support either of modules or types with --use-queryview")
+-  if len(modules) > 1 and args.mode == "graph":
+-    sys.exit(f"Can only support one module with mode graph")
+-  if len(types) and args.mode == "graph":
+-    sys.exit(f"Cannot support --type with mode graph")
+-  if args.hide_unconverted_modules_reasons:
+-    if args.use_queryview:
+-      sys.exit(
+-          "Cannot support --hide-unconverted-modules-reasons with"
+-          " --use-queryview"
+-      )
+-    if args.mode == "graph":
+-      sys.exit(
+-          f"Cannot support --hide-unconverted-modules-reasons with mode graph"
+-      )
+-
+-  converted = dependency_analysis.get_bp2build_converted_modules(target_product)
+-  bp2build_metrics = dependency_analysis.get_bp2build_metrics(
+-      bp2build_metrics_location
+-  )
+-
+-  module_adjacency_list, props_by_converted_module_type = (
+-      get_module_adjacency_list_and_props_by_converted_module_type(
+-          graph_filter,
+-          use_queryview,
+-          ignore_by_name,
+-          converted,
+-          target_product,
+-          ignore_java_auto_deps,
+-          collect_transitive_dependencies=mode != "graph",
+-      )
+-  )
+-
+-  if len(module_adjacency_list) == 0:
+-    sys.exit(
+-        f"Found no modules, verify that the module ({args.module}), type"
+-        f" ({args.type}) or package {args.package_dir} you requested are valid."
+-    )
+-
+-  converted = add_manual_conversion_to_converted(converted, module_adjacency_list)
+-
+-  output_file = args.out_file
+-  if mode == "graph":
+-    dot_file = generate_dot_file(
+-        module_adjacency_list, converted, args.show_converted
+-    )
+-    output_file.write(dot_file)
+-  elif mode == "report":
+-    report_data = generate_report_data(
+-        module_adjacency_list,
+-        converted,
+-        graph_filter,
+-        props_by_converted_module_type,
+-        args.use_queryview,
+-        bp2build_metrics,
+-        args.hide_unconverted_modules_reasons,
+-        args.show_converted,
+-    )
+-    report = generate_report(report_data)
+-    output_file.write(report)
+-    if args.proto_file:
+-      bp2build_conversion_progress_message = generate_proto(report_data)
+-      with open(args.proto_file, "wb") as f:
+-        f.write(bp2build_conversion_progress_message.SerializeToString())
+-  else:
+-    raise RuntimeError("unknown mode: %s" % mode)
+-
+-
+-if __name__ == "__main__":
+-  main()
+diff --git a/scripts/bp2build_progress/bp2build_progress_test.py b/scripts/bp2build_progress/bp2build_progress_test.py
+deleted file mode 100644
+index e971ba95..00000000
+--- a/scripts/bp2build_progress/bp2build_progress_test.py
++++ /dev/null
+@@ -1,1651 +0,0 @@
+-#!/usr/bin/env python3
+-#
+-# Copyright (C) 2021 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#   http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-"""Tests for bp2build-progress."""
+-
+-import collections
+-import datetime
+-import unittest
+-import unittest.mock
+-from bp2build_metrics_proto.bp2build_metrics_pb2 import Bp2BuildMetrics
+-import bp2build_pb2
+-import bp2build_progress
+-import dependency_analysis
+-import queryview_xml
+-import soong_module_json
+-
+-_queryview_graph = queryview_xml.make_graph([
+-    queryview_xml.make_module(
+-        '//pkg:a', 'a', 'type1', dep_names=['//pkg:b', '//other:c']
+-    ),
+-    queryview_xml.make_module('//pkg:b', 'b', 'type2', dep_names=['//pkg:d']),
+-    queryview_xml.make_module('//pkg:d', 'd', 'type2'),
+-    queryview_xml.make_module(
+-        '//other:c', 'c', 'type2', dep_names=['//other:e']
+-    ),
+-    queryview_xml.make_module('//other:e', 'e', 'type3'),
+-    queryview_xml.make_module('//pkg2:f', 'f', 'type4'),
+-    queryview_xml.make_module('//pkg3:g', 'g', 'type5'),
+-])
+-
+-_soong_module_graph = [
+-    soong_module_json.make_module(
+-        'a',
+-        'type1',
+-        blueprint='pkg/Android.bp',
+-        deps=[soong_module_json.make_dep('b'), soong_module_json.make_dep('c')],
+-    ),
+-    soong_module_json.make_module(
+-        'b',
+-        'type2',
+-        blueprint='pkg/Android.bp',
+-        deps=[soong_module_json.make_dep('d')],
+-        json_props=[
+-            soong_module_json.make_property('Name'),
+-            soong_module_json.make_property('Sdk_version'),
+-        ],
+-    ),
+-    soong_module_json.make_module('d', 'type2', blueprint='pkg/Android.bp'),
+-    soong_module_json.make_module(
+-        'c',
+-        'type2',
+-        blueprint='other/Android.bp',
+-        deps=[soong_module_json.make_dep('e')],
+-        json_props=[
+-            soong_module_json.make_property('Visibility'),
+-        ],
+-    ),
+-    soong_module_json.make_module('e', 'type3', blueprint='other/Android.bp'),
+-    soong_module_json.make_module(
+-        'f',
+-        'type4',
+-        blueprint='pkg2/Android.bp',
+-        json_props=[
+-            soong_module_json.make_property('Manifest'),
+-        ],
+-    ),
+-    soong_module_json.make_module('g', 'type5', blueprint='pkg3/Android.bp'),
+-    soong_module_json.make_module(
+-        'h', 'type3', blueprint='pkg/pkg4/Android.bp'
+-    ),
+-]
+-
+-_soong_module_graph_created_by_no_loop = [
+-    soong_module_json.make_module(
+-        'a',
+-        'type1',
+-        blueprint='pkg/Android.bp',
+-        created_by='b',
+-        json_props=[
+-            soong_module_json.make_property('Name'),
+-            soong_module_json.make_property('Srcs'),
+-        ],
+-    ),
+-    soong_module_json.make_module('b', 'type2', blueprint='pkg/Android.bp'),
+-]
+-
+-_soong_module_graph_created_by_loop = [
+-    soong_module_json.make_module(
+-        'a',
+-        'type1',
+-        deps=[soong_module_json.make_dep('b')],
+-        blueprint='pkg/Android.bp',
+-    ),
+-    soong_module_json.make_module(
+-        'b',
+-        'type2',
+-        blueprint='pkg/Android.bp',
+-        created_by='a',
+-        json_props=[
+-            soong_module_json.make_property('Name'),
+-            soong_module_json.make_property('Defaults'),
+-        ],
+-    ),
+-]
+-
+-
+-class Bp2BuildProgressTest(unittest.TestCase):
+-
+-  @unittest.mock.patch(
+-      'dependency_analysis.get_queryview_module_info',
+-      autospec=True,
+-      return_value=_queryview_graph,
+-  )
+-  def test_get_module_adjacency_list_queryview_transitive_deps_and_props_by_converted_module_type(
+-      self, _
+-  ):
+-    self.maxDiff = None
+-    adjacency_dict, props_by_converted_module_type = (
+-        bp2build_progress.get_module_adjacency_list_and_props_by_converted_module_type(
+-            bp2build_progress.GraphFilterInfo(module_names=set(['a', 'f'])),
+-            True,
+-            set(),
+-            set(),
+-            dependency_analysis.TargetProduct(),
+-            collect_transitive_dependencies=True,
+-        )
+-    )
+-
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=2, created_by=None
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b', kind='type2', dirname='pkg', num_deps=1, created_by=None
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c', kind='type2', dirname='other', num_deps=1, created_by=None
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d', kind='type2', dirname='pkg', num_deps=0, created_by=None
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e', kind='type3', dirname='other', num_deps=0, created_by=None
+-    )
+-    f = bp2build_progress.ModuleInfo(
+-        name='f', kind='type4', dirname='pkg2', num_deps=0, created_by=None
+-    )
+-    expected_adjacency_dict = {}
+-    expected_adjacency_dict[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c]), transitive_deps=set([d, e])
+-    )
+-    expected_adjacency_dict[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    expected_adjacency_dict[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    expected_adjacency_dict[d] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[e] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[f] = bp2build_progress.DepInfo()
+-
+-    expected_props_by_converted_module_type = collections.defaultdict(set)
+-
+-    self.assertDictEqual(adjacency_dict, expected_adjacency_dict)
+-    self.assertDictEqual(
+-        props_by_converted_module_type, expected_props_by_converted_module_type
+-    )
+-
+-  @unittest.mock.patch(
+-      'dependency_analysis.get_queryview_module_info',
+-      autospec=True,
+-      return_value=_queryview_graph,
+-  )
+-  def test_get_module_adjacency_list_queryview_direct_deps_and_props_by_converted_module_type(
+-      self, _
+-  ):
+-    adjacency_dict, props_by_converted_module_type = (
+-        bp2build_progress.get_module_adjacency_list_and_props_by_converted_module_type(
+-            bp2build_progress.GraphFilterInfo(module_names=(['a', 'f'])),
+-            True,
+-            set(),
+-            set(),
+-            dependency_analysis.TargetProduct(),
+-            False,
+-            False,
+-        )
+-    )
+-
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=2, created_by=None
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b', kind='type2', dirname='pkg', num_deps=1, created_by=None
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c', kind='type2', dirname='other', num_deps=1, created_by=None
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d', kind='type2', dirname='pkg', num_deps=0, created_by=None
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e', kind='type3', dirname='other', num_deps=0, created_by=None
+-    )
+-    f = bp2build_progress.ModuleInfo(
+-        name='f', kind='type4', dirname='pkg2', num_deps=0, created_by=None
+-    )
+-
+-    expected_adjacency_dict = {}
+-    expected_adjacency_dict[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c])
+-    )
+-    expected_adjacency_dict[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    expected_adjacency_dict[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    expected_adjacency_dict[d] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[e] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[f] = bp2build_progress.DepInfo()
+-
+-    expected_props_by_converted_module_type = collections.defaultdict(set)
+-
+-    self.assertDictEqual(adjacency_dict, expected_adjacency_dict)
+-    self.assertDictEqual(
+-        props_by_converted_module_type, expected_props_by_converted_module_type
+-    )
+-
+-  @unittest.mock.patch(
+-      'dependency_analysis.get_queryview_module_info_by_type',
+-      autospec=True,
+-      return_value=_queryview_graph,
+-  )
+-  def test_get_module_adjacency_list_queryview_direct_deps_and_props_by_converted_module_type(
+-      self, _
+-  ):
+-    adjacency_dict, props_by_converted_module_type = (
+-        bp2build_progress.get_module_adjacency_list_and_props_by_converted_module_type(
+-            bp2build_progress.GraphFilterInfo(
+-                module_types=set(['type1', 'type4'])
+-            ),
+-            True,
+-            set(),
+-            set(),
+-            dependency_analysis.TargetProduct(),
+-            collect_transitive_dependencies=False,
+-        )
+-    )
+-
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=2, created_by=None
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b', kind='type2', dirname='pkg', num_deps=1, created_by=None
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c', kind='type2', dirname='other', num_deps=1, created_by=None
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d', kind='type2', dirname='pkg', num_deps=0, created_by=None
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e', kind='type3', dirname='other', num_deps=0, created_by=None
+-    )
+-    f = bp2build_progress.ModuleInfo(
+-        name='f', kind='type4', dirname='pkg2', num_deps=0, created_by=None
+-    )
+-
+-    expected_adjacency_dict = {}
+-    expected_adjacency_dict[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c])
+-    )
+-    expected_adjacency_dict[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    expected_adjacency_dict[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    expected_adjacency_dict[d] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[e] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[f] = bp2build_progress.DepInfo()
+-
+-    expected_props_by_converted_module_type = collections.defaultdict(set)
+-
+-    self.assertDictEqual(adjacency_dict, expected_adjacency_dict)
+-    self.assertDictEqual(
+-        props_by_converted_module_type, expected_props_by_converted_module_type
+-    )
+-
+-  @unittest.mock.patch(
+-      'dependency_analysis.get_json_module_info',
+-      autospec=True,
+-      return_value=_soong_module_graph,
+-  )
+-  def test_get_module_adjacency_list_soong_module_transitive_deps_and_props_by_converted_module_type(
+-      self, _
+-  ):
+-    adjacency_dict, props_by_converted_module_type = (
+-        bp2build_progress.get_module_adjacency_list_and_props_by_converted_module_type(
+-            bp2build_progress.GraphFilterInfo(
+-                module_names=set(['a', 'f']), package_dir=None
+-            ),
+-            False,
+-            set(),
+-            set(['b', 'c', 'e', 'f']),
+-            dependency_analysis.TargetProduct(),
+-            collect_transitive_dependencies=True,
+-        )
+-    )
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=2, created_by=''
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=1,
+-        created_by='',
+-        props=frozenset(['Name', 'Sdk_version']),
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c',
+-        kind='type2',
+-        dirname='other',
+-        num_deps=1,
+-        created_by='',
+-        props=frozenset(['Visibility']),
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d', kind='type2', dirname='pkg', num_deps=0, created_by=''
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e', kind='type3', dirname='other', num_deps=0, created_by=''
+-    )
+-    f = bp2build_progress.ModuleInfo(
+-        name='f',
+-        kind='type4',
+-        dirname='pkg2',
+-        num_deps=0,
+-        created_by='',
+-        props=frozenset(['Manifest']),
+-    )
+-
+-    expected_adjacency_dict = {}
+-    expected_adjacency_dict[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c]), transitive_deps=set([d, e])
+-    )
+-    expected_adjacency_dict[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    expected_adjacency_dict[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    expected_adjacency_dict[d] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[e] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[f] = bp2build_progress.DepInfo()
+-
+-    expected_props_by_converted_module_type = collections.defaultdict(set)
+-    expected_props_by_converted_module_type['type2'].update(
+-        set(['Name', 'Sdk_version', 'Visibility'])
+-    )
+-    expected_props_by_converted_module_type['type3'] = set()
+-    expected_props_by_converted_module_type['type4'].update(set(['Manifest']))
+-
+-    self.assertDictEqual(adjacency_dict, expected_adjacency_dict)
+-    self.assertDictEqual(
+-        props_by_converted_module_type, expected_props_by_converted_module_type
+-    )
+-
+-  @unittest.mock.patch(
+-      'dependency_analysis.get_json_module_info',
+-      autospec=True,
+-      return_value=_soong_module_graph,
+-  )
+-  def test_get_module_adjacency_list_soong_module_transitive_deps_and_props_by_converted_module_type(
+-      self, _
+-  ):
+-    adjacency_dict, props_by_converted_module_type = (
+-        bp2build_progress.get_module_adjacency_list_and_props_by_converted_module_type(
+-            bp2build_progress.GraphFilterInfo(
+-                module_types=set(['type1', 'type4']), package_dir=None
+-            ),
+-            False,
+-            set(),
+-            set(['b', 'c', 'e', 'f']),
+-            dependency_analysis.TargetProduct(),
+-            collect_transitive_dependencies=True,
+-        )
+-    )
+-
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=2, created_by=''
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=1,
+-        created_by='',
+-        props=frozenset(['Name', 'Sdk_version']),
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c',
+-        kind='type2',
+-        dirname='other',
+-        num_deps=1,
+-        created_by='',
+-        props=frozenset(['Visibility']),
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d', kind='type2', dirname='pkg', num_deps=0, created_by=''
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e', kind='type3', dirname='other', num_deps=0, created_by=''
+-    )
+-    f = bp2build_progress.ModuleInfo(
+-        name='f',
+-        kind='type4',
+-        dirname='pkg2',
+-        num_deps=0,
+-        created_by='',
+-        props=frozenset(['Manifest']),
+-    )
+-
+-    expected_adjacency_dict = {}
+-    expected_adjacency_dict[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c]), transitive_deps=set([d, e])
+-    )
+-    expected_adjacency_dict[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    expected_adjacency_dict[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    expected_adjacency_dict[d] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[e] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[f] = bp2build_progress.DepInfo()
+-
+-    expected_props_by_converted_module_type = collections.defaultdict(set)
+-    expected_props_by_converted_module_type['type2'].update(
+-        set(['Name', 'Sdk_version', 'Visibility'])
+-    )
+-    expected_props_by_converted_module_type['type3'] = set()
+-    expected_props_by_converted_module_type['type4'].update(set(['Manifest']))
+-
+-    self.assertDictEqual(adjacency_dict, expected_adjacency_dict)
+-    self.assertDictEqual(
+-        props_by_converted_module_type, expected_props_by_converted_module_type
+-    )
+-
+-  @unittest.mock.patch(
+-      'dependency_analysis.get_json_module_info',
+-      autospec=True,
+-      return_value=_soong_module_graph,
+-  )
+-  def test_get_module_adjacency_list_soong_module_transitive_deps_package_dir_and_props_by_converted_module_type(
+-      self, _
+-  ):
+-    adjacency_dict_recursive, props_by_converted_module_type_recursive = (
+-        bp2build_progress.get_module_adjacency_list_and_props_by_converted_module_type(
+-            bp2build_progress.GraphFilterInfo(
+-                package_dir='pkg/', recursive=True
+-            ),
+-            False,
+-            set(),
+-            set(['b', 'c', 'e']),
+-            dependency_analysis.TargetProduct(),
+-            collect_transitive_dependencies=True,
+-        )
+-    )
+-
+-    (
+-        adjacency_dict_non_recursive,
+-        props_by_converted_module_type_non_recursive,
+-    ) = bp2build_progress.get_module_adjacency_list_and_props_by_converted_module_type(
+-        bp2build_progress.GraphFilterInfo(package_dir='pkg/', recursive=False),
+-        False,
+-        set(),
+-        set(['b', 'c', 'e']),
+-        dependency_analysis.TargetProduct(),
+-        collect_transitive_dependencies=True,
+-    )
+-
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=2, created_by=''
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=1,
+-        created_by='',
+-        props=frozenset(['Name', 'Sdk_version']),
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c',
+-        kind='type2',
+-        dirname='other',
+-        num_deps=1,
+-        created_by='',
+-        props=frozenset(['Visibility']),
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d', kind='type2', dirname='pkg', num_deps=0, created_by=''
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e', kind='type3', dirname='other', num_deps=0, created_by=''
+-    )
+-    h = bp2build_progress.ModuleInfo(
+-        name='h', kind='type3', dirname='pkg/pkg4', num_deps=0, created_by=''
+-    )
+-
+-    expected_adjacency_dict_recursive = {}
+-    expected_adjacency_dict_recursive[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c]), transitive_deps=set([d, e])
+-    )
+-    expected_adjacency_dict_recursive[b] = bp2build_progress.DepInfo(
+-        direct_deps=set([d])
+-    )
+-    expected_adjacency_dict_recursive[c] = bp2build_progress.DepInfo(
+-        direct_deps=set([e])
+-    )
+-    expected_adjacency_dict_recursive[d] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict_recursive[e] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict_recursive[h] = bp2build_progress.DepInfo()
+-
+-    expected_adjacency_dict_non_recursive = {}
+-    expected_adjacency_dict_non_recursive[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c]), transitive_deps=set([d, e])
+-    )
+-    expected_adjacency_dict_non_recursive[b] = bp2build_progress.DepInfo(
+-        direct_deps=set([d])
+-    )
+-    expected_adjacency_dict_non_recursive[c] = bp2build_progress.DepInfo(
+-        direct_deps=set([e])
+-    )
+-    expected_adjacency_dict_non_recursive[d] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict_non_recursive[e] = bp2build_progress.DepInfo()
+-
+-    expected_props_by_converted_module_type = collections.defaultdict(set)
+-    expected_props_by_converted_module_type['type2'].update(
+-        set(['Name', 'Sdk_version', 'Visibility'])
+-    )
+-    expected_props_by_converted_module_type['type3'] = set()
+-
+-    self.assertDictEqual(
+-        adjacency_dict_recursive, expected_adjacency_dict_recursive
+-    )
+-    self.assertDictEqual(
+-        adjacency_dict_non_recursive, expected_adjacency_dict_non_recursive
+-    )
+-    self.assertDictEqual(
+-        props_by_converted_module_type_recursive,
+-        expected_props_by_converted_module_type,
+-    )
+-    self.assertDictEqual(
+-        props_by_converted_module_type_non_recursive,
+-        expected_props_by_converted_module_type,
+-    )
+-
+-  @unittest.mock.patch(
+-      'dependency_analysis.get_json_module_info',
+-      autospec=True,
+-      return_value=_soong_module_graph,
+-  )
+-  def test_get_module_adjacency_list_soong_module_direct_deps_and_props_by_converted_module_type(
+-      self, _
+-  ):
+-    adjacency_dict, props_by_converted_module_type = (
+-        bp2build_progress.get_module_adjacency_list_and_props_by_converted_module_type(
+-            bp2build_progress.GraphFilterInfo(
+-                set(['a', 'f']), package_dir=None
+-            ),
+-            False,
+-            set(),
+-            set(['b', 'c', 'e', 'f']),
+-            dependency_analysis.TargetProduct(),
+-            collect_transitive_dependencies=False,
+-        )
+-    )
+-
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=2, created_by=''
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=1,
+-        created_by='',
+-        props=frozenset(['Name', 'Sdk_version']),
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c',
+-        kind='type2',
+-        dirname='other',
+-        num_deps=1,
+-        created_by='',
+-        props=frozenset(['Visibility']),
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d', kind='type2', dirname='pkg', num_deps=0, created_by=''
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e', kind='type3', dirname='other', num_deps=0, created_by=''
+-    )
+-    f = bp2build_progress.ModuleInfo(
+-        name='f',
+-        kind='type4',
+-        dirname='pkg2',
+-        num_deps=0,
+-        created_by='',
+-        props=frozenset(['Manifest']),
+-    )
+-
+-    expected_adjacency_dict = {}
+-    expected_adjacency_dict[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c])
+-    )
+-    expected_adjacency_dict[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    expected_adjacency_dict[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    expected_adjacency_dict[d] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[e] = bp2build_progress.DepInfo()
+-    expected_adjacency_dict[f] = bp2build_progress.DepInfo()
+-
+-    expected_props_by_converted_module_type = collections.defaultdict(set)
+-    expected_props_by_converted_module_type['type2'].update(
+-        set(['Name', 'Sdk_version', 'Visibility'])
+-    )
+-    expected_props_by_converted_module_type['type3'] = set()
+-    expected_props_by_converted_module_type['type4'].update(set(['Manifest']))
+-
+-    self.assertDictEqual(adjacency_dict, expected_adjacency_dict)
+-    self.assertDictEqual(
+-        props_by_converted_module_type, expected_props_by_converted_module_type
+-    )
+-
+-  @unittest.mock.patch(
+-      'dependency_analysis.get_json_module_info',
+-      autospec=True,
+-      return_value=_soong_module_graph_created_by_no_loop,
+-  )
+-  def test_get_module_adjacency_list_soong_module_created_by_and_props_by_converted_module_type(
+-      self, _
+-  ):
+-    adjacency_dict, props_by_converted_module_type = (
+-        bp2build_progress.get_module_adjacency_list_and_props_by_converted_module_type(
+-            bp2build_progress.GraphFilterInfo(
+-                set(['a', 'f']), package_dir=None
+-            ),
+-            False,
+-            set(),
+-            set(['a']),
+-            True,
+-            False,
+-        )
+-    )
+-    a = bp2build_progress.ModuleInfo(
+-        name='a',
+-        kind='type1',
+-        dirname='pkg',
+-        num_deps=1,
+-        created_by='b',
+-        props=frozenset(['Name', 'Srcs']),
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b', kind='type2', dirname='pkg', num_deps=0, created_by=''
+-    )
+-
+-    expected_adjacency_dict = {}
+-    expected_adjacency_dict[a] = bp2build_progress.DepInfo(direct_deps=set([b]))
+-    expected_adjacency_dict[b] = bp2build_progress.DepInfo()
+-
+-    expected_props_by_converted_module_type = collections.defaultdict(set)
+-    expected_props_by_converted_module_type['type1'].update(
+-        set(['Name', 'Srcs'])
+-    )
+-
+-    self.assertDictEqual(adjacency_dict, expected_adjacency_dict)
+-    self.assertDictEqual(
+-        props_by_converted_module_type, expected_props_by_converted_module_type
+-    )
+-
+-  @unittest.mock.patch(
+-      'dependency_analysis.get_json_module_info',
+-      autospec=True,
+-      return_value=_soong_module_graph_created_by_loop,
+-  )
+-  def test_get_module_adjacency_list_soong_module_created_by_loop_and_props_by_converted_module_type(
+-      self, _
+-  ):
+-    adjacency_dict, props_by_converted_module_type = (
+-        bp2build_progress.get_module_adjacency_list_and_props_by_converted_module_type(
+-            bp2build_progress.GraphFilterInfo(
+-                set(['a', 'f']), package_dir=None
+-            ),
+-            False,
+-            set(),
+-            set(['b']),
+-            True,
+-            False,
+-        )
+-    )
+-
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=1, created_by=''
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=1,
+-        created_by='a',
+-        props=frozenset(['Name', 'Defaults']),
+-    )
+-
+-    expected_adjacency_dict = {}
+-    expected_adjacency_dict[a] = bp2build_progress.DepInfo(direct_deps=set([b]))
+-    expected_adjacency_dict[b] = bp2build_progress.DepInfo()
+-
+-    expected_props_by_converted_module_type = collections.defaultdict(set)
+-    expected_props_by_converted_module_type['type2'].update(
+-        set(['Name', 'Defaults'])
+-    )
+-
+-    self.assertDictEqual(adjacency_dict, expected_adjacency_dict)
+-    self.assertDictEqual(
+-        props_by_converted_module_type, expected_props_by_converted_module_type
+-    )
+-
+-  def test_generate_report_data(self):
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=4, created_by=None
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b', kind='type2', dirname='pkg', num_deps=1, created_by=None
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c', kind='type2', dirname='other', num_deps=1, created_by=None
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=0,
+-        created_by=None,
+-        converted=True,
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e', kind='type3', dirname='other', num_deps=0, created_by=None
+-    )
+-    f = bp2build_progress.ModuleInfo(
+-        name='f', kind='type4', dirname='pkg2', num_deps=3, created_by=None
+-    )
+-    g = bp2build_progress.ModuleInfo(
+-        name='g',
+-        kind='type4',
+-        dirname='pkg2',
+-        num_deps=2,
+-        created_by=None,
+-        converted=True,
+-    )
+-
+-    module_graph = {}
+-    module_graph[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c]), transitive_deps=set([d, e])
+-    )
+-    module_graph[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    module_graph[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    module_graph[d] = bp2build_progress.DepInfo()
+-    module_graph[e] = bp2build_progress.DepInfo()
+-    module_graph[f] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, g]), transitive_deps=set([d])
+-    )
+-    module_graph[g] = bp2build_progress.DepInfo()
+-
+-    report_data = bp2build_progress.generate_report_data(
+-        module_graph,
+-        {d.name: {d.kind}, g.name: {g.kind}},
+-        bp2build_progress.GraphFilterInfo(
+-            module_names={'a', 'f'}, package_dir=None
+-        ),
+-        props_by_converted_module_type=collections.defaultdict(set),
+-        use_queryview=False,
+-        hide_unconverted_modules_reasons=True,
+-        bp2build_metrics=Bp2BuildMetrics(),
+-    )
+-
+-    all_unconverted_modules = collections.defaultdict(set)
+-    all_unconverted_modules[b].update({a, f})
+-    all_unconverted_modules[c].update({a})
+-    all_unconverted_modules[e].update({a, c})
+-
+-    blocked_modules = collections.defaultdict(set)
+-    blocked_modules[a].update({b, c})
+-    blocked_modules[b].update(set())
+-    blocked_modules[c].update({e})
+-    blocked_modules[f].update({b})
+-    blocked_modules[e].update(set())
+-
+-    blocked_modules_transitive = collections.defaultdict(set)
+-    blocked_modules_transitive[a].update({b, c, e})
+-    blocked_modules_transitive[b].update(set())
+-    blocked_modules_transitive[c].update({e})
+-    blocked_modules_transitive[f].update({b})
+-    blocked_modules_transitive[e].update(set())
+-
+-    expected_report_data = bp2build_progress.ReportData(
+-        input_modules={
+-            bp2build_progress.InputModule(a, 4, 3),
+-            bp2build_progress.InputModule(f, 3, 1),
+-        },
+-        total_deps={b, c, d, e, g},
+-        unconverted_deps={b, c, e},
+-        all_unconverted_modules=all_unconverted_modules,
+-        blocked_modules=blocked_modules,
+-        blocked_modules_transitive=blocked_modules_transitive,
+-        dirs_with_unconverted_modules={'pkg', 'other', 'pkg2'},
+-        kind_of_unconverted_modules={
+-            'type1: 1',
+-            'type2: 2',
+-            'type3: 1',
+-            'type4: 1',
+-        },
+-        converted={d.name: {d.kind}, g.name: {g.kind}},
+-        show_converted=False,
+-        hide_unconverted_modules_reasons=True,
+-        package_dir=None,
+-    )
+-    self.assertEqual(report_data, expected_report_data)
+-
+-  def test_generate_report_data_by_type(self):
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=4, created_by=None
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b', kind='type2', dirname='pkg', num_deps=1, created_by=None
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c', kind='type2', dirname='other', num_deps=1, created_by=None
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=0,
+-        created_by=None,
+-        converted=True,
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e', kind='type3', dirname='other', num_deps=0, created_by=None
+-    )
+-    f = bp2build_progress.ModuleInfo(
+-        name='f', kind='type4', dirname='pkg2', num_deps=3, created_by=None
+-    )
+-    g = bp2build_progress.ModuleInfo(
+-        name='g',
+-        kind='type4',
+-        dirname='pkg2',
+-        num_deps=0,
+-        created_by=None,
+-        converted=True,
+-    )
+-
+-    module_graph = {}
+-    module_graph[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c]), transitive_deps=set([d, e])
+-    )
+-    module_graph[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    module_graph[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    module_graph[d] = bp2build_progress.DepInfo()
+-    module_graph[e] = bp2build_progress.DepInfo()
+-    module_graph[f] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, g]), transitive_deps=set([d])
+-    )
+-    module_graph[g] = bp2build_progress.DepInfo()
+-
+-    report_data = bp2build_progress.generate_report_data(
+-        module_graph,
+-        {d.name: {d.kind}, g.name: {g.kind}},
+-        bp2build_progress.GraphFilterInfo(
+-            module_types={'type1', 'type4'}, package_dir=None
+-        ),
+-        props_by_converted_module_type=collections.defaultdict(set),
+-        use_queryview=False,
+-        hide_unconverted_modules_reasons=True,
+-        bp2build_metrics=Bp2BuildMetrics(),
+-    )
+-
+-    all_unconverted_modules = collections.defaultdict(set)
+-    all_unconverted_modules['b'].update({a, f})
+-    all_unconverted_modules['c'].update({a})
+-    all_unconverted_modules['e'].update({a})
+-
+-    blocked_modules = collections.defaultdict(set)
+-    blocked_modules[a].update({'b', 'c'})
+-    blocked_modules[b].update(set())
+-    blocked_modules[c].update(set('e'))
+-    blocked_modules[f].update(set({'b'}))
+-    blocked_modules[e].update(set())
+-
+-    blocked_modules_transitive = collections.defaultdict(set)
+-    blocked_modules_transitive[a].update({'b', 'c', 'e'})
+-    blocked_modules_transitive[b].update(set())
+-    blocked_modules_transitive[c].update(set('e'))
+-    blocked_modules_transitive[f].update(set({'b'}))
+-    blocked_modules_transitive[e].update(set())
+-
+-    expected_report_data = bp2build_progress.ReportData(
+-        input_modules={
+-            bp2build_progress.InputModule(a, 4, 3),
+-            bp2build_progress.InputModule(f, 3, 1),
+-            bp2build_progress.InputModule(g, 0, 0),
+-        },
+-        total_deps={b, c, d, e, g},
+-        unconverted_deps={'b', 'c', 'e'},
+-        all_unconverted_modules=all_unconverted_modules,
+-        blocked_modules=blocked_modules,
+-        blocked_modules_transitive=blocked_modules_transitive,
+-        dirs_with_unconverted_modules={'pkg', 'other', 'pkg2'},
+-        kind_of_unconverted_modules={'type1', 'type2', 'type4'},
+-        converted={d.name: {d.kind}, g.name: {g.kind}},
+-        show_converted=False,
+-        hide_unconverted_modules_reasons=True,
+-        package_dir=None,
+-    )
+-
+-    self.assertEqual(
+-        report_data.input_modules, expected_report_data.input_modules
+-    )
+-
+-  def test_generate_report_data_show_converted(self):
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=2, created_by=None
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b',
+-        kind='type2',
+-        dirname='pkg2',
+-        num_deps=0,
+-        created_by=None,
+-        converted=True,
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c', kind='type3', dirname='other', num_deps=0, created_by=None
+-    )
+-
+-    module_graph = collections.defaultdict(set)
+-    module_graph[a] = bp2build_progress.DepInfo(direct_deps=set([b, c]))
+-    module_graph[b] = bp2build_progress.DepInfo()
+-    module_graph[c] = bp2build_progress.DepInfo()
+-
+-    report_data = bp2build_progress.generate_report_data(
+-        module_graph,
+-        {b.name: {b.kind}},
+-        bp2build_progress.GraphFilterInfo(module_names={'a'}, package_dir=None),
+-        props_by_converted_module_type=collections.defaultdict(set),
+-        use_queryview=False,
+-        show_converted=True,
+-        hide_unconverted_modules_reasons=True,
+-        bp2build_metrics=Bp2BuildMetrics(),
+-    )
+-
+-    all_unconverted_modules = collections.defaultdict(set)
+-    all_unconverted_modules[c].update({a})
+-
+-    blocked_modules = collections.defaultdict(set)
+-    blocked_modules[a].update({b, c})
+-    blocked_modules[b].update(set())
+-    blocked_modules[c].update(set())
+-
+-    blocked_modules_transitive = collections.defaultdict(set)
+-    blocked_modules_transitive[a].update({b, c})
+-    blocked_modules_transitive[b].update(set())
+-    blocked_modules_transitive[c].update(set())
+-
+-    expected_report_data = bp2build_progress.ReportData(
+-        input_modules={
+-            bp2build_progress.InputModule(a, 2, 1),
+-        },
+-        total_deps={b, c},
+-        unconverted_deps={c},
+-        all_unconverted_modules=all_unconverted_modules,
+-        blocked_modules=blocked_modules,
+-        blocked_modules_transitive=blocked_modules_transitive,
+-        dirs_with_unconverted_modules={'pkg', 'other'},
+-        kind_of_unconverted_modules={'type1: 1', 'type3: 1'},
+-        converted={b.name:{b.kind}},
+-        show_converted=True,
+-        hide_unconverted_modules_reasons=True,
+-        package_dir=None,
+-    )
+-
+-    self.assertEqual(report_data, expected_report_data)
+-
+-  def test_generate_report_data_show_unconverted_modules_reasons(self):
+-    a = bp2build_progress.ModuleInfo(
+-        name='a',
+-        kind='type1',
+-        dirname='pkg',
+-        num_deps=4,
+-        created_by=None,
+-        reasons_from_heuristics=frozenset(
+-            {'unconverted dependencies', 'type missing converter'}
+-        ),
+-        reason_from_metric='TYPE_UNSUPPORTED',
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=1,
+-        created_by=None,
+-        props=frozenset({'Name', 'Srcs', 'BaseName'}),
+-        reasons_from_heuristics=frozenset(
+-            {'unconverted properties: [BaseName]'}
+-        ),
+-        reason_from_metric='PROPERTY_UNSUPPORTED',
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c',
+-        kind='type2',
+-        dirname='other',
+-        num_deps=1,
+-        created_by=None,
+-        props=frozenset({'Name', 'Defaults'}),
+-        reasons_from_heuristics=frozenset({'unconverted dependencies'}),
+-        reason_from_metric='UNCONVERTED_DEP',
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=0,
+-        created_by=None,
+-        converted=True,
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e',
+-        kind='type3',
+-        dirname='other',
+-        num_deps=0,
+-        created_by=None,
+-        reasons_from_heuristics=frozenset({'type missing converter'}),
+-        reason_from_metric='TYPE_UNSUPPORTED',
+-    )
+-    f = bp2build_progress.ModuleInfo(
+-        name='f',
+-        kind='type4',
+-        dirname='pkg2',
+-        num_deps=3,
+-        created_by=None,
+-        props=frozenset(
+-            {'Name', 'Sdk_version', 'Visibility', 'Backend.Java.Platform_apis'}
+-        ),
+-        reasons_from_heuristics=frozenset({'unconverted dependencies'}),
+-        reason_from_metric='UNCONVERTED_DEP',
+-    )
+-    g = bp2build_progress.ModuleInfo(
+-        name='g',
+-        kind='type4',
+-        dirname='pkg2',
+-        num_deps=2,
+-        created_by=None,
+-        converted=True,
+-    )
+-
+-    module_graph = {}
+-    module_graph[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c]), transitive_deps=set([d, e])
+-    )
+-    module_graph[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    module_graph[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    module_graph[d] = bp2build_progress.DepInfo()
+-    module_graph[e] = bp2build_progress.DepInfo()
+-    module_graph[f] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, g]), transitive_deps=set([d])
+-    )
+-    module_graph[g] = bp2build_progress.DepInfo()
+-
+-    props_by_converted_module_type = collections.defaultdict(set)
+-    props_by_converted_module_type['type2'].update(
+-        frozenset(('Name', 'Srcs', 'Resource_dirs', 'Defaults'))
+-    )
+-    props_by_converted_module_type['type4'].update(
+-        frozenset(
+-            ('Name', 'Sdk_version', 'Visibility', 'Backend.Java.Platform_apis')
+-        )
+-    )
+-
+-    bp2build_metrics = Bp2BuildMetrics()
+-    bp2build_metrics.unconvertedModules['a'].type = 3
+-    bp2build_metrics.unconvertedModules['b'].type = 4
+-    bp2build_metrics.unconvertedModules['c'].type = 5
+-    bp2build_metrics.unconvertedModules['f'].type = 5
+-    bp2build_metrics.unconvertedModules['e'].type = 3
+-
+-    report_data = bp2build_progress.generate_report_data(
+-        module_graph,
+-        {d.name: {d.kind}, g.name: {g.kind}},
+-        bp2build_progress.GraphFilterInfo(
+-            module_names={'a', 'f'}, package_dir=None
+-        ),
+-        props_by_converted_module_type,
+-        use_queryview=False,
+-        bp2build_metrics=bp2build_metrics,
+-    )
+-
+-    all_unconverted_modules = collections.defaultdict(set)
+-    all_unconverted_modules[b].update({a, f})
+-    all_unconverted_modules[c].update({a})
+-    all_unconverted_modules[e].update({a, c})
+-
+-    blocked_modules = collections.defaultdict(set)
+-    blocked_modules[a].update({b, c})
+-    blocked_modules[b].update(set())
+-    blocked_modules[c].update({e})
+-    blocked_modules[f].update({b})
+-    blocked_modules[e].update(set())
+-
+-    blocked_modules_transitive = collections.defaultdict(set)
+-    blocked_modules_transitive[a].update({b, c, e})
+-    blocked_modules_transitive[b].update(set())
+-    blocked_modules_transitive[c].update({e})
+-    blocked_modules_transitive[f].update({b})
+-    blocked_modules_transitive[e].update(set())
+-
+-    expected_report_data = bp2build_progress.ReportData(
+-        input_modules={
+-            bp2build_progress.InputModule(a, 4, 3),
+-            bp2build_progress.InputModule(f, 3, 1),
+-        },
+-        total_deps={b, c, d, e, g},
+-        unconverted_deps={b, c, e},
+-        all_unconverted_modules=all_unconverted_modules,
+-        blocked_modules=blocked_modules,
+-        blocked_modules_transitive=blocked_modules_transitive,
+-        dirs_with_unconverted_modules={'pkg', 'other', 'pkg2'},
+-        kind_of_unconverted_modules={
+-            'type1: 1',
+-            'type2: 2',
+-            'type3: 1',
+-            'type4: 1',
+-        },
+-        converted={d.name: {d.kind}, g.name: {g.kind}},
+-        show_converted=False,
+-        hide_unconverted_modules_reasons=False,
+-        package_dir=None,
+-    )
+-    self.assertEqual(report_data, expected_report_data)
+-
+-  def test_generate_report_unconverted_modules_reasons(self):
+-    a = bp2build_progress.ModuleInfo(
+-        name='a',
+-        kind='type1',
+-        dirname='pkg',
+-        num_deps=2,
+-        created_by=None,
+-        props=frozenset({'Flags', 'Stability'}),
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b',
+-        kind='type2',
+-        dirname='pkg2',
+-        num_deps=0,
+-        created_by=None,
+-        converted=True,
+-        props=frozenset({'Flags', 'Stability', 'Resource_dirs'}),
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c',
+-        kind='type2',
+-        dirname='other',
+-        num_deps=0,
+-        created_by=None,
+-        converted=True,
+-        props=frozenset({'Name', 'Stability', 'Resource_dirs'}),
+-    )
+-
+-    module_graph = collections.defaultdict(set)
+-    module_graph[a] = bp2build_progress.DepInfo(direct_deps=set([b, c]))
+-    module_graph[b] = bp2build_progress.DepInfo()
+-    module_graph[c] = bp2build_progress.DepInfo()
+-
+-    bp2build_metrics = Bp2BuildMetrics()
+-    bp2build_metrics.unconvertedModules['a'].type = 3
+-
+-    props_by_converted_module_type = collections.defaultdict(set)
+-    props_by_converted_module_type['type2'].update(
+-        frozenset(('Name', 'Srcs', 'Resource_dirs', 'Defaults'))
+-    )
+-
+-    report_data_show_unconverted_modules_reasons = (
+-        bp2build_progress.generate_report_data(
+-            module_graph,
+-            {b.name:{b.kind}, c.name:{c.kind}},
+-            bp2build_progress.GraphFilterInfo(
+-                module_names={'a'}, package_dir=None
+-            ),
+-            props_by_converted_module_type=props_by_converted_module_type,
+-            use_queryview=False,
+-            bp2build_metrics=bp2build_metrics,
+-
+-        )
+-    )
+-    report_data_hide_unconverted_modules_reasons = (
+-        bp2build_progress.generate_report_data(
+-            module_graph,
+-            {b.name:{b.kind}, c.name:{c.kind}},
+-            bp2build_progress.GraphFilterInfo(
+-                module_names={'a'}, package_dir=None
+-            ),
+-            props_by_converted_module_type=props_by_converted_module_type,
+-            hide_unconverted_modules_reasons=True,
+-            use_queryview=False,
+-            bp2build_metrics=bp2build_metrics,
+-        )
+-    )
+-
+-    report_show_unconverted_modules_reasons = bp2build_progress.generate_report(
+-        report_data_show_unconverted_modules_reasons
+-    )
+-    report_hide_unconverted_modules_reasons = bp2build_progress.generate_report(
+-        report_data_hide_unconverted_modules_reasons
+-    )
+-
+-    self.maxDiff = None
+-    expected_report_show_unconverted_modules_reasons = f"""# bp2build progress report for: a: 100.0% (2/2) converted
+-
+-Percent converted: 100.00 (2/2)
+-Total unique unconverted dependencies: 0
+-Ignored module types: ['cc_defaults', 'cpython3_python_stdlib', 'hidl_package_root', 'java_defaults', 'license', 'license_kind']
+-
+-# Transitive dependency closure:
+-
+-0 unconverted transitive deps remaining:
+-a [type1] [pkg]
+-\tunconverted due to:
+-\t\tunconverted reason from metric: TYPE_UNSUPPORTED
+-\t\tunconverted reasons from heuristics: type missing converter
+-\tdirect deps:
+-
+-
+-# Unconverted deps of a: 100.0% (2/2) converted:
+-
+-
+-
+-# Dirs with unconverted modules:
+-
+-pkg
+-
+-
+-# Kinds with unconverted modules:
+-
+-type1: 1
+-
+-
+-# Converted modules not shown
+-
+-
+-Generated by: https://cs.android.com/android/platform/superproject/+/master:build/bazel/scripts/bp2build_progress/bp2build_progress.py
+-Generated at: {datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S %z")}"""
+-
+-    expected_report_hide_unconverted_modules_reasons = f"""# bp2build progress report for: a: 100.0% (2/2) converted
+-
+-Percent converted: 100.00 (2/2)
+-Total unique unconverted dependencies: 0
+-Ignored module types: ['cc_defaults', 'cpython3_python_stdlib', 'hidl_package_root', 'java_defaults', 'license', 'license_kind']
+-
+-# Transitive dependency closure:
+-
+-0 unconverted transitive deps remaining:
+-a [type1] [pkg]
+-\tdirect deps:
+-
+-
+-# Unconverted deps of a: 100.0% (2/2) converted:
+-
+-
+-
+-# Dirs with unconverted modules:
+-
+-pkg
+-
+-
+-# Kinds with unconverted modules:
+-
+-type1: 1
+-
+-
+-# Converted modules not shown
+-
+-
+-Generated by: https://cs.android.com/android/platform/superproject/+/master:build/bazel/scripts/bp2build_progress/bp2build_progress.py
+-Generated at: {datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S %z")}"""
+-    self.assertEqual(
+-        report_show_unconverted_modules_reasons,
+-        expected_report_show_unconverted_modules_reasons,
+-    )
+-    self.assertEqual(
+-        report_hide_unconverted_modules_reasons,
+-        expected_report_hide_unconverted_modules_reasons,
+-    )
+-
+-  def test_generate_proto_from_soong_module(self):
+-    a = bp2build_progress.ModuleInfo(
+-        name='a',
+-        kind='type1',
+-        dirname='pkg',
+-        num_deps=4,
+-        created_by=None,
+-        reasons_from_heuristics=frozenset(
+-            {'unconverted dependencies', 'type missing converter'}
+-        ),
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=1,
+-        created_by=None,
+-        props=frozenset({'Name', 'Srcs', 'BaseName'}),
+-        reasons_from_heuristics=frozenset(
+-            {'unconverted properties: [BaseName]'}
+-        ),
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c',
+-        kind='type2',
+-        dirname='other',
+-        num_deps=1,
+-        created_by=None,
+-        props=frozenset({'Name', 'Defaults'}),
+-        reasons_from_heuristics=frozenset({'unconverted dependencies'}),
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=0,
+-        created_by=None,
+-        converted=True,
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e',
+-        kind='type3',
+-        dirname='other',
+-        num_deps=0,
+-        created_by=None,
+-        reasons_from_heuristics=frozenset({'type missing converter'}),
+-    )
+-    f = bp2build_progress.ModuleInfo(
+-        name='f',
+-        kind='type4',
+-        dirname='pkg2',
+-        num_deps=3,
+-        created_by=None,
+-        props=frozenset(
+-            {'Name', 'Sdk_version', 'Visibility', 'Backend.Java.Platform_apis'}
+-        ),
+-        reasons_from_heuristics=frozenset(
+-            {'unconverted dependencies', 'unconverted properties: [Visibility]'}
+-        ),
+-    )
+-    g = bp2build_progress.ModuleInfo(
+-        name='g',
+-        kind='type4',
+-        dirname='pkg2',
+-        num_deps=2,
+-        created_by=None,
+-        converted=True,
+-    )
+-
+-    module_graph = {}
+-    module_graph[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c]), transitive_deps=set([d, e])
+-    )
+-    module_graph[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    module_graph[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    module_graph[d] = bp2build_progress.DepInfo()
+-    module_graph[e] = bp2build_progress.DepInfo()
+-    module_graph[f] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, g]), transitive_deps=set([d])
+-    )
+-    module_graph[g] = bp2build_progress.DepInfo()
+-
+-    blocked_modules_transitive = collections.defaultdict(set)
+-    blocked_modules_transitive[a].update({b, c, e})
+-    blocked_modules_transitive[b].update(set())
+-    blocked_modules_transitive[c].update({e})
+-    blocked_modules_transitive[f].update({b})
+-    blocked_modules_transitive[e].update(set())
+-
+-    props_by_converted_module_type = collections.defaultdict(set)
+-    props_by_converted_module_type['type2'].update(
+-        frozenset(('Name', 'Srcs', 'Resource_dirs', 'Defaults'))
+-    )
+-    props_by_converted_module_type['type4'].update(
+-        frozenset(('Name', 'Sdk_version', 'Backend.Java.Platform_apis'))
+-    )
+-
+-    report_data = bp2build_progress.generate_report_data(
+-        module_graph,
+-        {d.name: {d.kind}, g.name: {g.kind}},
+-        bp2build_progress.GraphFilterInfo(
+-            module_names={'a', 'f'}, package_dir=None
+-        ),
+-        props_by_converted_module_type,
+-        use_queryview=False,
+-        bp2build_metrics=Bp2BuildMetrics(),
+-    )
+-
+-    expected_message = bp2build_pb2.Bp2buildConversionProgress(
+-        root_modules=[m.module.name for m in report_data.input_modules],
+-        num_deps=len(report_data.total_deps),
+-    )
+-    for (
+-        module,
+-        unconverted_deps,
+-    ) in report_data.blocked_modules_transitive.items():
+-      expected_message.unconverted.add(
+-          name=module.name,
+-          directory=module.dirname,
+-          type=module.kind,
+-          unconverted_deps={d.name for d in unconverted_deps},
+-          num_deps=module.num_deps,
+-          unconverted_reasons_from_heuristics=list(
+-              module.reasons_from_heuristics
+-          ),
+-      )
+-
+-    message = bp2build_progress.generate_proto(report_data)
+-    self.assertEqual(message, expected_message)
+-
+-  def test_generate_proto_from_soong_module_show_converted(self):
+-    a = bp2build_progress.ModuleInfo(
+-        name='a',
+-        kind='type1',
+-        dirname='pkg',
+-        num_deps=4,
+-        created_by=None,
+-        reasons_from_heuristics=frozenset(
+-            {'unconverted dependencies', 'type missing converter'}
+-        ),
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=1,
+-        created_by=None,
+-        props=frozenset({'Name', 'Srcs', 'BaseName'}),
+-        reasons_from_heuristics=frozenset(
+-            {'unconverted properties: [BaseName]'}
+-        ),
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c',
+-        kind='type2',
+-        dirname='other',
+-        num_deps=1,
+-        created_by=None,
+-        props=frozenset({'Name', 'Defaults'}),
+-        reasons_from_heuristics=frozenset({'unconverted dependencies'}),
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d',
+-        kind='type2',
+-        dirname='pkg',
+-        num_deps=0,
+-        created_by=None,
+-        converted=True,
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e',
+-        kind='type3',
+-        dirname='other',
+-        num_deps=0,
+-        created_by=None,
+-        reasons_from_heuristics=frozenset({'type missing converter'}),
+-    )
+-    f = bp2build_progress.ModuleInfo(
+-        name='f',
+-        kind='type4',
+-        dirname='pkg2',
+-        num_deps=3,
+-        created_by=None,
+-        props=frozenset(
+-            {'Name', 'Sdk_version', 'Visibility', 'Backend.Java.Platform_apis'}
+-        ),
+-        reasons_from_heuristics=frozenset(
+-            {'unconverted dependencies', 'unconverted properties: [Visibility]'}
+-        ),
+-    )
+-    g = bp2build_progress.ModuleInfo(
+-        name='g',
+-        kind='type4',
+-        dirname='pkg2',
+-        num_deps=2,
+-        created_by=None,
+-        converted=True,
+-    )
+-
+-    module_graph = {}
+-    module_graph[a] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, c]), transitive_deps=set([d, e])
+-    )
+-    module_graph[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    module_graph[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    module_graph[d] = bp2build_progress.DepInfo()
+-    module_graph[e] = bp2build_progress.DepInfo()
+-    module_graph[f] = bp2build_progress.DepInfo(
+-        direct_deps=set([b, g]), transitive_deps=set([d])
+-    )
+-    module_graph[g] = bp2build_progress.DepInfo()
+-
+-    blocked_modules_transitive = collections.defaultdict(set)
+-    blocked_modules_transitive[a].update({b, c, d, e})
+-    blocked_modules_transitive[b].update({d})
+-    blocked_modules_transitive[c].update({e})
+-    blocked_modules_transitive[d].update(set())
+-    blocked_modules_transitive[e].update(set())
+-    blocked_modules_transitive[f].update({g, b, d})
+-    blocked_modules_transitive[g].update(set())
+-
+-    props_by_converted_module_type = collections.defaultdict(set)
+-    props_by_converted_module_type['type2'].update(
+-        frozenset(('Name', 'Srcs', 'Resource_dirs', 'Defaults'))
+-    )
+-    props_by_converted_module_type['type4'].update(
+-        frozenset(('Name', 'Sdk_version', 'Backend.Java.Platform_apis'))
+-    )
+-
+-    report_data = bp2build_progress.generate_report_data(
+-        module_graph,
+-        {d.name: {d.kind}, g.name: {g.kind}},
+-        bp2build_progress.GraphFilterInfo(
+-            module_names={'a', 'f'}, package_dir=None
+-        ),
+-        props_by_converted_module_type,
+-        use_queryview=False,
+-        show_converted=True,
+-        bp2build_metrics=Bp2BuildMetrics(),
+-    )
+-
+-    expected_message = bp2build_pb2.Bp2buildConversionProgress(
+-        root_modules=[m.module.name for m in report_data.input_modules],
+-        num_deps=len(report_data.total_deps),
+-    )
+-    for (
+-        module,
+-        unconverted_deps,
+-    ) in report_data.blocked_modules_transitive.items():
+-      expected_message.unconverted.add(
+-          name=module.name,
+-          directory=module.dirname,
+-          type=module.kind,
+-          unconverted_deps={d.name for d in unconverted_deps},
+-          num_deps=module.num_deps,
+-          unconverted_reasons_from_heuristics=list(
+-              module.reasons_from_heuristics
+-          ),
+-      )
+-
+-    message = bp2build_progress.generate_proto(report_data)
+-    self.assertEqual(message, expected_message)
+-
+-  def test_generate_dot_file(self):
+-    self.maxDiff = None
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=2, created_by=None
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b', kind='type2', dirname='pkg', num_deps=1, created_by=None
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c', kind='type2', dirname='other', num_deps=1, created_by=None
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d', kind='type2', dirname='pkg', num_deps=0, created_by=None
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e', kind='type2', dirname='other', num_deps=0, created_by=None
+-    )
+-
+-    module_graph = {}
+-    module_graph[a] = bp2build_progress.DepInfo(direct_deps=set([b, c]))
+-    module_graph[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    module_graph[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    module_graph[d] = bp2build_progress.DepInfo()
+-    module_graph[e] = bp2build_progress.DepInfo()
+-
+-    dot_graph = bp2build_progress.generate_dot_file(
+-        module_graph, {'e': {'type2'}}, False
+-    )
+-
+-    expected_dot_graph = """
+-digraph mygraph {{
+-  node [shape=box];
+-
+-  "a" [label="a\\ntype1" color=black, style=filled, fillcolor=tomato]
+-  "a" -> "b"
+-  "a" -> "c"
+-  "b" [label="b\\ntype2" color=black, style=filled, fillcolor=tomato]
+-  "b" -> "d"
+-  "c" [label="c\\ntype2" color=black, style=filled, fillcolor=yellow]
+-  "d" [label="d\\ntype2" color=black, style=filled, fillcolor=yellow]
+-}}
+-"""
+-    self.assertEqual(dot_graph, expected_dot_graph)
+-
+-  def test_generate_dot_file_show_converted(self):
+-    self.maxDiff = None
+-    a = bp2build_progress.ModuleInfo(
+-        name='a', kind='type1', dirname='pkg', num_deps=2, created_by=None
+-    )
+-    b = bp2build_progress.ModuleInfo(
+-        name='b', kind='type2', dirname='pkg', num_deps=1, created_by=None
+-    )
+-    c = bp2build_progress.ModuleInfo(
+-        name='c', kind='type2', dirname='other', num_deps=1, created_by=None
+-    )
+-    d = bp2build_progress.ModuleInfo(
+-        name='d', kind='type2', dirname='pkg', num_deps=0, created_by=None
+-    )
+-    e = bp2build_progress.ModuleInfo(
+-        name='e', kind='type2', dirname='other', num_deps=0, created_by=None
+-    )
+-
+-    module_graph = {}
+-    module_graph[a] = bp2build_progress.DepInfo(direct_deps=set([b, c]))
+-    module_graph[b] = bp2build_progress.DepInfo(direct_deps=set([d]))
+-    module_graph[c] = bp2build_progress.DepInfo(direct_deps=set([e]))
+-    module_graph[d] = bp2build_progress.DepInfo()
+-    module_graph[e] = bp2build_progress.DepInfo()
+-
+-    dot_graph = bp2build_progress.generate_dot_file(
+-        module_graph, {'e': {'type2'}}, True
+-    )
+-
+-    expected_dot_graph = """
+-digraph mygraph {{
+-  node [shape=box];
+-
+-  "a" [label="a\\ntype1" color=black, style=filled, fillcolor=tomato]
+-  "a" -> "b"
+-  "a" -> "c"
+-  "b" [label="b\\ntype2" color=black, style=filled, fillcolor=tomato]
+-  "b" -> "d"
+-  "c" [label="c\\ntype2" color=black, style=filled, fillcolor=yellow]
+-  "c" -> "e"
+-  "d" [label="d\\ntype2" color=black, style=filled, fillcolor=yellow]
+-  "e" [label="e\\ntype2" color=black, style=filled, fillcolor=dodgerblue]
+-}}
+-"""
+-    self.assertEqual(dot_graph, expected_dot_graph)
+-
+-
+-if __name__ == '__main__':
+-  unittest.main()
+diff --git a/scripts/bp2build_progress/dependency_analysis.py b/scripts/bp2build_progress/dependency_analysis.py
+deleted file mode 100644
+index 9fa73893..00000000
+--- a/scripts/bp2build_progress/dependency_analysis.py
++++ /dev/null
+@@ -1,622 +0,0 @@
+-#!/usr/bin/env python3
+-#
+-# Copyright (C) 2022 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#   http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-"""Utility functions to produce module or module type dependency graphs using json-module-graph or queryview."""
+-
+-import collections
+-import dataclasses
+-import json
+-import os
+-import os.path
+-import subprocess
+-import sys
+-from typing import Dict, Optional, Set
+-import xml.etree.ElementTree
+-from bp2build_metrics_proto.bp2build_metrics_pb2 import Bp2BuildMetrics
+-
+-
+-@dataclasses.dataclass(frozen=True, order=True)
+-class TargetProduct:
+-  product: Optional[str] = None
+-  banchan_mode: bool = False
+-
+-
+-@dataclasses.dataclass(frozen=True, order=True)
+-class _ModuleKey:
+-  """_ModuleKey uniquely identifies a module by name nad variations."""
+-
+-  name: str
+-  variations: list
+-
+-  def __str__(self):
+-    return f"{self.name}, {self.variations}"
+-
+-  def __hash__(self):
+-    return (self.name + str(self.variations)).__hash__()
+-
+-
+-# This list of module types are omitted from the report and graph
+-# for brevity and simplicity. Presence in this list doesn't mean
+-# that they shouldn't be converted, but that they are not that useful
+-# to be recorded in the graph or report currently.
+-IGNORED_KINDS = set([
+-    "cc_defaults",
+-    "cpython3_python_stdlib",
+-    "hidl_package_root",  # not being converted, contents converted as part of hidl_interface
+-    "java_defaults",
+-    "license",
+-    "license_kind",
+-])
+-
+-# queryview doesn't have information on the type of deps, so we explicitly skip
+-# prebuilt types
+-_QUERYVIEW_IGNORE_KINDS = set([
+-    "android_app_import",
+-    "android_library_import",
+-    "cc_prebuilt_library",
+-    "cc_prebuilt_library_headers",
+-    "cc_prebuilt_library_shared",
+-    "cc_prebuilt_library_static",
+-    "cc_prebuilt_library_static",
+-    "cc_prebuilt_object",
+-    "java_import",
+-    "java_import_host",
+-    "java_sdk_library_import",
+-    "cpython3_python_stdlib",
+-    "cpython2_python_stdlib",
+-])
+-
+-
+-# Soong adds some dependencies that are handled by Bazel as part of the
+-# toolchain
+-_TOOLCHAIN_DEP_TYPES = frozenset([
+-    "python.dependencyTag {BaseDependencyTag:{} name:hostLauncher}",
+-    "python.dependencyTag {BaseDependencyTag:{} name:hostLauncherSharedLib}",
+-    "python.dependencyTag {BaseDependencyTag:{} name:hostStdLib}",
+-    "python.dependencyTag {BaseDependencyTag:{} name:launcher}",
+-    (
+-        "python.installDependencyTag {BaseDependencyTag:{}"
+-        " InstallAlwaysNeededDependencyTag:{} name:launcherSharedLib}"
+-    ),
+-])
+-
+-def get_src_root_dir() -> str:
+-  # Search up the directory tree until we find soong_ui.bash as a regular file, not a symlink.
+-  # This is so that we find the real source tree root, and not the bazel execroot which symlimks in
+-  # soong_ui.bash.
+-  def soong_ui(path):
+-    return os.path.join(path, 'build/soong/soong_ui.bash')
+-
+-  path = '.'
+-  while not os.path.isfile(soong_ui(path)) or os.path.islink(soong_ui(path)):
+-    if os.path.abspath(path) == '/':
+-      sys.exit('Could not find android source tree root.')
+-    path = os.path.join(path, '..')
+-  return os.path.abspath(path)
+-
+-SRC_ROOT_DIR = get_src_root_dir()
+-
+-LUNCH_ENV = {
+-    # Use aosp_arm as the canonical target product.
+-    "TARGET_PRODUCT": "aosp_arm",
+-    "TARGET_BUILD_VARIANT": "userdebug",
+-}
+-
+-BANCHAN_ENV = {
+-    # Use module_arm64 as the canonical banchan target product.
+-    "TARGET_PRODUCT": "module_arm64",
+-    "TARGET_BUILD_VARIANT": "eng",
+-    # just needs to be non-empty, not the specific module for Soong
+-    # analysis purposes
+-    "TARGET_BUILD_APPS": "all",
+-}
+-
+-_REQUIRED_PROPERTIES = [
+-    "Required",
+-    "Host_required",
+-    "Target_required",
+-]
+-
+-
+-def _build_with_soong(target, target_product):
+-  env = BANCHAN_ENV if target_product.banchan_mode else LUNCH_ENV
+-  if target_product.product:
+-    env["TARGET_PRODUCT"] = target_product.product
+-
+-  subprocess.check_output(
+-      [
+-          "build/soong/soong_ui.bash",
+-          "--make-mode",
+-          "--skip-soong-tests",
+-          target,
+-      ],
+-      cwd=SRC_ROOT_DIR,
+-      env=env,
+-  )
+-
+-
+-def get_properties(json_module):
+-  set_properties = {}
+-  if "Module" not in json_module:
+-    return set_properties
+-  if "Android" not in json_module["Module"]:
+-    return set_properties
+-  if "SetProperties" not in json_module["Module"]["Android"]:
+-    return set_properties
+-  if json_module["Module"]["Android"]["SetProperties"] is None:
+-    return set_properties
+-
+-  for prop in json_module["Module"]["Android"]["SetProperties"]:
+-    if prop["Values"]:
+-      value = prop["Values"]
+-    else:
+-      value = prop["Value"]
+-    set_properties[prop["Name"]] = value
+-
+-  return set_properties
+-
+-
+-def get_property_names(json_module):
+-  return get_properties(json_module).keys()
+-
+-
+-def get_queryview_module_info_by_type(types, target_product):
+-  """Returns the list of transitive dependencies of input module as built by queryview."""
+-  _build_with_soong("queryview", target_product)
+-
+-  queryview_xml = subprocess.check_output(
+-      [
+-          "build/bazel/bin/bazel",
+-          "query",
+-          "--config=ci",
+-          "--config=queryview",
+-          "--output=xml",
+-          # union of queries to get the deps of all Soong modules with the give names
+-          " + ".join(
+-              f'deps(attr("soong_module_type", "^{t}$", //...))' for t in types
+-          ),
+-      ],
+-      cwd=SRC_ROOT_DIR,
+-  )
+-  try:
+-    return xml.etree.ElementTree.fromstring(queryview_xml)
+-  except xml.etree.ElementTree.ParseError as err:
+-    sys.exit(f"""Could not parse XML:
+-{queryview_xml}
+-ParseError: {err}""")
+-
+-
+-def get_queryview_module_info(modules, target_product):
+-  """Returns the list of transitive dependencies of input module as built by queryview."""
+-  _build_with_soong("queryview", target_product)
+-
+-  queryview_xml = subprocess.check_output(
+-      [
+-          "build/bazel/bin/bazel",
+-          "query",
+-          "--config=ci",
+-          "--config=queryview",
+-          "--output=xml",
+-          # union of queries to get the deps of all Soong modules with the give names
+-          " + ".join(
+-              f'deps(attr("soong_module_name", "^{m}$", //...))'
+-              for m in modules
+-          ),
+-      ],
+-      cwd=SRC_ROOT_DIR,
+-  )
+-  try:
+-    return xml.etree.ElementTree.fromstring(queryview_xml)
+-  except xml.etree.ElementTree.ParseError as err:
+-    sys.exit(f"""Could not parse XML:
+-{queryview_xml}
+-ParseError: {err}""")
+-
+-
+-def get_json_module_info(target_product=None):
+-  """Returns the list of transitive dependencies of input module as provided by Soong's json module graph."""
+-  _build_with_soong("json-module-graph", target_product)
+-  try:
+-    with open(os.path.join(SRC_ROOT_DIR, "out/soong/module-graph.json")) as f:
+-      return json.load(f)
+-  except json.JSONDecodeError as err:
+-    sys.exit(f"""Could not decode json:
+-out/soong/module-graph.json
+-JSONDecodeError: {err}""")
+-
+-
+-def ignore_json_module(json_module, ignore_by_name):
+-  # windows is not a priority currently
+-  if is_windows_variation(json_module):
+-    return True
+-  if ignore_kind(json_module["Type"]):
+-    return True
+-  if json_module["Name"] in ignore_by_name:
+-    return True
+-  # for filegroups with a name the same as the source, we are not migrating the
+-  # filegroup and instead just rely on the filename being exported
+-  if json_module["Type"] == "filegroup":
+-    set_properties = get_properties(json_module)
+-    srcs = set_properties.get("Srcs", [])
+-    if len(srcs) == 1:
+-      return json_module["Name"] in srcs
+-  return False
+-
+-
+-def visit_json_module_graph_post_order(
+-    module_graph, ignore_by_name, ignore_java_auto_deps, filter_predicate, visit
+-):
+-  # The set of ignored modules. These modules (and their dependencies) are not shown
+-  # in the graph or report.
+-  ignored = set()
+-
+-  # name to all module variants
+-  module_graph_map = {}
+-  root_module_keys = []
+-  name_to_keys = collections.defaultdict(list)
+-
+-  # Do a single pass to find all top-level modules to be ignored
+-  for module in module_graph:
+-    name = module["Name"]
+-    key = _ModuleKey(name, module["Variations"])
+-    if ignore_json_module(module, ignore_by_name):
+-      ignored.add(key)
+-      continue
+-    name_to_keys[name].append(key)
+-    module_graph_map[key] = module
+-    if filter_predicate(module):
+-      root_module_keys.append(key)
+-
+-  visited = set()
+-
+-  def json_module_graph_post_traversal(module_key):
+-    if module_key in ignored or module_key in visited:
+-      return
+-    visited.add(module_key)
+-
+-    deps = set()
+-    module = module_graph_map[module_key]
+-    created_by = module["CreatedBy"]
+-
+-    extra_deps = []
+-    if created_by:
+-      extra_deps.append(created_by)
+-
+-    set_properties = get_properties(module)
+-    for prop in set_properties.keys():
+-      for req in _REQUIRED_PROPERTIES:
+-        if prop.endswith(req):
+-          modules = set_properties.get(prop, [])
+-          extra_deps.extend(modules)
+-
+-    for m in extra_deps:
+-      for key in name_to_keys.get(m, []):
+-        if key in ignored:
+-          continue
+-        # treat created by as a dep so it appears as a blocker, otherwise the
+-        # module will be disconnected from the traversal graph despite having a
+-        # direct relationship to a module and must addressed in the migration
+-        deps.add(m)
+-        json_module_graph_post_traversal(key)
+-
+-    # collect all variants and dependencies from those variants
+-    # we want to visit all deps before other variants
+-    all_variants = {}
+-    all_deps = []
+-    for k in name_to_keys[module["Name"]]:
+-      visited.add(k)
+-      m = module_graph_map[k]
+-      all_variants[k] = m
+-      all_deps.extend(m["Deps"])
+-
+-    deps_visited = set()
+-    for dep in all_deps:
+-      dep_name = dep["Name"]
+-      dep_key = _ModuleKey(dep_name, dep["Variations"])
+-      # only check if we need to ignore or visit each dep once but it might
+-      # appear multiple times due to different variants
+-      if dep_key in deps_visited:
+-        continue
+-      deps_visited.add(dep_key)
+-
+-      if ignore_json_dep(dep, module["Name"], ignored, ignore_java_auto_deps):
+-        continue
+-
+-      deps.add(dep_name)
+-      json_module_graph_post_traversal(dep_key)
+-
+-    for k, m in all_variants.items():
+-      visit(m, deps)
+-
+-  for module_key in root_module_keys:
+-    json_module_graph_post_traversal(module_key)
+-
+-
+-QueryviewModule = collections.namedtuple(
+-    "QueryviewModule",
+-    [
+-        "name",
+-        "kind",
+-        "variant",
+-        "dirname",
+-        "deps",
+-        "srcs",
+-    ],
+-)
+-
+-
+-def _bazel_target_to_dir(full_target):
+-  dirname, _ = full_target.split(":")
+-  return dirname[len("//") :]  # discard prefix
+-
+-
+-def _get_queryview_module(name_with_variant, module, kind):
+-  name = None
+-  variant = ""
+-  deps = []
+-  srcs = []
+-  for attr in module:
+-    attr_name = attr.attrib["name"]
+-    if attr.tag == "rule-input":
+-      deps.append(attr_name)
+-    elif attr_name == "soong_module_name":
+-      name = attr.attrib["value"]
+-    elif attr_name == "soong_module_variant":
+-      variant = attr.attrib["value"]
+-    elif attr_name == "soong_module_type" and kind == "generic_soong_module":
+-      kind = attr.attrib["value"]
+-    elif attr_name == "srcs":
+-      for item in attr:
+-        srcs.append(item.attrib["value"])
+-
+-  return QueryviewModule(
+-      name=name,
+-      kind=kind,
+-      variant=variant,
+-      dirname=_bazel_target_to_dir(name_with_variant),
+-      deps=deps,
+-      srcs=srcs,
+-  )
+-
+-
+-def _ignore_queryview_module(module, ignore_by_name):
+-  if module.name in ignore_by_name:
+-    return True
+-  if ignore_kind(module.kind, queryview=True):
+-    return True
+-  # special handling for filegroup srcs, if a source has the same name as
+-  # the filegroup module, we don't convert it
+-  if module.kind == "filegroup" and module.name in module.srcs:
+-    return True
+-  return module.variant.startswith("windows")
+-
+-
+-def visit_queryview_xml_module_graph_post_order(
+-    module_graph, ignored_by_name, filter_predicate, visit
+-):
+-  # The set of ignored modules. These modules (and their dependencies) are
+-  # not shown in the graph or report.
+-  ignored = set()
+-
+-  # queryview embeds variant in long name, keep a map of the name with vaiarnt
+-  # to just name
+-  name_with_variant_to_name = dict()
+-
+-  module_graph_map = dict()
+-  to_visit = []
+-
+-  for module in module_graph:
+-    ignore = False
+-    if module.tag != "rule":
+-      continue
+-    kind = module.attrib["class"]
+-    name_with_variant = module.attrib["name"]
+-
+-    qv_module = _get_queryview_module(name_with_variant, module, kind)
+-
+-    if _ignore_queryview_module(qv_module, ignored_by_name):
+-      ignored.add(name_with_variant)
+-      continue
+-
+-    if filter_predicate(qv_module):
+-      to_visit.append(name_with_variant)
+-
+-    name_with_variant_to_name.setdefault(name_with_variant, qv_module.name)
+-    module_graph_map[name_with_variant] = qv_module
+-
+-  visited = set()
+-
+-  def queryview_module_graph_post_traversal(name_with_variant):
+-    module = module_graph_map[name_with_variant]
+-    if name_with_variant in ignored or name_with_variant in visited:
+-      return
+-    visited.add(name_with_variant)
+-
+-    name = name_with_variant_to_name[name_with_variant]
+-
+-    deps = set()
+-    for dep_name_with_variant in module.deps:
+-      if dep_name_with_variant in ignored:
+-        continue
+-      dep_name = name_with_variant_to_name[dep_name_with_variant]
+-      if dep_name == "prebuilt_" + name:
+-        continue
+-      if dep_name_with_variant not in visited:
+-        queryview_module_graph_post_traversal(dep_name_with_variant)
+-
+-      if name != dep_name:
+-        deps.add(dep_name)
+-
+-    visit(module, deps)
+-
+-  for name_with_variant in to_visit:
+-    queryview_module_graph_post_traversal(name_with_variant)
+-
+-
+-def get_bp2build_converted_modules(target_product) -> Dict[str, Set[str]]:
+-  """Returns the list of modules that bp2build can currently convert."""
+-  _build_with_soong("bp2build", target_product)
+-  # Parse the list of converted module names from bp2build
+-  with open(
+-      os.path.join(
+-          SRC_ROOT_DIR,
+-          "out/soong/soong_injection/metrics/converted_modules.json",
+-      ),
+-      "r",
+-  ) as f:
+-    converted_mods = json.loads(f.read())
+-    ret = collections.defaultdict(set)
+-    for m in converted_mods:
+-      ret[m["name"]].add(m["type"])
+-  return ret
+-
+-
+-def get_bp2build_metrics(bp2build_metrics_location):
+-  """Returns the bp2build metrics"""
+-  bp2build_metrics = Bp2BuildMetrics()
+-  with open(
+-      os.path.join(bp2build_metrics_location, "bp2build_metrics.pb"), "rb"
+-  ) as f:
+-    bp2build_metrics.ParseFromString(f.read())
+-    f.close()
+-  return bp2build_metrics
+-
+-
+-def get_json_module_type_info(module_type, target_product=None):
+-  """Returns the combined transitive dependency closures of all modules of module_type."""
+-  if target_product is None:
+-    target_product = TargetProduct(banchan_mode=False)
+-  _build_with_soong("json-module-graph", target_product)
+-  # Run query.sh on the module graph for the top level module type
+-  result = subprocess.check_output(
+-      [
+-          "build/bazel/json_module_graph/query.sh",
+-          "fullTransitiveModuleTypeDeps",
+-          "out/soong/module-graph.json",
+-          module_type,
+-      ],
+-      cwd=SRC_ROOT_DIR,
+-  )
+-  return json.loads(result)
+-
+-
+-def is_windows_variation(module):
+-  """Returns True if input module's variant is Windows.
+-
+-  Args:
+-    module: an entry parsed from Soong's json-module-graph
+-  """
+-  dep_variations = module.get("Variations")
+-  dep_variation_os = ""
+-  if dep_variations != None:
+-    for v in dep_variations:
+-      if v["Mutator"] == "os":
+-        dep_variation_os = v["Variation"]
+-  return dep_variation_os == "windows"
+-
+-
+-def ignore_kind(kind, queryview=False):
+-  if queryview and kind in _QUERYVIEW_IGNORE_KINDS:
+-    return True
+-  return kind in IGNORED_KINDS or "defaults" in kind
+-
+-
+-def is_prebuilt_to_source_dep(dep):
+-  # Soong always adds a dependency from a source module to its corresponding
+-  # prebuilt module, if it exists.
+-  # https://cs.android.com/android/platform/superproject/+/master:build/soong/android/prebuilt.go;l=395-396;drc=5d6fa4d8571d01a6e5a63a8b7aa15e61f45737a9
+-  # This makes it appear that the prebuilt is a transitive dependency regardless
+-  # of whether it is actually necessary. Skip these to keep the graph to modules
+-  # used to build.
+-  return dep["Tag"] == "android.prebuiltDependencyTag {BaseDependencyTag:{}}"
+-
+-
+-def _is_toolchain_dep(dep):
+-  return dep["Tag"] in _TOOLCHAIN_DEP_TYPES
+-
+-
+-def _is_java_auto_dep(dep):
+-  # Soong adds a number of dependencies automatically for Java deps, making it
+-  # difficult to understand the actual dependencies, remove the
+-  # non-user-specified deps
+-  tag = dep["Tag"]
+-  if not tag:
+-    return False
+-
+-  if tag.startswith("java.dependencyTag") and (
+-      "name:system modules" in tag or "name:bootclasspath" in tag
+-  ):
+-    name = dep["Name"]
+-    # only remove automatically added bootclasspath/system modules
+-    return (
+-        name
+-        in frozenset([
+-            "core-lambda-stubs",
+-            "core-module-lib-stubs-system-modules",
+-            "core-public-stubs-system-modules",
+-            "core-system-server-stubs-system-modules",
+-            "core-system-stubs-system-modules",
+-            "core-test-stubs-system-modules",
+-            "core.current.stubs",
+-            "legacy-core-platform-api-stubs-system-modules",
+-            "legacy.core.platform.api.stubs",
+-            "stable-core-platform-api-stubs-system-modules",
+-            "stable.core.platform.api.stubs",
+-        ])
+-        or (name.startswith("android_") and name.endswith("_stubs_current"))
+-        or (name.startswith("sdk_") and name.endswith("_system_modules"))
+-    )
+-  return (
+-      (
+-          tag.startswith("java.dependencyTag")
+-          and (
+-              "name:proguard-raise" in tag
+-              or "name:framework-res" in tag
+-              or "name:sdklib" in tag
+-              or "name:java9lib" in tag
+-          )
+-          or (
+-              tag.startswith("java.usesLibraryDependencyTag")
+-              or tag.startswith("java.hiddenAPIStubsDependencyTag")
+-          )
+-      )
+-      or (
+-          tag.startswith("android.sdkMemberDependencyTag")
+-          or tag.startswith("java.scopeDependencyTag")
+-      )
+-      or tag.startswith("dexpreopt.dex2oatDependencyTag")
+-  )
+-
+-
+-def ignore_json_dep(dep, module_name, ignored_keys, ignore_java_auto_deps):
+-  """Whether to ignore a json dependency based on heuristics.
+-
+-  Args:
+-    dep: dependency struct from an entry in Soogn's json-module-graph
+-    module_name: name of the module this is a dependency of
+-    ignored_names: a set of _ModuleKey to ignore
+-  """
+-  if is_prebuilt_to_source_dep(dep):
+-    return True
+-  if _is_toolchain_dep(dep):
+-    return True
+-  elif dep["Name"] == "py3-stdlib":
+-    return True
+-  if ignore_java_auto_deps and _is_java_auto_dep(dep):
+-    return True
+-  name = dep["Name"]
+-  return (
+-      _ModuleKey(name, dep["Variations"]) in ignored_keys or name == module_name
+-  )
+diff --git a/scripts/bp2build_progress/dependency_analysis_test.py b/scripts/bp2build_progress/dependency_analysis_test.py
+deleted file mode 100755
+index 96afbf71..00000000
+--- a/scripts/bp2build_progress/dependency_analysis_test.py
++++ /dev/null
+@@ -1,818 +0,0 @@
+-#!/usr/bin/env python3
+-
+-# Copyright (C) 2022 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#   http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-"""Tests for dependency_analysis.py."""
+-
+-import unittest
+-import dependency_analysis
+-import queryview_xml
+-import soong_module_json
+-
+-
+-class DependencyAnalysisTest(unittest.TestCase):
+-
+-  def test_visit_json_module_graph_post_order_visits_all_in_post_order(self):
+-    graph = [
+-        soong_module_json.make_module(
+-            'q',
+-            'module',
+-            [
+-                soong_module_json.make_dep('a'),
+-                soong_module_json.make_dep('b'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'a',
+-            'module',
+-            [
+-                soong_module_json.make_dep('b'),
+-                soong_module_json.make_dep('c'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'b',
+-            'module',
+-            [
+-                soong_module_json.make_dep('d'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'c',
+-            'module',
+-            [
+-                soong_module_json.make_dep('e'),
+-            ],
+-        ),
+-        soong_module_json.make_module('d', 'module', []),
+-        soong_module_json.make_module('e', 'module', []),
+-    ]
+-
+-    def only_a(json):
+-      return json['Name'] == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module['Name'])
+-
+-    dependency_analysis.visit_json_module_graph_post_order(
+-        graph, set(), False, only_a, visit
+-    )
+-
+-    expected_visited = ['d', 'b', 'e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_json_module_graph_post_order_visits_all_variants_in_post_order(
+-      self,
+-  ):
+-    graph = [
+-        soong_module_json.make_module(
+-            'd',
+-            'module',
+-            [
+-                soong_module_json.make_dep('g'),
+-            ],
+-            variations=[soong_module_json.make_variation('foo', '1')],
+-        ),
+-        soong_module_json.make_module(
+-            'd',
+-            'module',
+-            [
+-                soong_module_json.make_dep('f'),
+-            ],
+-            variations=[soong_module_json.make_variation('foo', '2')],
+-        ),
+-        soong_module_json.make_module('g', 'module', []),
+-        soong_module_json.make_module('f', 'module', []),
+-        soong_module_json.make_module('e', 'module', []),
+-        soong_module_json.make_module(
+-            'c',
+-            'module',
+-            [
+-                soong_module_json.make_dep('e'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'a',
+-            'module',
+-            [
+-                soong_module_json.make_dep('b'),
+-                soong_module_json.make_dep('c'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'b',
+-            'module',
+-            [
+-                soong_module_json.make_dep(
+-                    'd',
+-                    variations=[
+-                        soong_module_json.make_variation('foo', '1'),
+-                    ],
+-                ),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'q',
+-            'module',
+-            [
+-                soong_module_json.make_dep('a'),
+-                soong_module_json.make_dep('b'),
+-            ],
+-        ),
+-    ]
+-
+-    def only_a(json):
+-      return json['Name'] == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module['Name'])
+-
+-    dependency_analysis.visit_json_module_graph_post_order(
+-        graph, set(), False, only_a, visit
+-    )
+-
+-    expected_visited = ['g', 'f', 'd', 'd', 'b', 'e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_json_module_graph_post_order_skips_ignored_by_name_and_transitive(
+-      self,
+-  ):
+-    graph = [
+-        soong_module_json.make_module(
+-            'a',
+-            'module',
+-            [
+-                soong_module_json.make_dep('b'),
+-                soong_module_json.make_dep('c'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'b',
+-            'module',
+-            [
+-                soong_module_json.make_dep('d'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'c',
+-            'module',
+-            [
+-                soong_module_json.make_dep('e'),
+-            ],
+-        ),
+-        soong_module_json.make_module('d', 'module', []),
+-        soong_module_json.make_module('e', 'module', []),
+-    ]
+-
+-    def only_a(json):
+-      return json['Name'] == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module['Name'])
+-
+-    dependency_analysis.visit_json_module_graph_post_order(
+-        graph, set('b'), False, only_a, visit
+-    )
+-
+-    expected_visited = ['e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_json_module_graph_post_order_skips_defaults_and_transitive(
+-      self,
+-  ):
+-    graph = [
+-        soong_module_json.make_module(
+-            'a',
+-            'module',
+-            [
+-                soong_module_json.make_dep('b'),
+-                soong_module_json.make_dep('c'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'b',
+-            'module_defaults',
+-            [
+-                soong_module_json.make_dep('d'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'c',
+-            'module',
+-            [
+-                soong_module_json.make_dep('e'),
+-            ],
+-        ),
+-        soong_module_json.make_module('d', 'module', []),
+-        soong_module_json.make_module('e', 'module', []),
+-    ]
+-
+-    def only_a(json):
+-      return json['Name'] == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module['Name'])
+-
+-    dependency_analysis.visit_json_module_graph_post_order(
+-        graph, set(), False, only_a, visit
+-    )
+-
+-    expected_visited = ['e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_json_module_graph_post_order_skips_windows_and_transitive(
+-      self,
+-  ):
+-    windows_variation = soong_module_json.make_variation('os', 'windows')
+-    graph = [
+-        soong_module_json.make_module(
+-            'a',
+-            'module',
+-            [
+-                soong_module_json.make_dep('b', variations=[windows_variation]),
+-                soong_module_json.make_dep('c'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'b',
+-            'module',
+-            [
+-                soong_module_json.make_dep('d'),
+-            ],
+-            variations=[windows_variation],
+-        ),
+-        soong_module_json.make_module(
+-            'c',
+-            'module',
+-            [
+-                soong_module_json.make_dep('e'),
+-            ],
+-        ),
+-        soong_module_json.make_module('d', 'module', []),
+-        soong_module_json.make_module('e', 'module', []),
+-    ]
+-
+-    def only_a(json):
+-      return json['Name'] == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module['Name'])
+-
+-    dependency_analysis.visit_json_module_graph_post_order(
+-        graph, set(), False, only_a, visit
+-    )
+-
+-    expected_visited = ['e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_json_module_graph_post_order_skips_prebuilt_tag_deps(self):
+-    graph = [
+-        soong_module_json.make_module(
+-            'a',
+-            'module',
+-            [
+-                soong_module_json.make_dep(
+-                    'b', 'android.prebuiltDependencyTag {BaseDependencyTag:{}}'
+-                ),
+-                soong_module_json.make_dep('c'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'b',
+-            'module',
+-            [
+-                soong_module_json.make_dep('d'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'c',
+-            'module',
+-            [
+-                soong_module_json.make_dep('e'),
+-            ],
+-        ),
+-        soong_module_json.make_module('d', 'module', []),
+-        soong_module_json.make_module('e', 'module', []),
+-    ]
+-
+-    def only_a(json):
+-      return json['Name'] == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module['Name'])
+-
+-    dependency_analysis.visit_json_module_graph_post_order(
+-        graph, set(), False, only_a, visit
+-    )
+-
+-    expected_visited = ['e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_json_module_graph_post_order_no_infinite_loop_for_self_dep(
+-      self,
+-  ):
+-    graph = [
+-        soong_module_json.make_module(
+-            'a', 'module', [soong_module_json.make_dep('a')]
+-        ),
+-    ]
+-
+-    def only_a(json):
+-      return json['Name'] == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module['Name'])
+-
+-    dependency_analysis.visit_json_module_graph_post_order(
+-        graph, set(), False, only_a, visit
+-    )
+-
+-    expected_visited = ['a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_json_module_graph_post_order_visits_all_variants(self):
+-    m1_variation = [soong_module_json.make_variation('m', '1')]
+-    graph = [
+-        soong_module_json.make_module(
+-            'a',
+-            'module',
+-            [
+-                soong_module_json.make_dep('b', variations=m1_variation),
+-            ],
+-            variations=[soong_module_json.make_variation('m', '1')],
+-        ),
+-        soong_module_json.make_module(
+-            'a',
+-            'module',
+-            [
+-                soong_module_json.make_dep('c', variations=m1_variation),
+-            ],
+-            variations=[soong_module_json.make_variation('m', '2')],
+-        ),
+-        soong_module_json.make_module(
+-            'b',
+-            'module',
+-            [
+-                soong_module_json.make_dep('d', variations=m1_variation),
+-            ],
+-            variations=[soong_module_json.make_variation('m', '1')],
+-        ),
+-        soong_module_json.make_module(
+-            'c',
+-            'module',
+-            [
+-                soong_module_json.make_dep('e', variations=m1_variation),
+-            ],
+-            variations=[soong_module_json.make_variation('m', '1')],
+-        ),
+-        soong_module_json.make_module(
+-            'd',
+-            'module',
+-            [],
+-            variations=[soong_module_json.make_variation('m', '1')],
+-        ),
+-        soong_module_json.make_module(
+-            'e',
+-            'module',
+-            [],
+-            variations=[soong_module_json.make_variation('m', '1')],
+-        ),
+-    ]
+-
+-    def only_a(json):
+-      return json['Name'] == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module['Name'])
+-
+-    dependency_analysis.visit_json_module_graph_post_order(
+-        graph, set(), False, only_a, visit
+-    )
+-
+-    expected_visited = ['d', 'b', 'e', 'c', 'a', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_json_module_skips_filegroup_with_src_same_as_name(self):
+-    graph = [
+-        soong_module_json.make_module(
+-            'a',
+-            'filegroup',
+-            [
+-                soong_module_json.make_dep('b'),
+-            ],
+-            json_props=[
+-                soong_module_json.make_property(
+-                    name='Srcs',
+-                    values=['other_file'],
+-                ),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'b',
+-            'filegroup',
+-            json_props=[
+-                soong_module_json.make_property(
+-                    name='Srcs',
+-                    values=['b'],
+-                ),
+-            ],
+-        ),
+-    ]
+-
+-    def only_a(json):
+-      return json['Name'] == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module['Name'])
+-
+-    dependency_analysis.visit_json_module_graph_post_order(
+-        graph, set(), False, only_a, visit
+-    )
+-
+-    expected_visited = ['a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_json_module_graph_post_order_include_created_by(self):
+-    graph = [
+-        soong_module_json.make_module(
+-            'a',
+-            'module',
+-            [
+-                soong_module_json.make_dep('b'),
+-                soong_module_json.make_dep('c'),
+-            ],
+-        ),
+-        soong_module_json.make_module('b', 'module', created_by='d'),
+-        soong_module_json.make_module(
+-            'c',
+-            'module',
+-            [
+-                soong_module_json.make_dep('e'),
+-            ],
+-        ),
+-        soong_module_json.make_module('d', 'module', []),
+-        soong_module_json.make_module('e', 'module', []),
+-    ]
+-
+-    def only_a(json):
+-      return json['Name'] == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module['Name'])
+-
+-    dependency_analysis.visit_json_module_graph_post_order(
+-        graph, set(), False, only_a, visit
+-    )
+-
+-    expected_visited = ['d', 'b', 'e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_json_module_graph_post_order_include_required(self):
+-    graph = [
+-        soong_module_json.make_module(
+-            'a',
+-            'module',
+-            [
+-                soong_module_json.make_dep('b'),
+-            ],
+-        ),
+-        soong_module_json.make_module(
+-            'b',
+-            'module',
+-            json_props=[
+-                soong_module_json.make_property(
+-                    # we explicitly specify a non-Soong module because there can
+-                    # be Soong -> Kati edges in Required
+-                    'Required', values=['c', 'not_soong']
+-                ),
+-                soong_module_json.make_property('Host_required', values=['d']),
+-                soong_module_json.make_property(
+-                    'Target_required', values=['e']
+-                ),
+-                soong_module_json.make_property('Linux.Host_required', values=['f']),
+-            ],
+-        ),
+-        soong_module_json.make_module('c', 'module', []),
+-        soong_module_json.make_module('d', 'module', []),
+-        soong_module_json.make_module('e', 'module', []),
+-        soong_module_json.make_module('f', 'module', []),
+-    ]
+-
+-    def only_a(json):
+-      return json['Name'] == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module['Name'])
+-
+-    dependency_analysis.visit_json_module_graph_post_order(
+-        graph, set(), False, only_a, visit
+-    )
+-
+-    expected_visited = ['c', 'd', 'e', 'f', 'b', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_queryview_xml_module_graph_post_order_visits_all(self):
+-    graph = queryview_xml.make_graph([
+-        queryview_xml.make_module(
+-            '//pkg:a', 'a', 'module', dep_names=['//pkg:b', '//pkg:c']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:b', 'b', 'module', dep_names=['//pkg:d']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:c', 'c', 'module', dep_names=['//pkg:e']
+-        ),
+-        queryview_xml.make_module('//pkg:d', 'd', 'module'),
+-        queryview_xml.make_module('//pkg:e', 'e', 'module'),
+-    ])
+-
+-    def only_a(module):
+-      return module.name == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module.name)
+-
+-    dependency_analysis.visit_queryview_xml_module_graph_post_order(
+-        graph, set(), only_a, visit
+-    )
+-
+-    expected_visited = ['d', 'b', 'e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_queryview_xml_module_graph_post_order_skips_ignore_by_name(
+-      self,
+-  ):
+-    graph = queryview_xml.make_graph([
+-        queryview_xml.make_module(
+-            '//pkg:a', 'a', 'module', dep_names=['//pkg:b', '//pkg:c']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:b', 'b', 'module', dep_names=['//pkg:d']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:c', 'c', 'module', dep_names=['//pkg:e']
+-        ),
+-        queryview_xml.make_module('//pkg:d', 'd', 'module'),
+-        queryview_xml.make_module('//pkg:e', 'e', 'module'),
+-    ])
+-
+-    def only_a(module):
+-      return module.name == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module.name)
+-
+-    dependency_analysis.visit_queryview_xml_module_graph_post_order(
+-        graph, set('b'), only_a, visit
+-    )
+-
+-    expected_visited = ['e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_queryview_xml_module_graph_post_order_skips_default(self):
+-    graph = queryview_xml.make_graph([
+-        queryview_xml.make_module(
+-            '//pkg:a', 'a', 'module', dep_names=['//pkg:b', '//pkg:c']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:b', 'b', 'module_defaults', dep_names=['//pkg:d']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:c', 'c', 'module', dep_names=['//pkg:e']
+-        ),
+-        queryview_xml.make_module('//pkg:d', 'd', 'module'),
+-        queryview_xml.make_module('//pkg:e', 'e', 'module'),
+-    ])
+-
+-    def only_a(module):
+-      return module.name == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module.name)
+-
+-    dependency_analysis.visit_queryview_xml_module_graph_post_order(
+-        graph, set(), only_a, visit
+-    )
+-
+-    expected_visited = ['e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_queryview_xml_module_graph_post_order_skips_cc_prebuilt(self):
+-    graph = queryview_xml.make_graph([
+-        queryview_xml.make_module(
+-            '//pkg:a', 'a', 'module', dep_names=['//pkg:b', '//pkg:c']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:b', 'b', 'cc_prebuilt_library', dep_names=['//pkg:d']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:c', 'c', 'module', dep_names=['//pkg:e']
+-        ),
+-        queryview_xml.make_module('//pkg:d', 'd', 'module'),
+-        queryview_xml.make_module('//pkg:e', 'e', 'module'),
+-    ])
+-
+-    def only_a(module):
+-      return module.name == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module.name)
+-
+-    dependency_analysis.visit_queryview_xml_module_graph_post_order(
+-        graph, set(), only_a, visit
+-    )
+-
+-    expected_visited = ['e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_queryview_xml_module_graph_post_order_skips_filegroup_duplicate_name(
+-      self,
+-  ):
+-    graph = queryview_xml.make_graph([
+-        queryview_xml.make_module(
+-            '//pkg:a', 'a', 'module', dep_names=['//pkg:b', '//pkg:c']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:b', 'b', 'filegroup', dep_names=['//pkg:d'], srcs=['b']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:c', 'c', 'module', dep_names=['//pkg:e']
+-        ),
+-        queryview_xml.make_module('//pkg:d', 'd', 'module'),
+-        queryview_xml.make_module('//pkg:e', 'e', 'module'),
+-    ])
+-
+-    def only_a(module):
+-      return module.name == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module.name)
+-
+-    dependency_analysis.visit_queryview_xml_module_graph_post_order(
+-        graph, set(), only_a, visit
+-    )
+-
+-    expected_visited = ['e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_queryview_xml_module_graph_post_order_skips_windows(self):
+-    graph = queryview_xml.make_graph([
+-        queryview_xml.make_module(
+-            '//pkg:a', 'a', 'module', dep_names=['//pkg:b', '//pkg:c']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:b',
+-            'b',
+-            'module',
+-            dep_names=['//pkg:d'],
+-            variant='windows-x86',
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:c', 'c', 'module', dep_names=['//pkg:e']
+-        ),
+-        queryview_xml.make_module('//pkg:d', 'd', 'module'),
+-        queryview_xml.make_module('//pkg:e', 'e', 'module'),
+-    ])
+-
+-    def only_a(module):
+-      return module.name == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module.name)
+-
+-    dependency_analysis.visit_queryview_xml_module_graph_post_order(
+-        graph, set(), only_a, visit
+-    )
+-
+-    expected_visited = ['e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_queryview_xml_module_graph_post_order_self_dep_no_infinite_loop(
+-      self,
+-  ):
+-    graph = queryview_xml.make_graph([
+-        queryview_xml.make_module(
+-            '//pkg:a', 'a', 'module', dep_names=['//pkg:b--variant1', '//pkg:c']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:b--variant1',
+-            'b',
+-            'module',
+-            variant='variant1',
+-            dep_names=['//pkg:b--variant2'],
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:b--variant2',
+-            'b',
+-            'module',
+-            variant='variant2',
+-            dep_names=['//pkg:d'],
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:c', 'c', 'module', dep_names=['//pkg:e']
+-        ),
+-        queryview_xml.make_module('//pkg:d', 'd', 'module'),
+-        queryview_xml.make_module('//pkg:e', 'e', 'module'),
+-    ])
+-
+-    def only_a(module):
+-      return module.name == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module.name)
+-
+-    dependency_analysis.visit_queryview_xml_module_graph_post_order(
+-        graph, set(), only_a, visit
+-    )
+-
+-    expected_visited = ['d', 'b', 'b', 'e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-  def test_visit_queryview_xml_module_graph_post_order_skips_prebuilt_with_same_name(
+-      self,
+-  ):
+-    graph = queryview_xml.make_graph([
+-        queryview_xml.make_module(
+-            '//pkg:a',
+-            'a',
+-            'module',
+-            dep_names=['//other_pkg:prebuilt_a', '//pkg:b', '//pkg:c'],
+-        ),
+-        queryview_xml.make_module(
+-            '//other_pkg:prebuilt_a', 'prebuilt_a', 'prebuilt_module'
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:b', 'b', 'module', dep_names=['//pkg:d']
+-        ),
+-        queryview_xml.make_module(
+-            '//pkg:c', 'c', 'module', dep_names=['//pkg:e']
+-        ),
+-        queryview_xml.make_module('//pkg:d', 'd', 'module'),
+-        queryview_xml.make_module('//pkg:e', 'e', 'module'),
+-    ])
+-
+-    def only_a(module):
+-      return module.name == 'a'
+-
+-    visited_modules = []
+-
+-    def visit(module, _):
+-      visited_modules.append(module.name)
+-
+-    dependency_analysis.visit_queryview_xml_module_graph_post_order(
+-        graph, set(), only_a, visit
+-    )
+-
+-    expected_visited = ['d', 'b', 'e', 'c', 'a']
+-    self.assertListEqual(visited_modules, expected_visited)
+-
+-
+-if __name__ == '__main__':
+-  unittest.main()
+diff --git a/scripts/bp2build_progress/queryview_xml.py b/scripts/bp2build_progress/queryview_xml.py
+deleted file mode 100644
+index 654148a9..00000000
+--- a/scripts/bp2build_progress/queryview_xml.py
++++ /dev/null
+@@ -1,59 +0,0 @@
+-#!/usr/bin/env python3
+-
+-# Copyright (C) 2022 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#   http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-"""Generate queryview xml data for testing purposes."""
+-
+-import xml.etree.ElementTree as ElementTree
+-
+-
+-def make_module(
+-    full_name,
+-    name,
+-    kind,
+-    variant='',
+-    dep_names=[],
+-    soong_module_type=None,
+-    srcs=None,
+-):
+-  rule = ElementTree.Element('rule', attrib={'class': kind, 'name': full_name})
+-  ElementTree.SubElement(
+-      rule, 'string', attrib={'name': 'soong_module_name', 'value': name}
+-  )
+-  ElementTree.SubElement(
+-      rule, 'string', attrib={'name': 'soong_module_variant', 'value': variant}
+-  )
+-  if soong_module_type:
+-    ElementTree.SubElement(
+-        rule,
+-        'string',
+-        attrib={'name': 'soong_module_type', 'value': soong_module_type},
+-    )
+-  for dep in dep_names:
+-    ElementTree.SubElement(rule, 'rule-input', attrib={'name': dep})
+-
+-  if not srcs:
+-    return rule
+-
+-  src_element = ElementTree.SubElement(rule, 'list', attrib={'name': 'srcs'})
+-  for src in srcs:
+-    ElementTree.SubElement(src_element, 'string', attrib={'value': src})
+-
+-  return rule
+-
+-
+-def make_graph(modules):
+-  graph = ElementTree.Element('query', attrib={'version': '2'})
+-  graph.extend(modules)
+-  return graph
+diff --git a/scripts/bp2build_progress/soong_module_json.py b/scripts/bp2build_progress/soong_module_json.py
+deleted file mode 100644
+index 331b96e8..00000000
+--- a/scripts/bp2build_progress/soong_module_json.py
++++ /dev/null
+@@ -1,63 +0,0 @@
+-#!/usr/bin/env python3
+-
+-# Copyright (C) 2022 The Android Open Source Project
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#   http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-"""Generate module graph json data for testing purposes."""
+-
+-
+-def make_dep(name, tag=None, variations=None):
+-  return {
+-      'Name': name,
+-      'Tag': tag,
+-      'Variations': variations,
+-  }
+-
+-
+-def make_variation(mutator, variation):
+-  return {
+-      'Mutator': mutator,
+-      'Variation': variation,
+-  }
+-
+-
+-def make_module(
+-    name,
+-    typ,
+-    deps=[],
+-    blueprint='',
+-    variations=None,
+-    created_by='',
+-    json_props=[],
+-):
+-  return {
+-      'Name': name,
+-      'Type': typ,
+-      'Blueprint': blueprint,
+-      'CreatedBy': created_by,
+-      'Deps': deps,
+-      'Variations': variations,
+-      'Module': {
+-          'Android': {
+-              'SetProperties': json_props,
+-          },
+-      },
+-  }
+-
+-
+-def make_property(name, value='', values=None):
+-  return {
+-      'Name': name,
+-      'Value': value,
+-      'Values': values,
+-  }
+```
+

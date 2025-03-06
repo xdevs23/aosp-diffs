@@ -1,0 +1,22 @@
+```
+8e25e4a: [log] Log algorithms when key/signature algorithms are different (Alice Wang <aliceywang@google.com>)
+81a9f53: Check signature on root in UDS certificate chain (Sean Thomas <seanmthomas@google.com>)
+1fb6a47: Simplify wrappers for opaque boxed types (Seth Moore <sethmo@google.com>)
+34c75f0: Remove mitchp@ from OWNERS file (Florian Mayer <fmayer@google.com>)
+69011f2: Ensure no private keys in CSR (Sean Thomas <seanmthomas@google.com>)
+157cc10: have one implementation of deviceSuffix (Sean Thomas <seanmthomas@google.com>)
+fee784e: update sanitizer owners: remove mitchp, add pcc (Florian Mayer <fmayer@google.com>)
+0642842: Expose more from hwtrust for DICE chain validation (Sean Thomas <seanmthomas@google.com>)
+894253f: Make some PublicKey COSE operations available to lib users (Daniel d'Andrada <dandrader@google.com>)
+9f047ca: Make libhwtrust available to /product modules (Daniel d'Andrada <dandrader@google.com>)
+95e05fe: adding test data to hwtrust (Sean Thomas <seanmthomas@google.com>)
+61444b2: Fix expired test data in hwtrust (Sean Thomas <seanmthomas@google.com>)
+99fbaa0: Check the certificate type according to the rkp instance in session (Alice Wang <aliceywang@google.com>)
+cb05e77: [hwtrust] Add argument rkp-instance to `hwtrust csr` (Alice Wang <aliceywang@google.com>)
+42f05c3: Fix expired test data in hwtrust (Sean Thomas <seanmthomas@google.com>)
+0056117: Add aliceywang@ to hwtrust/OWNERS (Alice Wang <aliceywang@google.com>)
+5bc7311: Update vsr profile ranges in hwtrust (Dan Fess <dfess@google.com>)
+d801183: Validate RKP VM markers in the DICE chain (Alice Wang <aliceywang@google.com>)
+8a05120: Add support to hwtrust for validating UdsCerts (Seth Moore <sethmo@google.com>)
+```
+

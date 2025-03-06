@@ -1,0 +1,20 @@
+```
+b91aae6: Rename startObservingHealth API (Harshit Mahajan <harshitmahajan@google.com>)
+5845643: Allow observers to register custom executor (Harshit Mahajan <harshitmahajan@google.com>)
+83050d5: Revert "Add CTS test for delegated bugreport consent" (Chaitanya Cheemala (xWF) <ccheemala@google.com>)
+13db953: Add WRITE_ALLOWLISTED_DEVICE_CONFIG perm when modifying DeviceConfig (Michael Groover <mpgroover@google.com>)
+ec9d51a: CtsRootPackageWatchdog as MTS for crashrecovery (Harshit Mahajan <harshitmahajan@google.com>)
+9e74c86: Add CTS test for delegated bugreport consent (Sandy Wiraatmadja <swiraatmadja@google.com>)
+576496d: Rename onPackageFailure to notifyPackageFailure (Harshit Mahajan <harshitmahajan@google.com>)
+017253c: Update test to use pre jarjared library (Harshit Mahajan <harshitmahajan@google.com>)
+52ac40e: Revert "Add CTS test for delegated bugreport consent" (Gazal Agarwal <agazal@google.com>)
+51ac37a: Update tests to use classes from Module (Harshit Mahajan <harshitmahajan@google.com>)
+53395d9: Remove dependencies on the 1-variant fallback (Cole Faust <colefaust@google.com>)
+5d433be: Add CTS test for delegated bugreport consent (Gazal Agarwal <agazal@google.com>)
+6cc23f5: Revert "Revert "Revert "Revert "Test adjustments for removal of ..." (Vladimir Komsiyski <vladokom@google.com>)
+6f3e157: Revert "Revert "Revert "Test adjustments for removal of VDM perm..." (Priyanka Advani (xWF) <padvani@google.com>)
+4eb01de: Revert "Revert "Test adjustments for removal of VDM permissions ..." (Vladimir Komsiyski <vladokom@google.com>)
+662d938: Revert "Test adjustments for removal of VDM permissions from Shell" (Priyanka Advani (xWF) <padvani@google.com>)
+ee3f5cf: Test adjustments for removal of VDM permissions from Shell (Vladimir Komsiyski <vladokom@google.com>)
+```
+

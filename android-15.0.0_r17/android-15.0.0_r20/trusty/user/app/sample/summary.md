@@ -1,0 +1,21 @@
+```
+4cbd659: hwcrypto: Removing batch key definition (Orlando Arbildo <oarbildo@google.com>)
+4e4c3ec: Changing hwcrypto interface to stable (Orlando Arbildo <oarbildo@google.com>)
+2df2b27: Implement HMAC clear key import (Orlando Arbildo <oarbildo@google.com>)
+a281b5f: Implement HMAC operations (Orlando Arbildo <oarbildo@google.com>)
+fc07d35: Add aidl file for hmac operations (Orlando Arbildo <oarbildo@google.com>)
+7670a1a: Mock implementation for keyslot (Orlando Arbildo <oarbildo@google.com>)
+a8d35e0: Add protection ID to key metadata (Orlando Arbildo <oarbildo@google.com>)
+0dbc980: Adding failable conversion to macro (Orlando Arbildo <oarbildo@google.com>)
+44cdcc9: Separating key header policy and metadata (Orlando Arbildo <oarbildo@google.com>)
+22173a0: Add opaque key export/import functionality (Orlando Arbildo <oarbildo@google.com>)
+ce69685: Add key serialization code (Orlando Arbildo <oarbildo@google.com>)
+b250de1: Add connection information to opaque keys (Orlando Arbildo <oarbildo@google.com>)
+7b59bcb: memref-test: make IPC structure size and alignment explicit (Stephen Crane <cranes@google.com>)
+5b6251d: Use FIND_CRATE instead of external/rust/crates (Inseob Kim <inseob@google.com>)
+65ff5d4: Add dirgroup for trusty genrule (Inseob Kim <inseob@google.com>)
+540b4f1: hwrng-test: It should be possible to disable forward_sum test (Raphael Herouart <rherouart@google.com>)
+edb8c13: Add basic cbcs decryption/encryption (Orlando Arbildo <oarbildo@google.com>)
+5b8ea02: rules.mk: Use FIND_CRATE to locate dependencies (Per Larsen <perlarsen@google.com>)
+```
+

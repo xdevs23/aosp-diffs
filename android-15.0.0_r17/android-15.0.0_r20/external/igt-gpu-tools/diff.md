@@ -1,0 +1,2913 @@
+```diff
+diff --git a/Android.bp b/Android.bp
+index 567772d7..351ee1ea 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -18,7 +18,11 @@ package {
+ // See: http://go/android-license-faq
+ license {
+     name: "external_igt-gpu-tools_license",
+-    visibility: [":__subpackages__"],
++    visibility: [
++        ":__subpackages__",
++        "//test/dts/tests/display:__subpackages__",
++        "//vendor:__subpackages__",
++    ],
+     license_kinds: [
+         "SPDX-license-identifier-Apache-2.0",
+         "SPDX-license-identifier-GPL",
+@@ -46,7 +50,12 @@ cc_defaults {
+         "-fcommon", //ld.lld: error: duplicate symbol igt_subtest_jmpbuf: external/igt-gpu-tools/lib/igt_core.h:146
+         //Fixed upstream so we enable -fcommon locally
+     ],
+-    static_libs: ["libelf", "libkmod", "libion", "liblog"],
++    static_libs: [
++        "libelf",
++        "libkmod",
++        "libion",
++        "liblog",
++    ],
+     shared_libs: ["libdrm"],
+     compile_multilib: "both",
+     multilib: {
+@@ -54,7 +63,7 @@ cc_defaults {
+             suffix: "32",
+         },
+         lib64: {
+-            suffix: "64"
++            suffix: "64",
+         },
+     },
+ }
+@@ -140,8 +149,8 @@ cc_test {
+ python_test_host {
+     name: "igt_gpu_tools",
+     main: "scripts/test_igt_gpu_tools.py",
+-    srcs: [ "scripts/test_igt_gpu_tools.py", ],
+-    data: [ "scripts/test_igt_gpu_tools.xml" ],
++    srcs: ["scripts/test_igt_gpu_tools.py"],
++    data: ["scripts/test_igt_gpu_tools.xml"],
+     test_config: "scripts/test_igt_gpu_tools.xml",
+     test_options: {
+         unit_test: false,
+@@ -175,7 +184,7 @@ cc_test {
+ cc_test {
+     name: "drm_read",
+     defaults: ["igt-gpu-tools-test-defaults"],
+-    srcs: ["tests/drm_read.c"]
++    srcs: ["tests/drm_read.c"],
+ }
+ 
+ cc_test {
+diff --git a/gtests/Android.bp b/gtests/Android.bp
+deleted file mode 100644
+index 032ce823..00000000
+--- a/gtests/Android.bp
++++ /dev/null
+@@ -1,285 +0,0 @@
+-package {
+-    // See: http://go/android-license-faq
+-    // A large-scale-change added 'default_applicable_licenses' to import
+-    // all of the 'license_kinds' from "external_igt-gpu-tools_license"
+-    // to get the below license kinds:
+-    //   SPDX-license-identifier-MIT
+-    default_applicable_licenses: ["external_igt-gpu-tools_license"],
+-}
+-
+-cc_defaults {
+-    name: "gtest_igt_gpu_tools_default",
+-    cppflags: [
+-        "-DFLAG_GTEST_ENABLED",
+-    ],
+-    compile_multilib: "64",
+-    multilib: {
+-        lib64: {
+-            suffix: "64"
+-        },
+-    },
+-    local_include_dirs: ["include"],
+-    require_root: true,
+-    test_suites: ["device-tests"],
+-}
+-
+-cc_test {
+-    name: "gtest_kms_atomic",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_atomic.cpp",
+-        "src/gtest_helper.cpp"
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_kms_flip",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_flip.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_kms_vblank",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_vblank.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_ion_fb",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_ion_fb.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_kms_throughput",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_throughput.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_gem_blt",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_gem_blt.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_core_auth",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_core_auth.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_kms_properties",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_properties.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_core_getclient",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_core_getclient.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-// cc_test {
+-//     name: "gtest_drm_read",
+-//     defaults: ["gtest_igt_gpu_tools_default"],
+-//     srcs: [
+-//        "src/gtest_drm_read.cpp",
+-//        "src/gtest_helper.cpp",
+-//     ]
+-// }
+-
+-
+-cc_test {
+-    name: "gtest_kms_addfb_basic",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_addfb_basic.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_kms_getfb",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_getfb.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_kms_atomic_interruptible",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_atomic_interruptible.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_kms_atomic_transition",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_atomic_transition.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-// cc_test {
+-//     name: "gtest_kms_color",
+-//    defaults: ["gtest_igt_gpu_tools_default"],
+-//     srcs: [
+-//        "src/gtest_kms_color.c",
+-//        "src/gtest_helper.cpp",
+-//    ],
+-// }
+-
+-// cc_test {
+-//     name: "gtest_kms_concurrent",
+-//    defaults: ["gtest_igt_gpu_tools_default"],
+-//     srcs: [
+-//        "src/gtest_kms_concurrent.c",
+-//        "src/gtest_helper.cpp",
+-//    ],
+-// }
+-
+-// cc_test {
+-//     name: "gtest_kms_crtc_background_color",
+-//    defaults: ["gtest_igt_gpu_tools_default"],
+-//     srcs: [
+-//        "src/gtest_kms_crtc_background_color.c",
+-//        "src/gtest_helper.cpp",
+-//    ],
+-// }
+-
+-cc_test {
+-    name: "gtest_kms_flip_tiling",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_flip_tiling.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-// cc_test {
+-//     name: "gtest_kms_frontbuffer_tracking",
+-//    defaults: ["gtest_igt_gpu_tools_default"],
+-//     srcs: [
+-//        "src/gtest_kms_frontbuffer_tracking.cpp",
+-//        "src/gtest_helper.cpp",
+-//    ],
+-// }
+-
+-// cc_test {
+-//     name: "gtest_kms_plane_alpha_blend",
+-//    defaults: ["gtest_igt_gpu_tools_default"],
+-//     srcs: [
+-//        "src/gtest_kms_plane_alpha_blend.cpp",
+-//        "src/gtest_helper.cpp",
+-//    ],
+-// }
+-
+-// cc_test {
+-//     name: "gtest_kms_plane",
+-//    defaults: ["gtest_igt_gpu_tools_default"],
+-//     srcs: [
+-//        "src/gtest_kms_plane.c",
+-//        "src/gtest_helper.cpp",
+-//    ],
+-// }
+-
+-cc_test {
+-    name: "gtest_kms_plane_lowres",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_plane_lowres.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-// cc_test {
+-//     name: "gtest_kms_plane_multiple",
+-//    defaults: ["gtest_igt_gpu_tools_default"],
+-//     srcs: [
+-//        "src/gtest_kms_plane_multiple.cpp",
+-//        "src/gtest_helper.cpp",
+-//    ],
+-// }
+-
+-cc_test {
+-    name: "gtest_kms_plane_scaling",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_plane_scaling.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_kms_prop_blob",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_kms_prop_blob.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-// cc_test {
+-//     name: "gtest_kms_setmode",
+-//    defaults: ["gtest_igt_gpu_tools_default"],
+-//     srcs: [
+-//        "src/gtest_kms_setmode.cpp",
+-//        "src/gtest_helper.cpp",
+-//    ],
+-// }
+-
+-// cc_test {
+-//     name: "gtest_kms_vrr",
+-//    defaults: ["gtest_igt_gpu_tools_default"],
+-//     srcs: [
+-//        "src/gtest_kms_vrr.cpp",
+-//        "src/gtest_helper.cpp",
+-//    ],
+-// }
+-
+-cc_test {
+-    name: "gtest_syncobj_basic",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: [
+-        "src/gtest_syncobj_basic.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+-
+-cc_test {
+-    name: "gtest_syncobj_wait",
+-    defaults: ["gtest_igt_gpu_tools_default"],
+-    srcs: ["src/gtest_syncobj_wait.cpp",
+-        "src/gtest_helper.cpp",
+-    ],
+-}
+diff --git a/gtests/include/gtest_helper.h b/gtests/include/gtest_helper.h
+deleted file mode 100644
+index d77f542c..00000000
+--- a/gtests/include/gtest_helper.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-
+-static const char* binary_path = "/data/igt_tests";
+-
+-/**
+- * @brief Run the testBinary for specific subtest and Pass/Fail/Skip depending on the log.
+- *
+- * @param testBinaryName
+- * @param subtestName
+- */
+-void runSubTest(std::string testBinaryName, std::string subtestName);
+-
+-/**
+- * @brief Run the testBinary and Pass/Fail/Skip depending on the log.
+- * 
+- * @param testBinaryName 
+- */
+-void runTest(std::string testBinaryName);
+diff --git a/gtests/src/gtest_core_auth.cpp b/gtests/src/gtest_core_auth.cpp
+deleted file mode 100644
+index efa0b3bf..00000000
+--- a/gtests/src/gtest_core_auth.cpp
++++ /dev/null
+@@ -1,27 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class CoreAuthTests : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "core_auth";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(CoreAuthTests, TestGetclientSimple) {
+-    runSubTest(testBinaryName, "getclient-simple");
+-}
+-
+-TEST_F(CoreAuthTests, TestGetclientMasterDrop) {
+-    runSubTest(testBinaryName, "getclient-master-drop");
+-}
+-
+-TEST_F(CoreAuthTests, TestBasicAuth) {
+-    runSubTest(testBinaryName, "basic-auth");
+-}
+-
+-TEST_F(CoreAuthTests, TestManyMagics) {
+-    runSubTest(testBinaryName, "many-magics");
+-}
+diff --git a/gtests/src/gtest_core_getclient.cpp b/gtests/src/gtest_core_getclient.cpp
+deleted file mode 100644
+index d0ace9e9..00000000
+--- a/gtests/src/gtest_core_getclient.cpp
++++ /dev/null
+@@ -1,16 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-
+-#include "gtest_helper.h"
+-
+-class CoreGetClientTests : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "core_getclient";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(CoreGetClientTests, TestGetClient) {
+-    runTest(testBinaryName);
+-}
+diff --git a/gtests/src/gtest_gem_blt.cpp b/gtests/src/gtest_gem_blt.cpp
+deleted file mode 100644
+index a2b81f34..00000000
+--- a/gtests/src/gtest_gem_blt.cpp
++++ /dev/null
+@@ -1,16 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-
+-#include "gtest_helper.h"
+-
+-class GemBltTests : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "gem_blt";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(GemBltTests, TestGemBlt) {
+-    runTest(testBinaryName);
+-}
+diff --git a/gtests/src/gtest_helper.cpp b/gtests/src/gtest_helper.cpp
+deleted file mode 100644
+index 23ef54a8..00000000
+--- a/gtests/src/gtest_helper.cpp
++++ /dev/null
+@@ -1,125 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <cstdio>
+-#include <iostream>
+-#include <memory>
+-#include <stdexcept>
+-#include <string>
+-#include <array>
+-#include <unordered_map>
+-#include <algorithm>
+-
+-#include "gtest_helper.h"
+-
+-enum TestResult {
+-    PASS,
+-    FAIL,
+-    SKIP,
+-    UNKNOWN
+-};
+-
+-/**
+- * @brief Run the command and returns the output.
+- *
+- * @param cmd
+- * @return std::string
+- */
+-std::string exec(std::string cmd) {
+-    std::unique_ptr<FILE, decltype(&pclose) > pipe(popen(cmd.c_str(), "r"), pclose);
+-    if (!pipe) {
+-        return "popen() failed! Could not find or run the binary.";
+-    }
+-
+-    std::array<char, 128> buffer;
+-    std::string result;
+-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+-        result += buffer.data();
+-    }
+-    return result;
+-}
+-
+-/**
+- * @brief Get the Subtest Result From Log object
+- *
+- * @param log
+- * @param subtestName
+- * @return TestResult
+- */
+-TestResult getSubtestTestResultFromLog(std::string log, std::string subtestName) {
+-    if (log.find("Subtest " + subtestName + ": FAIL") != std::string::npos) {
+-        return FAIL;
+-    }
+-    else if (log.find("Subtest " + subtestName + ": SKIP") != std::string::npos) {
+-        return SKIP;
+-    }
+-    else if (log.find("Subtest " + subtestName + ": SUCCESS") != std::string::npos) {
+-        return PASS;
+-    }
+-    else {
+-        return UNKNOWN;
+-    }
+-}
+-
+-/**
+- * @brief Get the Test Result From Log object
+- *
+- * @param log
+- * @param subtestName
+- * @return TestResult
+- */
+-TestResult getTestResultFromLog(std::string log) {
+-
+-    std::for_each(log.begin(), log.end(), [](char & c) {
+-        c = ::tolower(c);
+-    });
+-
+-    if (log.find("fail") != std::string::npos) {
+-        return FAIL;
+-    }
+-    else if (log.find("skip") != std::string::npos) {
+-        return SKIP;
+-    }
+-    else if (log.find("success") != std::string::npos) {
+-        return PASS;
+-    }
+-    else {
+-        return UNKNOWN;
+-    }
+-}
+-
+-void presentTestResult(TestResult result, std::string log) {
+-    switch (result)
+-    {
+-    case PASS:
+-        SUCCEED();
+-        break;
+-    case FAIL:
+-        ADD_FAILURE() << log;
+-        break;
+-    case SKIP:
+-        GTEST_SKIP() << log;
+-        break;
+-    case UNKNOWN:
+-        ADD_FAILURE() << "Could not determine test result.\n" << log;
+-        break;
+-    default:
+-        ADD_FAILURE() << log;
+-        break;
+-    }
+-}
+-
+-void runSubTest(std::string testBinaryName, std::string subtestName) {
+-    std::string log = exec("./" + testBinaryName + " --run-subtest " + subtestName);
+-
+-    TestResult result = getSubtestTestResultFromLog(log, subtestName);
+-
+-    presentTestResult(result, log);
+-}
+-
+-void runTest(std::string testBinaryName) {    
+-    std::string log = exec("./" + testBinaryName);
+-
+-    TestResult result = getTestResultFromLog(log);
+-
+-    presentTestResult(result, log);
+-}
+diff --git a/gtests/src/gtest_ion_fb.cpp b/gtests/src/gtest_ion_fb.cpp
+deleted file mode 100644
+index 1956b2d0..00000000
+--- a/gtests/src/gtest_ion_fb.cpp
++++ /dev/null
+@@ -1,23 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class IonFBTests : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "ion_fb";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(IonFBTests, TestMakeFb) {
+-    runSubTest(testBinaryName, "make-fb");
+-}
+-
+-TEST_F(IonFBTests, TestClone) {
+-    runSubTest(testBinaryName, "clone");
+-}
+-
+-TEST_F(IonFBTests, TestMmap) {
+-    runSubTest(testBinaryName, "mmap");
+-}
+diff --git a/gtests/src/gtest_kms_addfb_basic.cpp b/gtests/src/gtest_kms_addfb_basic.cpp
+deleted file mode 100644
+index 1f99b40f..00000000
+--- a/gtests/src/gtest_kms_addfb_basic.cpp
++++ /dev/null
+@@ -1,170 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class KmsAddfbBasic : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_addfb_basic";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsAddfbBasic, TestUnusedHandle) {
+-    runSubTest(testBinaryName, "unused-handle");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestUnusedPitches) {
+-    runSubTest(testBinaryName, "unused-pitches");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestUnusedOffsets) {
+-    runSubTest(testBinaryName, "unused-offsets");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestUnusedModifier) {
+-    runSubTest(testBinaryName, "unused-modifier");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestClobberredModifier) {
+-    runSubTest(testBinaryName, "clobberred-modifier");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestLegacyFormat) {
+-    runSubTest(testBinaryName, "legacy-format");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestNoHandle) {
+-    runSubTest(testBinaryName, "no-handle");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBasic) {
+-    runSubTest(testBinaryName, "basic");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBadPitch0) {
+-    runSubTest(testBinaryName, "bad-pitch-0");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBadPitch32) {
+-    runSubTest(testBinaryName, "bad-pitch-32");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBadPitch63) {
+-    runSubTest(testBinaryName, "bad-pitch-63");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBadPitch128) {
+-    runSubTest(testBinaryName, "bad-pitch-128");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBadPitch256) {
+-    runSubTest(testBinaryName, "bad-pitch-256");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBadPitch1024) {
+-    runSubTest(testBinaryName, "bad-pitch-1024");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBadPitch999) {
+-    runSubTest(testBinaryName, "bad-pitch-999");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBadPitch65536) {
+-    runSubTest(testBinaryName, "bad-pitch-65536");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestSizeMax) {
+-    runSubTest(testBinaryName, "size-max");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestTooWide) {
+-    runSubTest(testBinaryName, "too-wide");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestTooHigh) {
+-    runSubTest(testBinaryName, "too-high");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBoTooSmall) {
+-    runSubTest(testBinaryName, "bo-too-small");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestSmallBo) {
+-    runSubTest(testBinaryName, "small-bo");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBoTooSmallDueToTiling) {
+-    runSubTest(testBinaryName, "bo-too-small-due-to-tiling");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestAddfb25ModifierNoFlag) {
+-    runSubTest(testBinaryName, "addfb25-modifier-no-flag");
+-}
+-
+-// TODO: b/254808989
+-/*
+-TEST_F(KmsAddfbBasic, TestAddfb25BadModifier) {
+-    runSubTest(testBinaryName, "addfb25-bad-modifier");
+-}
+-*/
+-
+-TEST_F(KmsAddfbBasic, TestAddfb25XTiledMismatch) {
+-    runSubTest(testBinaryName, "addfb25-X-tiled-mismatch");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestAddfb25XTiled) {
+-    runSubTest(testBinaryName, "addfb25-X-tiled");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestAddfb25FramebufferVsSetTiling) {
+-    runSubTest(testBinaryName, "addfb25-framebuffer-vs-set-tiling");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestAddfb25YTiled) {
+-    runSubTest(testBinaryName, "addfb25-Y-tiled");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestAddfb25YFTiled) {
+-    runSubTest(testBinaryName, "addfb25-Yf-tiled");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestAddfb25YTiledSmall) {
+-    runSubTest(testBinaryName, "addfb25-Y-tiled-small");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBasicXTiled) {
+-    runSubTest(testBinaryName, "basic-X-tiled");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestFramebufferVsSetTiling) {
+-    runSubTest(testBinaryName, "framebuffer-vs-set-tiling");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestTilePitchMismatch) {
+-    runSubTest(testBinaryName, "tile-pitch-mismatch");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestBasicYTiled) {
+-    runSubTest(testBinaryName, "basic-Y-tiled");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestInvalidGetPropAny) {
+-    runSubTest(testBinaryName, "invalid-get-prop-any");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestInvalidGetProp) {
+-    runSubTest(testBinaryName, "invalid-get-prop");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestInvalidSetPropAny) {
+-    runSubTest(testBinaryName, "invalid-set-prop-any");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestInvalidSetProp) {
+-    runSubTest(testBinaryName, "invalid-set-prop");
+-}
+-
+-TEST_F(KmsAddfbBasic, TestMasterRmfb) {
+-    runSubTest(testBinaryName, "master-rmfb");
+-}
+diff --git a/gtests/src/gtest_kms_atomic.cpp b/gtests/src/gtest_kms_atomic.cpp
+deleted file mode 100644
+index 232467f9..00000000
+--- a/gtests/src/gtest_kms_atomic.cpp
++++ /dev/null
+@@ -1,52 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-
+-#include "gtest_helper.h"
+-
+-class KmsAtomicTests : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_atomic";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsAtomicTests, TestPlaneOverlayLegacy) {
+-    runSubTest(testBinaryName, "plane_overlay_legacy");
+-}
+-
+-TEST_F(KmsAtomicTests, TestPlanePrimaryLegacy) {
+-    runSubTest(testBinaryName, "plane_primary_legacy");
+-}
+-
+-TEST_F(KmsAtomicTests, TestPlanePrimaryOverlayZpos) {
+-    runSubTest(testBinaryName, "plane_primary_overlay_zpos");
+-}
+-
+-TEST_F(KmsAtomicTests, TestOnly) {
+-    runSubTest(testBinaryName, "test_only");
+-}
+-
+-TEST_F(KmsAtomicTests, TestPlaneCursorLegacy) {
+-    runSubTest(testBinaryName, "plane_cursor_legacy");
+-}
+-
+-TEST_F(KmsAtomicTests, TestPlaneInvalidParams) {
+-    runSubTest(testBinaryName, "plane_invalid_params");
+-}
+-
+-TEST_F(KmsAtomicTests, TestPlaneInvalidParamsFence) {
+-    runSubTest(testBinaryName, "plane_invalid_params_fence");
+-}
+-
+-TEST_F(KmsAtomicTests, TestCrtcInvalidParams) {
+-    runSubTest(testBinaryName, "crtc_invalid_params");
+-}
+-
+-TEST_F(KmsAtomicTests, TestCrtcInvalidParamsFence) {
+-    runSubTest(testBinaryName, "crtc_invalid_params_fence");
+-}
+-
+-TEST_F(KmsAtomicTests, TestAtomicInvalidParams) {
+-    runSubTest(testBinaryName, "atomic_invalid_params");
+-}
+diff --git a/gtests/src/gtest_kms_atomic_interruptible.cpp b/gtests/src/gtest_kms_atomic_interruptible.cpp
+deleted file mode 100644
+index a098c429..00000000
+--- a/gtests/src/gtest_kms_atomic_interruptible.cpp
++++ /dev/null
+@@ -1,39 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class KmsAtomicInterruptible : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_atomic_interruptible";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsAtomicInterruptible, TestLegacySetmode) {
+-    runSubTest(testBinaryName, "legacy-setmode");
+-}
+-
+-TEST_F(KmsAtomicInterruptible, TestAtomicSetmode) {
+-    runSubTest(testBinaryName, "atomic-setmode");
+-}
+-
+-TEST_F(KmsAtomicInterruptible, TestLegacyDpms) {
+-    runSubTest(testBinaryName, "legacy-dpms");
+-}
+-
+-TEST_F(KmsAtomicInterruptible, TestLegacyPageflip) {
+-    runSubTest(testBinaryName, "legacy-pageflip");
+-}
+-
+-TEST_F(KmsAtomicInterruptible, TestLegacyCursor) {
+-    runSubTest(testBinaryName, "legacy-cursor");
+-}
+-
+-TEST_F(KmsAtomicInterruptible, TestUniversalSetplanePrimary) {
+-    runSubTest(testBinaryName, "universal-setplane-primary");
+-}
+-
+-TEST_F(KmsAtomicInterruptible, TestUniversalSetplaneCursor) {
+-    runSubTest(testBinaryName, "universal-setplane-cursor");
+-}
+diff --git a/gtests/src/gtest_kms_atomic_transition.cpp b/gtests/src/gtest_kms_atomic_transition.cpp
+deleted file mode 100644
+index 348adca1..00000000
+--- a/gtests/src/gtest_kms_atomic_transition.cpp
++++ /dev/null
+@@ -1,155 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class KmsAtomicTransition : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_atomic_transition";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsAtomicTransition, TestPlanePrimaryToggleWithVblankWait) {
+-    runSubTest(testBinaryName, "plane-primary-toggle-with-vblank-wait");
+-}
+-
+-TEST_F(KmsAtomicTransition, TestPlaneAllTransition) {
+-    runSubTest(testBinaryName, "plane-all-transition");
+-}
+-
+-TEST_F(KmsAtomicTransition, TestPlaneAllTransitionFencing) {
+-    runSubTest(testBinaryName, "plane-all-transition-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, TestPlaneAllTransitionNonblocking) {
+-    runSubTest(testBinaryName, "plane-all-transition-nonblocking");
+-}
+-
+-TEST_F(KmsAtomicTransition, TestPlaneAllTransitionNonblockingFencing) {
+-    runSubTest(testBinaryName, "plane-all-transition-nonblocking-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, TestPlaneUseAfterNonblockingUnbind) {
+-    runSubTest(testBinaryName, "plane-use-after-nonblocking-unbind");
+-}
+-
+-TEST_F(KmsAtomicTransition, TestPlaneUseAfterNonblockingUnbindFencing) {
+-    runSubTest(testBinaryName, "plane-use-after-nonblocking-unbind-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, TestPlaneAllModesetTransition) {
+-    runSubTest(testBinaryName, "plane-all-modeset-transition");
+-}
+-
+-TEST_F(KmsAtomicTransition, TestPlaneAllModesetTransitionFencing) {
+-    runSubTest(testBinaryName, "plane-all-modeset-transition-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, TestPlaneAllModesetTransitionInternalPanels) {
+-    runSubTest(testBinaryName, "plane-all-modeset-transition-internal-panels");
+-}
+-
+-TEST_F(KmsAtomicTransition, TestPlaneAllModesetTransitionFencingInternalPanels) {
+-    runSubTest(testBinaryName, "plane-all-modeset-transition-fencing-internal-panels");
+-}
+-
+-TEST_F(KmsAtomicTransition, TestPlaneToggleModesetTransition) {
+-    runSubTest(testBinaryName, "plane-toggle-modeset-transition");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test1xModesetTransitions) {
+-    runSubTest(testBinaryName, "1x-modeset-transitions");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test1xModesetTransitionsNonblocking) {
+-    runSubTest(testBinaryName, "1x-modeset-transitions-nonblocking");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test1xModesetTransitionsFencing) {
+-    runSubTest(testBinaryName, "1x-modeset-transitions-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test1xModesetTransitionsNonblockingFencing) {
+-    runSubTest(testBinaryName, "1x-modeset-transitions-nonblocking-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test2xModesetTransitions) {
+-    runSubTest(testBinaryName, "2x-modeset-transitions");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test2xModesetTransitionsNonblocking) {
+-    runSubTest(testBinaryName, "2x-modeset-transitions-nonblocking");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test2xModesetTransitionsFencing) {
+-    runSubTest(testBinaryName, "2x-modeset-transitions-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test2xModesetTransitionsNonblockingFencing) {
+-    runSubTest(testBinaryName, "2x-modeset-transitions-nonblocking-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test3xModesetTransitions) {
+-    runSubTest(testBinaryName, "3x-modeset-transitions");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test3xModesetTransitionsNonblocking) {
+-    runSubTest(testBinaryName, "3x-modeset-transitions-nonblocking");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test3xModesetTransitionsFencing) {
+-    runSubTest(testBinaryName, "3x-modeset-transitions-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test3xModesetTransitionsNonblockingFencing) {
+-    runSubTest(testBinaryName, "3x-modeset-transitions-nonblocking-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test4xModesetTransitions) {
+-    runSubTest(testBinaryName, "4x-modeset-transitions");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test4xModesetTransitionsNonblocking) {
+-    runSubTest(testBinaryName, "4x-modeset-transitions-nonblocking");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test4xModesetTransitionsFencing) {
+-    runSubTest(testBinaryName, "4x-modeset-transitions-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test4xModesetTransitionsNonblockingFencing) {
+-    runSubTest(testBinaryName, "4x-modeset-transitions-nonblocking-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test5xModesetTransitions) {
+-    runSubTest(testBinaryName, "5x-modeset-transitions");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test5xModesetTransitionsNonblocking) {
+-    runSubTest(testBinaryName, "5x-modeset-transitions-nonblocking");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test5xModesetTransitionsFencing) {
+-    runSubTest(testBinaryName, "5x-modeset-transitions-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test5xModesetTransitionsNonblockingFencing) {
+-    runSubTest(testBinaryName, "5x-modeset-transitions-nonblocking-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test6xModesetTransitions) {
+-    runSubTest(testBinaryName, "6x-modeset-transitions");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test6xModesetTransitionsNonblocking) {
+-    runSubTest(testBinaryName, "6x-modeset-transitions-nonblocking");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test6xModesetTransitionsFencing) {
+-    runSubTest(testBinaryName, "6x-modeset-transitions-fencing");
+-}
+-
+-TEST_F(KmsAtomicTransition, Test6xModesetTransitionsNonblockingFencing) {
+-    runSubTest(testBinaryName, "6x-modeset-transitions-nonblocking-fencing");
+-}
+diff --git a/gtests/src/gtest_kms_flip.cpp b/gtests/src/gtest_kms_flip.cpp
+deleted file mode 100644
+index 31c12089..00000000
+--- a/gtests/src/gtest_kms_flip.cpp
++++ /dev/null
+@@ -1,407 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class KmsFlipTests : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_flip";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsFlipTests, TestNonblockingRead) {
+-    runSubTest(testBinaryName, "nonblocking-read");
+-}
+-
+-TEST_F(KmsFlipTests, TestWfVblankTsCheck) {
+-    runSubTest(testBinaryName, "wf_vblank-ts-check");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xWfVblankTsCheck) {
+-    runSubTest(testBinaryName, "2x-wf_vblank-ts-check");
+-}
+-
+-TEST_F(KmsFlipTests, TestBlockingWfVblank) {
+-    runSubTest(testBinaryName, "blocking-wf_vblank");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xBlockingWfVblank) {
+-    runSubTest(testBinaryName, "2x-blocking-wf_vblank");
+-}
+-
+-TEST_F(KmsFlipTests, TestAbsoluteWfVblank) {
+-    runSubTest(testBinaryName, "absolute-wf_vblank");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xAbsoluteWfVblank) {
+-    runSubTest(testBinaryName, "2x-absolute-wf_vblank");
+-}
+-
+-TEST_F(KmsFlipTests, TestBlockingAbsoluteWfVblank) {
+-    runSubTest(testBinaryName, "blocking-absolute-wf_vblank");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xBlockingAbsoluteWfVblank) {
+-    runSubTest(testBinaryName, "2x-blocking-absolute-wf_vblank");
+-}
+-
+-TEST_F(KmsFlipTests, TestBasicPlainFlip) {
+-    runSubTest(testBinaryName, "basic-plain-flip");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xPlainFlip) {
+-    runSubTest(testBinaryName, "2x-plain-flip");
+-}
+-
+-TEST_F(KmsFlipTests, TestBusyFlip) {
+-    runSubTest(testBinaryName, "busy-flip");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xBusyFlip) {
+-    runSubTest(testBinaryName, "2x-busy-flip");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsFences) {
+-    runSubTest(testBinaryName, "flip-vs-fences");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsFences) {
+-    runSubTest(testBinaryName, "2x-flip-vs-fences");
+-}
+-
+-TEST_F(KmsFlipTests, TestPlainFlipTsCheck) {
+-    runSubTest(testBinaryName, "plain-flip-ts-check");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xPlainFlipTsCheck) {
+-    runSubTest(testBinaryName, "2x-plain-flip-ts-check");
+-}
+-
+-TEST_F(KmsFlipTests, TestPlainFlipFbRecreate) {
+-    runSubTest(testBinaryName, "plain-flip-fb-recreate");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xPlainFlipFbRecreate) {
+-    runSubTest(testBinaryName, "2x-plain-flip-fb-recreate");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsRmfb) {
+-    runSubTest(testBinaryName, "flip-vs-rmfb");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsRmfb) {
+-    runSubTest(testBinaryName, "2x-flip-vs-rmfb");
+-}
+-
+-TEST_F(KmsFlipTests, TestBasicFlipVsDpms) {
+-    runSubTest(testBinaryName, "basic-flip-vs-dpms");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsDpms) {
+-    runSubTest(testBinaryName, "2x-flip-vs-dpms");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsPanning) {
+-    runSubTest(testBinaryName, "flip-vs-panning");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsPanning) {
+-    runSubTest(testBinaryName, "2x-flip-vs-panning");
+-}
+-
+-TEST_F(KmsFlipTests, TestBasicFlipVsModeset) {
+-    runSubTest(testBinaryName, "basic-flip-vs-modeset");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsModeset) {
+-    runSubTest(testBinaryName, "2x-flip-vs-modeset");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsExpiredVblank) {
+-    runSubTest(testBinaryName, "flip-vs-expired-vblank");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsExpiredVblank) {
+-    runSubTest(testBinaryName, "2x-flip-vs-expired-vblank");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsAbsoluteWfVblank) {
+-    runSubTest(testBinaryName, "flip-vs-absolute-wf_vblank");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsAbsoluteWfVblank) {
+-    runSubTest(testBinaryName, "2x-flip-vs-absolute-wf_vblank");
+-}
+-
+-TEST_F(KmsFlipTests, TestBasicFlipVsWfVblank) {
+-    runSubTest(testBinaryName, "basic-flip-vs-wf_vblank");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsWfVblank) {
+-    runSubTest(testBinaryName, "2x-flip-vs-wf_vblank");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsBlockingWfVblank) {
+-    runSubTest(testBinaryName, "flip-vs-blocking-wf-vblank");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsBlockingWfVblank) {
+-    runSubTest(testBinaryName, "2x-flip-vs-blocking-wf-vblank");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsModesetVsHang) {
+-    runSubTest(testBinaryName, "flip-vs-modeset-vs-hang");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsModesetVsHang) {
+-    runSubTest(testBinaryName, "2x-flip-vs-modeset-vs-hang");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsPanningVsHang) {
+-    runSubTest(testBinaryName, "flip-vs-panning-vs-hang");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsPanningVsHang) {
+-    runSubTest(testBinaryName, "2x-flip-vs-panning-vs-hang");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsDpmsOffVsModeset) {
+-    runSubTest(testBinaryName, "flip-vs-dpms-off-vs-modeset");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsDpmsOffVsModeset) {
+-    runSubTest(testBinaryName, "2x-flip-vs-dpms-off-vs-modeset");
+-}
+-
+-TEST_F(KmsFlipTests, TestSingleBufferFlipVsDpmsOffVsModeset) {
+-    runSubTest(testBinaryName, "single-buffer-flip-vs-dpms-off-vs-modeset");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xSingleBufferFlipVsDpmsOffVsModeset) {
+-    runSubTest(testBinaryName, "2x-single-buffer-flip-vs-dpms-off-vs-modeset");
+-}
+-
+-TEST_F(KmsFlipTests, TestDpmsOffConfusion) {
+-    runSubTest(testBinaryName, "dpms-off-confusion");
+-}
+-
+-TEST_F(KmsFlipTests, TestNonexistingFb) {
+-    runSubTest(testBinaryName, "nonexisting-fb");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xNonexistingFb) {
+-    runSubTest(testBinaryName, "2x-nonexisting-fb");
+-}
+-
+-TEST_F(KmsFlipTests, TestDpmsVsVblankRace) {
+-    runSubTest(testBinaryName, "dpms-vs-vblank-race");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xDpmsVsVblankRace) {
+-    runSubTest(testBinaryName, "2x-dpms-vs-vblank-race");
+-}
+-
+-TEST_F(KmsFlipTests, TestModesetVsVblankRace) {
+-    runSubTest(testBinaryName, "modeset-vs-vblank-race");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xModesetVsVblankRace) {
+-    runSubTest(testBinaryName, "2x-modeset-vs-vblank-race");
+-}
+-
+-TEST_F(KmsFlipTests, TestBoTooBig) {
+-    runSubTest(testBinaryName, "bo-too-big");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsSuspend) {
+-    runSubTest(testBinaryName, "flip-vs-suspend");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsSuspend) {
+-    runSubTest(testBinaryName, "2x-flip-vs-suspend");
+-}
+-
+-TEST_F(KmsFlipTests, TestWfVblankTsCheckInterruptible) {
+-    runSubTest(testBinaryName, "wf_vblank-ts-check-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xWfVblankTsCheckInterruptible) {
+-    runSubTest(testBinaryName, "2x-wf_vblank-ts-check-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestAbsoluteWfVblankInterruptible) {
+-    runSubTest(testBinaryName, "absolute-wf_vblank-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xAbsoluteWfVblankInterruptible) {
+-    runSubTest(testBinaryName, "2x-absolute-wf_vblank-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestBlockingAbsoluteWfVblankInterruptible) {
+-    runSubTest(testBinaryName, "blocking-absolute-wf_vblank-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xBlockingAbsoluteWfVblankInterruptible) {
+-    runSubTest(testBinaryName, "2x-blocking-absolute-wf_vblank-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestPlainFlipInterruptible) {
+-    runSubTest(testBinaryName, "plain-flip-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xPlainFlipInterruptible) {
+-    runSubTest(testBinaryName, "2x-plain-flip-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsFencesInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-fences-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsFencesInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-fences-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestPlainFlipTsCheckInterruptible) {
+-    runSubTest(testBinaryName, "plain-flip-ts-check-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xPlainFlipTsCheckInterruptible) {
+-    runSubTest(testBinaryName, "2x-plain-flip-ts-check-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestPlainFlipFbRecreateInterruptible) {
+-    runSubTest(testBinaryName, "plain-flip-fb-recreate-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xPlainFlipFbRecreateInterruptible) {
+-    runSubTest(testBinaryName, "2x-plain-flip-fb-recreate-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsRmfbInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-rmfb-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsRmfbInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-rmfb-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsDpmsInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-dpms-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsDpmsInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-dpms-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsPanningInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-panning-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsPanningInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-panning-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsModesetInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-modeset-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsModesetInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-modeset-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsExpiredVblankInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-expired-vblank-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsExpiredVblankInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-expired-vblank-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsAbsoluteWfVblankInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-absolute-wf_vblank-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsAbsoluteWfVblankInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-absolute-wf_vblank-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsWfVblankInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-wf_vblank-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsWfVblankInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-wf_vblank-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsModesetVsHangInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-modeset-vs-hang-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsModesetVsHangInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-modeset-vs-hang-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsPanningVsHangInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-panning-vs-hang-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsPanningVsHangInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-panning-vs-hang-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsDpmsOffVsModesetInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-dpms-off-vs-modeset-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsDpmsOffVsModesetInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-dpms-off-vs-modeset-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestSingleBufferFlipVsDpmsOffVsModesetInterruptible) {
+-    runSubTest(testBinaryName, "single-buffer-flip-vs-dpms-off-vs-modeset-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xSingleBufferFlipVsDpmsOffVsModesetInterruptible) {
+-    runSubTest(testBinaryName, "2x-single-buffer-flip-vs-dpms-off-vs-modeset-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestDpmsOffConfusionInterruptible) {
+-    runSubTest(testBinaryName, "dpms-off-confusion-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestNonexistingFbInterruptible) {
+-    runSubTest(testBinaryName, "nonexisting-fb-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xNonexistingFbInterruptible) {
+-    runSubTest(testBinaryName, "2x-nonexisting-fb-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestDpmsVsVblankRaceInterruptible) {
+-    runSubTest(testBinaryName, "dpms-vs-vblank-race-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xDpmsVsVblankRaceInterruptible) {
+-    runSubTest(testBinaryName, "2x-dpms-vs-vblank-race-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestModesetVsVblankRaceInterruptible) {
+-    runSubTest(testBinaryName, "modeset-vs-vblank-race-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xModesetVsVblankRaceInterruptible) {
+-    runSubTest(testBinaryName, "2x-modeset-vs-vblank-race-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestBoTooBigInterruptible) {
+-    runSubTest(testBinaryName, "bo-too-big-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, TestFlipVsSuspendInterruptible) {
+-    runSubTest(testBinaryName, "flip-vs-suspend-interruptible");
+-}
+-
+-TEST_F(KmsFlipTests, Test2xFlipVsSuspendInterruptible) {
+-    runSubTest(testBinaryName, "2x-flip-vs-suspend-interruptible");
+-}
+diff --git a/gtests/src/gtest_kms_flip_tiling.cpp b/gtests/src/gtest_kms_flip_tiling.cpp
+deleted file mode 100644
+index eaffd7db..00000000
+--- a/gtests/src/gtest_kms_flip_tiling.cpp
++++ /dev/null
+@@ -1,47 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class KmsFlipTiling : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_flip_tiling";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsFlipTiling, TestFlipChangesTiling) {
+-    runSubTest(testBinaryName, "flip-changes-tiling");
+-}
+-
+-TEST_F(KmsFlipTiling, TestFlipChangesTilingY) {
+-    runSubTest(testBinaryName, "flip-changes-tiling-Y");
+-}
+-
+-TEST_F(KmsFlipTiling, TestFlipChangesTilingYF) {
+-    runSubTest(testBinaryName, "flip-changes-tiling-Yf");
+-}
+-
+-TEST_F(KmsFlipTiling, TestFlipXTiled) {
+-    runSubTest(testBinaryName, "flip-X-tiled");
+-}
+-
+-TEST_F(KmsFlipTiling, TestFlipYTiled) {
+-    runSubTest(testBinaryName, "flip-Y-tiled");
+-}
+-
+-TEST_F(KmsFlipTiling, TestFlipYFTiled) {
+-    runSubTest(testBinaryName, "flip-Yf-tiled");
+-}
+-
+-TEST_F(KmsFlipTiling, TestFlipToXTiled) {
+-    runSubTest(testBinaryName, "flip-to-X-tiled");
+-}
+-
+-TEST_F(KmsFlipTiling, TestFlipToYTiled) {
+-    runSubTest(testBinaryName, "flip-to-Y-tiled");
+-}
+-
+-TEST_F(KmsFlipTiling, TestFlipToYFTiled) {
+-    runSubTest(testBinaryName, "flip-to-Yf-tiled");
+-}
+diff --git a/gtests/src/gtest_kms_getfb.cpp b/gtests/src/gtest_kms_getfb.cpp
+deleted file mode 100644
+index 49250b29..00000000
+--- a/gtests/src/gtest_kms_getfb.cpp
++++ /dev/null
+@@ -1,39 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class KmsGetfb : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_getfb";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsGetfb, TestGetfbHandleZero) {
+-    runSubTest(testBinaryName, "getfb-handle-zero");
+-}
+-
+-TEST_F(KmsGetfb, TestGetfbHandleValid) {
+-    runSubTest(testBinaryName, "getfb-handle-valid");
+-}
+-
+-TEST_F(KmsGetfb, TestGetfbHandleClosed) {
+-    runSubTest(testBinaryName, "getfb-handle-closed");
+-}
+-
+-TEST_F(KmsGetfb, TestGetfbHandleNotFb) {
+-    runSubTest(testBinaryName, "getfb-handle-not-fb");
+-}
+-
+-TEST_F(KmsGetfb, TestGetfbAddfbDifferentHandles) {
+-    runSubTest(testBinaryName, "getfb-addfb-different-handles");
+-}
+-
+-TEST_F(KmsGetfb, TestGetfbRepeatedDifferentHandles) {
+-    runSubTest(testBinaryName, "getfb-repeated-different-handles");
+-}
+-
+-TEST_F(KmsGetfb, TestGetfbRejectCcs) {
+-    runSubTest(testBinaryName, "getfb-reject-ccs");
+-}
+diff --git a/gtests/src/gtest_kms_plane_lowres.cpp b/gtests/src/gtest_kms_plane_lowres.cpp
+deleted file mode 100644
+index 1c493f0e..00000000
+--- a/gtests/src/gtest_kms_plane_lowres.cpp
++++ /dev/null
+@@ -1,107 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class KmsPlaneLowres : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_plane_lowres";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsPlaneLowres, TestPipeATilingNone) {
+-    runSubTest(testBinaryName, "pipe-A-tiling-none");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeATilingX) {
+-    runSubTest(testBinaryName, "pipe-A-tiling-x");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeATilingY) {
+-    runSubTest(testBinaryName, "pipe-A-tiling-y");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeATilingYf) {
+-    runSubTest(testBinaryName, "pipe-A-tiling-yf");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeBTilingNone) {
+-    runSubTest(testBinaryName, "pipe-B-tiling-none");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeBTilingX) {
+-    runSubTest(testBinaryName, "pipe-B-tiling-x");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeBTilingY) {
+-    runSubTest(testBinaryName, "pipe-B-tiling-y");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeBTilingYf) {
+-    runSubTest(testBinaryName, "pipe-B-tiling-yf");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeCTilingNone) {
+-    runSubTest(testBinaryName, "pipe-C-tiling-none");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeCTilingX) {
+-    runSubTest(testBinaryName, "pipe-C-tiling-x");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeCTilingY) {
+-    runSubTest(testBinaryName, "pipe-C-tiling-y");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeCTilingYf) {
+-    runSubTest(testBinaryName, "pipe-C-tiling-yf");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeDTilingNone) {
+-    runSubTest(testBinaryName, "pipe-D-tiling-none");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeDTilingX) {
+-    runSubTest(testBinaryName, "pipe-D-tiling-x");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeDTilingY) {
+-    runSubTest(testBinaryName, "pipe-D-tiling-y");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeDTilingYf) {
+-    runSubTest(testBinaryName, "pipe-D-tiling-yf");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeETilingNone) {
+-    runSubTest(testBinaryName, "pipe-E-tiling-none");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeETilingX) {
+-    runSubTest(testBinaryName, "pipe-E-tiling-x");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeETilingY) {
+-    runSubTest(testBinaryName, "pipe-E-tiling-y");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeETilingYf) {
+-    runSubTest(testBinaryName, "pipe-E-tiling-yf");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeFTilingNone) {
+-    runSubTest(testBinaryName, "pipe-F-tiling-none");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeFTilingX) {
+-    runSubTest(testBinaryName, "pipe-F-tiling-x");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeFTilingY) {
+-    runSubTest(testBinaryName, "pipe-F-tiling-y");
+-}
+-
+-TEST_F(KmsPlaneLowres, TestPipeFTilingYf) {
+-    runSubTest(testBinaryName, "pipe-F-tiling-yf");
+-}
+diff --git a/gtests/src/gtest_kms_plane_scaling.cpp b/gtests/src/gtest_kms_plane_scaling.cpp
+deleted file mode 100644
+index 7e255ffc..00000000
+--- a/gtests/src/gtest_kms_plane_scaling.cpp
++++ /dev/null
+@@ -1,111 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class KmsPlaneScaling : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_plane_scaling";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsPlaneScaling, TestPipeAPlaneScaling) {
+-    runSubTest(testBinaryName, "pipe-A-plane-scaling");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeAScalerWithPixelFormat) {
+-    runSubTest(testBinaryName, "pipe-A-scaler-with-pixel-format");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeAScalerWithRotation) {
+-    runSubTest(testBinaryName, "pipe-A-scaler-with-rotation");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeAScalerWithClippingClamping) {
+-    runSubTest(testBinaryName, "pipe-A-scaler-with-clipping-clamping");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeBPlaneScaling) {
+-    runSubTest(testBinaryName, "pipe-B-plane-scaling");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeBScalerWithPixelFormat) {
+-    runSubTest(testBinaryName, "pipe-B-scaler-with-pixel-format");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeBScalerWithRotation) {
+-    runSubTest(testBinaryName, "pipe-B-scaler-with-rotation");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeBScalerWithClippingClamping) {
+-    runSubTest(testBinaryName, "pipe-B-scaler-with-clipping-clamping");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeCPlaneScaling) {
+-    runSubTest(testBinaryName, "pipe-C-plane-scaling");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeCScalerWithPixelFormat) {
+-    runSubTest(testBinaryName, "pipe-C-scaler-with-pixel-format");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeCScalerWithRotation) {
+-    runSubTest(testBinaryName, "pipe-C-scaler-with-rotation");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeCScalerWithClippingClamping) {
+-    runSubTest(testBinaryName, "pipe-C-scaler-with-clipping-clamping");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeDPlaneScaling) {
+-    runSubTest(testBinaryName, "pipe-D-plane-scaling");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeDScalerWithPixelFormat) {
+-    runSubTest(testBinaryName, "pipe-D-scaler-with-pixel-format");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeDScalerWithRotation) {
+-    runSubTest(testBinaryName, "pipe-D-scaler-with-rotation");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeDScalerWithClippingClamping) {
+-    runSubTest(testBinaryName, "pipe-D-scaler-with-clipping-clamping");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeEPlaneScaling) {
+-    runSubTest(testBinaryName, "pipe-E-plane-scaling");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeEScalerWithPixelFormat) {
+-    runSubTest(testBinaryName, "pipe-E-scaler-with-pixel-format");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeEScalerWithRotation) {
+-    runSubTest(testBinaryName, "pipe-E-scaler-with-rotation");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeEScalerWithClippingClamping) {
+-    runSubTest(testBinaryName, "pipe-E-scaler-with-clipping-clamping");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeFPlaneScaling) {
+-    runSubTest(testBinaryName, "pipe-F-plane-scaling");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeFScalerWithPixelFormat) {
+-    runSubTest(testBinaryName, "pipe-F-scaler-with-pixel-format");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeFScalerWithRotation) {
+-    runSubTest(testBinaryName, "pipe-F-scaler-with-rotation");
+-}
+-
+-TEST_F(KmsPlaneScaling, TestPipeFScalerWithClippingClamping) {
+-    runSubTest(testBinaryName, "pipe-F-scaler-with-clipping-clamping");
+-}
+-
+-TEST_F(KmsPlaneScaling, Test2xScalerMultiPipe) {
+-    runSubTest(testBinaryName, "2x-scaler-multi-pipe");
+-}
+diff --git a/gtests/src/gtest_kms_prop_blob.cpp b/gtests/src/gtest_kms_prop_blob.cpp
+deleted file mode 100644
+index 853f5a11..00000000
+--- a/gtests/src/gtest_kms_prop_blob.cpp
++++ /dev/null
+@@ -1,47 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class KmsPropBlob : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_prop_blob";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsPropBlob, TestBasic) {
+-    runSubTest(testBinaryName, "basic");
+-}
+-
+-TEST_F(KmsPropBlob, TestBlobPropCore) {
+-    runSubTest(testBinaryName, "blob-prop-core");
+-}
+-
+-TEST_F(KmsPropBlob, TestBlobPropValidate) {
+-    runSubTest(testBinaryName, "blob-prop-validate");
+-}
+-
+-TEST_F(KmsPropBlob, TestBlobPropLifetime) {
+-    runSubTest(testBinaryName, "blob-prop-lifetime");
+-}
+-
+-TEST_F(KmsPropBlob, TestBlobMultiple) {
+-    runSubTest(testBinaryName, "blob-multiple");
+-}
+-
+-TEST_F(KmsPropBlob, TestInvalidGetPropAny) {
+-    runSubTest(testBinaryName, "invalid-get-prop-any");
+-}
+-
+-TEST_F(KmsPropBlob, TestInvalidGetProp) {
+-    runSubTest(testBinaryName, "invalid-get-prop");
+-}
+-
+-TEST_F(KmsPropBlob, TestInvalidSetPropAny) {
+-    runSubTest(testBinaryName, "invalid-set-prop-any");
+-}
+-
+-TEST_F(KmsPropBlob, TestInvalidSetProp) {
+-    runSubTest(testBinaryName, "invalid-set-prop");
+-}
+diff --git a/gtests/src/gtest_kms_properties.cpp b/gtests/src/gtest_kms_properties.cpp
+deleted file mode 100644
+index 8adc7a5b..00000000
+--- a/gtests/src/gtest_kms_properties.cpp
++++ /dev/null
+@@ -1,51 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class KmsPropertiesTests : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_properties";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsPropertiesTests, TestPlanePropertiesLegacy) {
+-    runSubTest(testBinaryName, "plane-properties-legacy");
+-}
+-
+-TEST_F(KmsPropertiesTests, TestPlanePropertiesAtomic) {
+-    runSubTest(testBinaryName, "plane-properties-atomic");
+-}
+-
+-TEST_F(KmsPropertiesTests, TestCrtcPropertiesLegacy) {
+-    runSubTest(testBinaryName, "crtc-properties-legacy");
+-}
+-
+-TEST_F(KmsPropertiesTests, TestCrtcPropertiesAtomic) {
+-    runSubTest(testBinaryName, "crtc-properties-atomic");
+-}
+-
+-TEST_F(KmsPropertiesTests, TestConnectorPropertiesLegacy) {
+-    runSubTest(testBinaryName, "connector-properties-legacy");
+-}
+-
+-TEST_F(KmsPropertiesTests, TestConnectorPropertiesAtomic) {
+-    runSubTest(testBinaryName, "connector-properties-atomic");
+-}
+-
+-TEST_F(KmsPropertiesTests, TestInvalidPropertiesLegacy) {
+-    runSubTest(testBinaryName, "invalid-properties-legacy");
+-}
+-
+-TEST_F(KmsPropertiesTests, TestInvalidPropertiesAtomic) {
+-    runSubTest(testBinaryName, "invalid-properties-atomic");
+-}
+-
+-TEST_F(KmsPropertiesTests, TestGetPropertiesSanityAtomic) {
+-    runSubTest(testBinaryName, "get_properties-sanity-atomic");
+-}
+-
+-TEST_F(KmsPropertiesTests, TestGetPropertiesSanityNonAtomic) {
+-    runSubTest(testBinaryName, "get_properties-sanity-non-atomic");
+-}
+diff --git a/gtests/src/gtest_kms_throughput.cpp b/gtests/src/gtest_kms_throughput.cpp
+deleted file mode 100644
+index 4885221c..00000000
+--- a/gtests/src/gtest_kms_throughput.cpp
++++ /dev/null
+@@ -1,16 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-
+-#include "gtest_helper.h"
+-
+-class KMSThroughputTests : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_throughput";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KMSThroughputTests, TestKMSThroughput) {
+-    runTest(testBinaryName);
+-}
+diff --git a/gtests/src/gtest_kms_vblank.cpp b/gtests/src/gtest_kms_vblank.cpp
+deleted file mode 100644
+index 654eb2e7..00000000
+--- a/gtests/src/gtest_kms_vblank.cpp
++++ /dev/null
+@@ -1,619 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class KmsVBlankTests : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "kms_vblank";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(KmsVBlankTests, TestInvalid) {
+-    runSubTest(testBinaryName, "invalid");
+-}
+-
+-TEST_F(KmsVBlankTests, TestCrtcId) {
+-    runSubTest(testBinaryName, "crtc-id");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAAccuracyIdle) {
+-    runSubTest(testBinaryName, "pipe-A-accuracy-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAQueryIdle) {
+-    runSubTest(testBinaryName, "pipe-A-query-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAQueryIdleHang) {
+-    runSubTest(testBinaryName, "pipe-A-query-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAQueryForked) {
+-    runSubTest(testBinaryName, "pipe-A-query-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAQueryForkedHang) {
+-    runSubTest(testBinaryName, "pipe-A-query-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAQueryBusy) {
+-    runSubTest(testBinaryName, "pipe-A-query-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAQueryBusyHang) {
+-    runSubTest(testBinaryName, "pipe-A-query-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAQueryForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-A-query-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAQueryForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-A-query-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAWaitIdle) {
+-    runSubTest(testBinaryName, "pipe-A-wait-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAWaitIdleHang) {
+-    runSubTest(testBinaryName, "pipe-A-wait-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAWaitForked) {
+-    runSubTest(testBinaryName, "pipe-A-wait-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAWaitForkedHang) {
+-    runSubTest(testBinaryName, "pipe-A-wait-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAWaitBusy) {
+-    runSubTest(testBinaryName, "pipe-A-wait-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAWaitBusyHang) {
+-    runSubTest(testBinaryName, "pipe-A-wait-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAWaitForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-A-wait-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeAWaitForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-A-wait-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeATsContinuationIdle) {
+-    runSubTest(testBinaryName, "pipe-A-ts-continuation-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeATsContinuationIdleHang) {
+-    runSubTest(testBinaryName, "pipe-A-ts-continuation-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeATsContinuationDpmsRpm) {
+-    runSubTest(testBinaryName, "pipe-A-ts-continuation-dpms-rpm");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeATsContinuationDpmsSuspend) {
+-    runSubTest(testBinaryName, "pipe-A-ts-continuation-dpms-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeATsContinuationSuspend) {
+-    runSubTest(testBinaryName, "pipe-A-ts-continuation-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeATsContinuationModeset) {
+-    runSubTest(testBinaryName, "pipe-A-ts-continuation-modeset");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeATsContinuationModesetHang) {
+-    runSubTest(testBinaryName, "pipe-A-ts-continuation-modeset-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeATsContinuationModesetRpm) {
+-    runSubTest(testBinaryName, "pipe-A-ts-continuation-modeset-rpm");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBAccuracyIdle) {
+-    runSubTest(testBinaryName, "pipe-B-accuracy-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBQueryIdle) {
+-    runSubTest(testBinaryName, "pipe-B-query-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBQueryIdleHang) {
+-    runSubTest(testBinaryName, "pipe-B-query-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBQueryForked) {
+-    runSubTest(testBinaryName, "pipe-B-query-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBQueryForkedHang) {
+-    runSubTest(testBinaryName, "pipe-B-query-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBQueryBusy) {
+-    runSubTest(testBinaryName, "pipe-B-query-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBQueryBusyHang) {
+-    runSubTest(testBinaryName, "pipe-B-query-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBQueryForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-B-query-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBQueryForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-B-query-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBWaitIdle) {
+-    runSubTest(testBinaryName, "pipe-B-wait-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBWaitIdleHang) {
+-    runSubTest(testBinaryName, "pipe-B-wait-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBWaitForked) {
+-    runSubTest(testBinaryName, "pipe-B-wait-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBWaitForkedHang) {
+-    runSubTest(testBinaryName, "pipe-B-wait-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBWaitBusy) {
+-    runSubTest(testBinaryName, "pipe-B-wait-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBWaitBusyHang) {
+-    runSubTest(testBinaryName, "pipe-B-wait-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBWaitForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-B-wait-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBWaitForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-B-wait-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBTsContinuationIdle) {
+-    runSubTest(testBinaryName, "pipe-B-ts-continuation-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBTsContinuationIdleHang) {
+-    runSubTest(testBinaryName, "pipe-B-ts-continuation-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBTsContinuationDpmsRpm) {
+-    runSubTest(testBinaryName, "pipe-B-ts-continuation-dpms-rpm");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBTsContinuationDpmsSuspend) {
+-    runSubTest(testBinaryName, "pipe-B-ts-continuation-dpms-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBTsContinuationSuspend) {
+-    runSubTest(testBinaryName, "pipe-B-ts-continuation-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBTsContinuationModeset) {
+-    runSubTest(testBinaryName, "pipe-B-ts-continuation-modeset");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBTsContinuationModesetHang) {
+-    runSubTest(testBinaryName, "pipe-B-ts-continuation-modeset-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeBTsContinuationModesetRpm) {
+-    runSubTest(testBinaryName, "pipe-B-ts-continuation-modeset-rpm");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCAccuracyIdle) {
+-    runSubTest(testBinaryName, "pipe-C-accuracy-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCQueryIdle) {
+-    runSubTest(testBinaryName, "pipe-C-query-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCQueryIdleHang) {
+-    runSubTest(testBinaryName, "pipe-C-query-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCQueryForked) {
+-    runSubTest(testBinaryName, "pipe-C-query-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCQueryForkedHang) {
+-    runSubTest(testBinaryName, "pipe-C-query-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCQueryBusy) {
+-    runSubTest(testBinaryName, "pipe-C-query-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCQueryBusyHang) {
+-    runSubTest(testBinaryName, "pipe-C-query-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCQueryForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-C-query-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCQueryForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-C-query-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCWaitIdle) {
+-    runSubTest(testBinaryName, "pipe-C-wait-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCWaitIdleHang) {
+-    runSubTest(testBinaryName, "pipe-C-wait-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCWaitForked) {
+-    runSubTest(testBinaryName, "pipe-C-wait-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCWaitForkedHang) {
+-    runSubTest(testBinaryName, "pipe-C-wait-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCWaitBusy) {
+-    runSubTest(testBinaryName, "pipe-C-wait-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCWaitBusyHang) {
+-    runSubTest(testBinaryName, "pipe-C-wait-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCWaitForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-C-wait-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCWaitForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-C-wait-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCTsContinuationIdle) {
+-    runSubTest(testBinaryName, "pipe-C-ts-continuation-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCTsContinuationIdleHang) {
+-    runSubTest(testBinaryName, "pipe-C-ts-continuation-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCTsContinuationDpmsRpm) {
+-    runSubTest(testBinaryName, "pipe-C-ts-continuation-dpms-rpm");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCTsContinuationDpmsSuspend) {
+-    runSubTest(testBinaryName, "pipe-C-ts-continuation-dpms-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCTsContinuationSuspend) {
+-    runSubTest(testBinaryName, "pipe-C-ts-continuation-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCTsContinuationModeset) {
+-    runSubTest(testBinaryName, "pipe-C-ts-continuation-modeset");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCTsContinuationModesetHang) {
+-    runSubTest(testBinaryName, "pipe-C-ts-continuation-modeset-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeCTsContinuationModesetRpm) {
+-    runSubTest(testBinaryName, "pipe-C-ts-continuation-modeset-rpm");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDAccuracyIdle) {
+-    runSubTest(testBinaryName, "pipe-D-accuracy-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDQueryIdle) {
+-    runSubTest(testBinaryName, "pipe-D-query-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDQueryIdleHang) {
+-    runSubTest(testBinaryName, "pipe-D-query-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDQueryForked) {
+-    runSubTest(testBinaryName, "pipe-D-query-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDQueryForkedHang) {
+-    runSubTest(testBinaryName, "pipe-D-query-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDQueryBusy) {
+-    runSubTest(testBinaryName, "pipe-D-query-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDQueryBusyHang) {
+-    runSubTest(testBinaryName, "pipe-D-query-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDQueryForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-D-query-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDQueryForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-D-query-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDWaitIdle) {
+-    runSubTest(testBinaryName, "pipe-D-wait-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDWaitIdleHang) {
+-    runSubTest(testBinaryName, "pipe-D-wait-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDWaitForked) {
+-    runSubTest(testBinaryName, "pipe-D-wait-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDWaitForkedHang) {
+-    runSubTest(testBinaryName, "pipe-D-wait-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDWaitBusy) {
+-    runSubTest(testBinaryName, "pipe-D-wait-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDWaitBusyHang) {
+-    runSubTest(testBinaryName, "pipe-D-wait-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDWaitForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-D-wait-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDWaitForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-D-wait-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDTsContinuationIdle) {
+-    runSubTest(testBinaryName, "pipe-D-ts-continuation-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDTsContinuationIdleHang) {
+-    runSubTest(testBinaryName, "pipe-D-ts-continuation-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDTsContinuationDpmsRpm) {
+-    runSubTest(testBinaryName, "pipe-D-ts-continuation-dpms-rpm");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDTsContinuationDpmsSuspend) {
+-    runSubTest(testBinaryName, "pipe-D-ts-continuation-dpms-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDTsContinuationSuspend) {
+-    runSubTest(testBinaryName, "pipe-D-ts-continuation-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDTsContinuationModeset) {
+-    runSubTest(testBinaryName, "pipe-D-ts-continuation-modeset");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDTsContinuationModesetHang) {
+-    runSubTest(testBinaryName, "pipe-D-ts-continuation-modeset-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeDTsContinuationModesetRpm) {
+-    runSubTest(testBinaryName, "pipe-D-ts-continuation-modeset-rpm");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEAccuracyIdle) {
+-    runSubTest(testBinaryName, "pipe-E-accuracy-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEQueryIdle) {
+-    runSubTest(testBinaryName, "pipe-E-query-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEQueryIdleHang) {
+-    runSubTest(testBinaryName, "pipe-E-query-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEQueryForked) {
+-    runSubTest(testBinaryName, "pipe-E-query-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEQueryForkedHang) {
+-    runSubTest(testBinaryName, "pipe-E-query-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEQueryBusy) {
+-    runSubTest(testBinaryName, "pipe-E-query-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEQueryBusyHang) {
+-    runSubTest(testBinaryName, "pipe-E-query-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEQueryForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-E-query-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEQueryForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-E-query-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEWaitIdle) {
+-    runSubTest(testBinaryName, "pipe-E-wait-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEWaitIdleHang) {
+-    runSubTest(testBinaryName, "pipe-E-wait-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEWaitForked) {
+-    runSubTest(testBinaryName, "pipe-E-wait-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEWaitForkedHang) {
+-    runSubTest(testBinaryName, "pipe-E-wait-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEWaitBusy) {
+-    runSubTest(testBinaryName, "pipe-E-wait-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEWaitBusyHang) {
+-    runSubTest(testBinaryName, "pipe-E-wait-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEWaitForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-E-wait-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeEWaitForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-E-wait-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeETsContinuationIdle) {
+-    runSubTest(testBinaryName, "pipe-E-ts-continuation-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeETsContinuationIdleHang) {
+-    runSubTest(testBinaryName, "pipe-E-ts-continuation-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeETsContinuationDpmsRpm) {
+-    runSubTest(testBinaryName, "pipe-E-ts-continuation-dpms-rpm");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeETsContinuationDpmsSuspend) {
+-    runSubTest(testBinaryName, "pipe-E-ts-continuation-dpms-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeETsContinuationSuspend) {
+-    runSubTest(testBinaryName, "pipe-E-ts-continuation-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeETsContinuationModeset) {
+-    runSubTest(testBinaryName, "pipe-E-ts-continuation-modeset");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeETsContinuationModesetHang) {
+-    runSubTest(testBinaryName, "pipe-E-ts-continuation-modeset-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeETsContinuationModesetRpm) {
+-    runSubTest(testBinaryName, "pipe-E-ts-continuation-modeset-rpm");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFAccuracyIdle) {
+-    runSubTest(testBinaryName, "pipe-F-accuracy-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFQueryIdle) {
+-    runSubTest(testBinaryName, "pipe-F-query-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFQueryIdleHang) {
+-    runSubTest(testBinaryName, "pipe-F-query-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFQueryForked) {
+-    runSubTest(testBinaryName, "pipe-F-query-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFQueryForkedHang) {
+-    runSubTest(testBinaryName, "pipe-F-query-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFQueryBusy) {
+-    runSubTest(testBinaryName, "pipe-F-query-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFQueryBusyHang) {
+-    runSubTest(testBinaryName, "pipe-F-query-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFQueryForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-F-query-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFQueryForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-F-query-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFWaitIdle) {
+-    runSubTest(testBinaryName, "pipe-F-wait-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFWaitIdleHang) {
+-    runSubTest(testBinaryName, "pipe-F-wait-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFWaitForked) {
+-    runSubTest(testBinaryName, "pipe-F-wait-forked");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFWaitForkedHang) {
+-    runSubTest(testBinaryName, "pipe-F-wait-forked-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFWaitBusy) {
+-    runSubTest(testBinaryName, "pipe-F-wait-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFWaitBusyHang) {
+-    runSubTest(testBinaryName, "pipe-F-wait-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFWaitForkedBusy) {
+-    runSubTest(testBinaryName, "pipe-F-wait-forked-busy");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFWaitForkedBusyHang) {
+-    runSubTest(testBinaryName, "pipe-F-wait-forked-busy-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFTsContinuationIdle) {
+-    runSubTest(testBinaryName, "pipe-F-ts-continuation-idle");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFTsContinuationIdleHang) {
+-    runSubTest(testBinaryName, "pipe-F-ts-continuation-idle-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFTsContinuationDpmsRpm) {
+-    runSubTest(testBinaryName, "pipe-F-ts-continuation-dpms-rpm");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFTsContinuationDpmsSuspend) {
+-    runSubTest(testBinaryName, "pipe-F-ts-continuation-dpms-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFTsContinuationSuspend) {
+-    runSubTest(testBinaryName, "pipe-F-ts-continuation-suspend");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFTsContinuationModeset) {
+-    runSubTest(testBinaryName, "pipe-F-ts-continuation-modeset");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFTsContinuationModesetHang) {
+-    runSubTest(testBinaryName, "pipe-F-ts-continuation-modeset-hang");
+-}
+-
+-TEST_F(KmsVBlankTests, TestPipeFTsContinuationModesetRpm) {
+-    runSubTest(testBinaryName, "pipe-F-ts-continuation-modeset-rpm");
+-}
+diff --git a/gtests/src/gtest_syncobj_basic.cpp b/gtests/src/gtest_syncobj_basic.cpp
+deleted file mode 100644
+index 9a8fc393..00000000
+--- a/gtests/src/gtest_syncobj_basic.cpp
++++ /dev/null
+@@ -1,59 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class SyncobjBasic : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "syncobj_basic";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(SyncobjBasic, TestBadDestroy) {
+-    runSubTest(testBinaryName, "bad-destroy");
+-}
+-
+-TEST_F(SyncobjBasic, TestBadCreateFlags) {
+-    runSubTest(testBinaryName, "bad-create-flags");
+-}
+-
+-TEST_F(SyncobjBasic, TestBadHandleToFd) {
+-    runSubTest(testBinaryName, "bad-handle-to-fd");
+-}
+-
+-TEST_F(SyncobjBasic, TestBadFdToHandle) {
+-    runSubTest(testBinaryName, "bad-fd-to-handle");
+-}
+-
+-TEST_F(SyncobjBasic, TestBadFlagsHandleToFd) {
+-    runSubTest(testBinaryName, "bad-flags-handle-to-fd");
+-}
+-
+-TEST_F(SyncobjBasic, TestBadFlagsFdToHandle) {
+-    runSubTest(testBinaryName, "bad-flags-fd-to-handle");
+-}
+-
+-TEST_F(SyncobjBasic, TestBadPadHandleToFd) {
+-    runSubTest(testBinaryName, "bad-pad-handle-to-fd");
+-}
+-
+-TEST_F(SyncobjBasic, TestBadPadFdToHandle) {
+-    runSubTest(testBinaryName, "bad-pad-fd-to-handle");
+-}
+-
+-TEST_F(SyncobjBasic, TestIllegalFdToHandle) {
+-    runSubTest(testBinaryName, "illegal-fd-to-handle");
+-}
+-
+-TEST_F(SyncobjBasic, TestBadDestroyPad) {
+-    runSubTest(testBinaryName, "bad-destroy-pad");
+-}
+-
+-TEST_F(SyncobjBasic, TestCreateSignaled) {
+-    runSubTest(testBinaryName, "create-signaled");
+-}
+-
+-TEST_F(SyncobjBasic, TestTestValidCycle) {
+-    runSubTest(testBinaryName, "test-valid-cycle");
+-}
+diff --git a/gtests/src/gtest_syncobj_wait.cpp b/gtests/src/gtest_syncobj_wait.cpp
+deleted file mode 100644
+index c97e0ff8..00000000
+--- a/gtests/src/gtest_syncobj_wait.cpp
++++ /dev/null
+@@ -1,287 +0,0 @@
+-#include <gtest/gtest.h>
+-#include <cstdlib>
+-#include <string>
+-#include "gtest_helper.h"
+-
+-class SyncobjWait : public ::testing::Test {
+-    public:
+-    const char* testBinaryName = "syncobj_wait";
+-    void SetUp() override { chdir(binary_path); }
+-    void TearDown() override { chdir("/"); }
+-};
+-
+-TEST_F(SyncobjWait, TestInvalidWaitBadFlags) {
+-    runSubTest(testBinaryName, "invalid-wait-bad-flags");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidWaitZeroHandles) {
+-    runSubTest(testBinaryName, "invalid-wait-zero-handles");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidWaitIllegalHandle) {
+-    runSubTest(testBinaryName, "invalid-wait-illegal-handle");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidResetZeroHandles) {
+-    runSubTest(testBinaryName, "invalid-reset-zero-handles");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidResetIllegalHandle) {
+-    runSubTest(testBinaryName, "invalid-reset-illegal-handle");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidResetOneIllegalHandle) {
+-    runSubTest(testBinaryName, "invalid-reset-one-illegal-handle");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidResetBadPad) {
+-    runSubTest(testBinaryName, "invalid-reset-bad-pad");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidSignalZeroHandles) {
+-    runSubTest(testBinaryName, "invalid-signal-zero-handles");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidSignalIllegalHandle) {
+-    runSubTest(testBinaryName, "invalid-signal-illegal-handle");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidSignalOneIllegalHandle) {
+-    runSubTest(testBinaryName, "invalid-signal-one-illegal-handle");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidSignalBadPad) {
+-    runSubTest(testBinaryName, "invalid-signal-bad-pad");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidSingleWaitUnsubmitted) {
+-    runSubTest(testBinaryName, "invalid-single-wait-unsubmitted");
+-}
+-
+-TEST_F(SyncobjWait, TestSingleWaitForSubmitUnsubmitted) {
+-    runSubTest(testBinaryName, "single-wait-for-submit-unsubmitted");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidSingleWaitAllUnsubmitted) {
+-    runSubTest(testBinaryName, "invalid-single-wait-all-unsubmitted");
+-}
+-
+-TEST_F(SyncobjWait, TestSingleWaitAllForSubmitUnsubmitted) {
+-    runSubTest(testBinaryName, "single-wait-all-for-submit-unsubmitted");
+-}
+-
+-TEST_F(SyncobjWait, TestSingleWaitSubmitted) {
+-    runSubTest(testBinaryName, "single-wait-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestSingleWaitForSubmitSubmitted) {
+-    runSubTest(testBinaryName, "single-wait-for-submit-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestSingleWaitAllSubmitted) {
+-    runSubTest(testBinaryName, "single-wait-all-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestSingleWaitAllForSubmitSubmitted) {
+-    runSubTest(testBinaryName, "single-wait-all-for-submit-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestSingleWaitSignaled) {
+-    runSubTest(testBinaryName, "single-wait-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestSingleWaitForSubmitSignaled) {
+-    runSubTest(testBinaryName, "single-wait-for-submit-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestSingleWaitAllSignaled) {
+-    runSubTest(testBinaryName, "single-wait-all-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestSingleWaitAllForSubmitSignaled) {
+-    runSubTest(testBinaryName, "single-wait-all-for-submit-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitDelayedSignal) {
+-    runSubTest(testBinaryName, "wait-delayed-signal");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitForSubmitDelayedSubmit) {
+-    runSubTest(testBinaryName, "wait-for-submit-delayed-submit");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitAllDelayedSignal) {
+-    runSubTest(testBinaryName, "wait-all-delayed-signal");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitAllForSubmitDelayedSubmit) {
+-    runSubTest(testBinaryName, "wait-all-for-submit-delayed-submit");
+-}
+-
+-TEST_F(SyncobjWait, TestResetUnsignaled) {
+-    runSubTest(testBinaryName, "reset-unsignaled");
+-}
+-
+-TEST_F(SyncobjWait, TestResetSignaled) {
+-    runSubTest(testBinaryName, "reset-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestResetMultipleSignaled) {
+-    runSubTest(testBinaryName, "reset-multiple-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestResetDuringWaitForSubmit) {
+-    runSubTest(testBinaryName, "reset-during-wait-for-submit");
+-}
+-
+-TEST_F(SyncobjWait, TestSignal) {
+-    runSubTest(testBinaryName, "signal");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidMultiWaitUnsubmitted) {
+-    runSubTest(testBinaryName, "invalid-multi-wait-unsubmitted");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitForSubmitUnsubmitted) {
+-    runSubTest(testBinaryName, "multi-wait-for-submit-unsubmitted");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidMultiWaitAllUnsubmitted) {
+-    runSubTest(testBinaryName, "invalid-multi-wait-all-unsubmitted");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitAllForSubmitUnsubmitted) {
+-    runSubTest(testBinaryName, "multi-wait-all-for-submit-unsubmitted");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitSubmitted) {
+-    runSubTest(testBinaryName, "multi-wait-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitForSubmitSubmitted) {
+-    runSubTest(testBinaryName, "multi-wait-for-submit-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitAllSubmitted) {
+-    runSubTest(testBinaryName, "multi-wait-all-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitAllForSubmitSubmitted) {
+-    runSubTest(testBinaryName, "multi-wait-all-for-submit-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidMultiWaitUnsubmittedSubmitted) {
+-    runSubTest(testBinaryName, "invalid-multi-wait-unsubmitted-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitForSubmitUnsubmittedSubmitted) {
+-    runSubTest(testBinaryName, "multi-wait-for-submit-unsubmitted-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidMultiWaitAllUnsubmittedSubmitted) {
+-    runSubTest(testBinaryName, "invalid-multi-wait-all-unsubmitted-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitAllForSubmitUnsubmittedSubmitted) {
+-    runSubTest(testBinaryName, "multi-wait-all-for-submit-unsubmitted-submitted");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitSignaled) {
+-    runSubTest(testBinaryName, "multi-wait-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitForSubmitSignaled) {
+-    runSubTest(testBinaryName, "multi-wait-for-submit-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitAllSignaled) {
+-    runSubTest(testBinaryName, "multi-wait-all-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitAllForSubmitSignaled) {
+-    runSubTest(testBinaryName, "multi-wait-all-for-submit-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidMultiWaitUnsubmittedSignaled) {
+-    runSubTest(testBinaryName, "invalid-multi-wait-unsubmitted-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitForSubmitUnsubmittedSignaled) {
+-    runSubTest(testBinaryName, "multi-wait-for-submit-unsubmitted-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidMultiWaitAllUnsubmittedSignaled) {
+-    runSubTest(testBinaryName, "invalid-multi-wait-all-unsubmitted-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitAllForSubmitUnsubmittedSignaled) {
+-    runSubTest(testBinaryName, "multi-wait-all-for-submit-unsubmitted-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitSubmittedSignaled) {
+-    runSubTest(testBinaryName, "multi-wait-submitted-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitForSubmitSubmittedSignaled) {
+-    runSubTest(testBinaryName, "multi-wait-for-submit-submitted-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitAllSubmittedSignaled) {
+-    runSubTest(testBinaryName, "multi-wait-all-submitted-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitAllForSubmitSubmittedSignaled) {
+-    runSubTest(testBinaryName, "multi-wait-all-for-submit-submitted-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidMultiWaitUnsubmittedSubmittedSignaled) {
+-    runSubTest(testBinaryName, "invalid-multi-wait-unsubmitted-submitted-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestMultiWaitForSubmitUnsubmittedSubmittedSignaled) {
+-    runSubTest(testBinaryName, "multi-wait-for-submit-unsubmitted-submitted-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestInvalidMultiWaitAllUnsubmittedSubmittedSignaled) {
+-    runSubTest(testBinaryName, "invalid-multi-wait-all-unsubmitted-submitted-signaled");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitAnySnapshot) {
+-    runSubTest(testBinaryName, "wait-any-snapshot");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitAllSnapshot) {
+-    runSubTest(testBinaryName, "wait-all-snapshot");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitForSubmitSnapshot) {
+-    runSubTest(testBinaryName, "wait-for-submit-snapshot");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitAllForSubmitSnapshot) {
+-    runSubTest(testBinaryName, "wait-all-for-submit-snapshot");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitAnyComplex) {
+-    runSubTest(testBinaryName, "wait-any-complex");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitAllComplex) {
+-    runSubTest(testBinaryName, "wait-all-complex");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitForSubmitComplex) {
+-    runSubTest(testBinaryName, "wait-for-submit-complex");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitAllForSubmitComplex) {
+-    runSubTest(testBinaryName, "wait-all-for-submit-complex");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitAnyInterrupted) {
+-    runSubTest(testBinaryName, "wait-any-interrupted");
+-}
+-
+-TEST_F(SyncobjWait, TestWaitAllInterrupted) {
+-    runSubTest(testBinaryName, "wait-all-interrupted");
+-}
+```
+

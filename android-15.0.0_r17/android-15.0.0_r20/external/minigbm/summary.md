@@ -1,0 +1,23 @@
+```
+aac2a17: Revert "Revert "UPSTREAM: cros_gralloc: Avoid using masks in han..." (Jason Macnak <natsu@google.com>)
+8956e04: Revert^2 "Merge remote-tracking branch 'aosp/upstream-main'" (Jason Macnak <natsu@google.com>)
+8a3215b: Revert "Merge remote-tracking branch 'aosp/upstream-main'" (Jason Macnak <natsu@google.com>)
+3068d2b: Revert "UPSTREAM: cros_gralloc: Avoid using masks in handle_usage()" (Jason Macnak <natsu@google.com>)
+3b405c8: UPSTREAM: cros_gralloc: Avoid using masks in handle_usage() (Jason Macnak <natsu@google.com>)
+ccda090: i915: allow DRM_FORMAT_YVU420_ANDROID for camera use (Grzegorz Jaszczyk <jaszczyk@google.com>)
+ff0509d: mediatek: allow DRM_FORMAT_YVU420_ANDROID for camera use (Grzegorz Jaszczyk <jaszczyk@google.com>)
+6d687b7: Revert "gralloc: Error when locking buffer alloc'd without CPU_ usage" (Ryan Neph <ryanneph@google.com>)
+d56aa13: cros_gralloc: Fix gralloc -> gbm usage flag mapping (Ren-Pei Zeng <kamesan@chromium.org>)
+eb0e5fa: gralloc: Error when locking buffer alloc'd without CPU_ usage (Jason Macnak <natsu@google.com>)
+94e1bdc: OWNERS: add ryanneph@google.com (Ryan Neph <ryanneph@google.com>)
+453a4c0: i915: Remove media compression support (Hang Nguyen <hnt@google.com>)
+2381df8: virtgpu_cross_domain: fix planar size calculation (Ryan Neph <ryanneph@google.com>)
+05865d7: virtgpu_cross_domain: force LINEAR for YVU420_ANDROID (Ryan Neph <ryanneph@google.com>)
+e2fdd90: dri: pass use_flags to dri_bo_create_with_modifiers (Chia-I Wu <olv@google.com>)
+ac54d29: dri: make dri_driver an opaque object (Chia-I Wu <olv@google.com>)
+2743358: dri: make dri_driver a proper object (Chia-I Wu <olv@google.com>)
+a160cb4: minigbm: Update common.mk to unbreak gcc and bfd builds (Tatsuyuki Ishi <ishitatsuyuki@google.com>)
+a2a049d: Initialize `emulated_metadata` fields to avoid uninitialized warnings (Dorinda Bassey <dbassey@redhat.com>)
+4cca6f6: Error when attempting to lock buffer alloc'd without CPU_ usage (Jason Macnak <natsu@google.com>)
+```
+
