@@ -1,0 +1,23 @@
+```
+d99084e244b9: Fix the race in per display brightness overrides. (Vladimir Komsiyski <vladokom@google.com>)
+944fb162e3de: Revert "Check sound Uri permission when creating a notification channel" (Lokesh Kumar Goel <lokeshgoel@google.com>)
+1ac598db9d82: Revert "Cleanup flag for notification sound Uri permission check" (Lokesh Kumar Goel <lokeshgoel@google.com>)
+a1428ab9e4f9: Revert "Check sound Uri permission when creating a notification channel" (Lokesh Kumar Goel <lokeshgoel@google.com>)
+351a37c50552: Revert "Cleanup flag for notification sound Uri permission check" (Lokesh Kumar Goel <lokeshgoel@google.com>)
+3ae84e636f82: Revert "Check sound Uri permission when creating a notification channel" (Lokesh Kumar Goel <lokeshgoel@google.com>)
+4bb68241ce8d: Revert "Cleanup flag for notification sound Uri permission check" (Lokesh Kumar Goel <lokeshgoel@google.com>)
+dbfc3ce27acf: [OOBE] Add corruptionHandler to handle file corruption (yyalan <yyalan@google.com>)
+6e0c448bb449: Update smartspace visibility to correct target during clock size transit... (Hawkwood Glazier <jglazier@google.com>)
+318626af81e9: Wait for TIS cleanup after unbind before binding again (Tony Wickham <twickham@google.com>)
+5ded2cb6b5a0: Fix SHOW_WHEN_LOCKED splitscreen bug (Jeremy Sim <jeremysim@google.com>)
+821ac7710074: [Contextual Edu] Add corruptionHandler to handle file corruption (helencheuk <helencheuk@google.com>)
+29217e3fc9a6: Disable "Developer options" by default for managed profiles. (Sinduran Sivarajan <sinduran@google.com>)
+419a0c166a5a: Check underlying intent as well as intent selector (oli <olit@google.com>)
+3ebe33401925: Update ActivityRecordInputSink using the pending transaction (Vishnu Nair <vishnun@google.com>)
+a319e9fd2bc6: Do not allow non-system apps to provide unverified attributions (Nate Myren <ntmyren@google.com>)
+4428c46dd10f: BaseBundle: fix unparcel error logic (Steven Moreland <smoreland@google.com>)
+dad8e74af957: Cleanup flag for notification sound Uri permission check (Iavor-Valentin Iftime <valiiftime@google.com>)
+0cc50050d888: Verify that the caller has permissions for the icons it provided. (Andrey Yepin <ayepin@google.com>)
+1f0782408641: Fix: Block opening any apps on keyguard without user auth (Vaibhav Devmurari <vdevmurari@google.com>)
+```
+
