@@ -1,0 +1,21 @@
+```diff
+diff --git a/default.xml b/default.xml
+index 0f5dd2641..0ea7b8c6d 100644
+--- a/default.xml
++++ b/default.xml
+@@ -4,11 +4,11 @@
+   <remote  name="aosp"
+            fetch=".."
+            review="https://android-review.googlesource.com/" />
+-  <default revision="refs/tags/android-15.0.0_r34"
++  <default revision="refs/tags/android-15.0.0_r35"
+            remote="aosp"
+            sync-j="4" />
+ 
+-  <superproject name="platform/superproject" remote="aosp" revision="android-15.0.0_r34"/>
++  <superproject name="platform/superproject" remote="aosp" revision="android-15.0.0_r35"/>
+   <contactinfo bugurl="go/repo-bug" />
+   <!-- BEGIN open-source projects -->
+   <project path="build/make" name="platform/build" groups="pdk,sysui-studio" >
+```
+
