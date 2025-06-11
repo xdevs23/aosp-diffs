@@ -1,0 +1,23 @@
+```
+2ee723d: [Scalable UI Library] Fixing ScalableUI compile issue. (Calvin Huang <calhuang@google.com>)
+562c668: Add observer to PanelState (Alex Stetson <alexstetson@google.com>)
+a409111: Connect Panel Insets with windowing (Saeid Farivar Asanjan <farivar@google.com>)
+de3f56e: Add KeyFrame parsers (Calvin Huang <calhuang@google.com>)
+0fd67b0: Add token support for car-qc-lib (Jane Ha <hatrang@google.com>)
+063307c: Fix parent layer not applying (Saeid Farivar Asanjan <farivar@google.com>)
+ca40045: Use platform Insets class (Saeid Farivar Asanjan <farivar@google.com>)
+c72fab2: Add insets support to scalable-ui config (Saeid Farivar Asanjan <farivar@google.com>)
+a19d424: Refactor loading PanelState (Saeid Farivar Asanjan <farivar@google.com>)
+76ef32c: Add rounded corner support (Abhijoy Saha <abhijoy@google.com>)
+921af92: Add api to retrive transition from PanelTransaction (Calvin Huang <calhuang@google.com>)
+73f535b: Remove the setLaunchRoot api from panel (Calvin Huang <calhuang@google.com>)
+f9c8c44: Add warning if PanelState id is already in use for a Panel (Robert Gross <robertgross@google.com>)
+df777ea: Implement new event framework (Alex Stetson <alexstetson@google.com>)
+57fe2bd: Add unit test for car-scalable-ui-lib (Calvin Huang <calhuang@google.com>)
+1886f13: Add PanelTransaction for event calculation in StateManager (Calvin Huang <calhuang@google.com>)
+a6d9472: Create shared library for terms of services helper methods (Vaibhav Goyal <vagoyal@google.com>)
+debc730: Make the chevron area tappable (Cassie(Yitong) Wang <cassieyw@google.com>)
+3cf556f: Remove uokoye@google.com from car-assist-client-lib/OWNERS (Owner Cleanup Bot <swarming-tasks@owners-cleanup...)
+1482c4e: Add dividers and chevron for QC items (cassieyw <cassieyw@google.com>)
+```
+

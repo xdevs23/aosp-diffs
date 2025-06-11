@@ -1,0 +1,23 @@
+```
+984f8766c: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+48681d3ac: switch flag check to sdk check (Zhi Dou <zhidou@google.com>)
+891f068be: Use WifiStateChangedListener instead of broadcast (Quang Anh Luong <qal@google.com>)
+ed2f34a33: Fix onStart race causing hanging "Low Quality" text (Quang Anh Luong <qal@google.com>)
+c14b26956: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+03ffb0d2e: Revert "Use WifiStateChangedListener instead of broadcast" (Oscar Shu <xshu@google.com>)
+0cc2c7ec3: Revert "Use WifiStateChangedListener instead of broadcast" (Oscar Shu <xshu@google.com>)
+f98fe28ab: Do not show "Low quality" for non-internet capable networks (Quang Anh Luong <qal@google.com>)
+581e05f2e: Fix connected WifiEntry flicker during onStart (Quang Anh Luong <qal@google.com>)
+045a07c8d: Fix WifiEntry defaultness flicker due to late callback (Quang Anh Luong <qal@google.com>)
+2d988cd47: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+1e7caf9b2: Build the desktop HAL (Matthew Wang <matthewmwang@google.com>)
+e3e4a360a: Use WifiStateChangedListener instead of broadcast (Quang Anh Luong <qal@google.com>)
+383921c19: Use same error text for no internet temporary/permanent (Quang Anh Luong <qal@google.com>)
+17eb1a83d: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+1e17bae7a: Add safeguard to prevent scanning if screen is off (Quang Anh Luong <qal@google.com>)
+99c1ff322: Removing upstream flag as it is now the default. Also moving to internal... (Rex Hoffman <rexhoffman@google.com>)
+b3aad3139: Add failure message for consecutive failures (Quang Anh Luong <qal@google.com>)
+f5c44f4e0: Change static libs to defaults for Unisoc board_wlan_device (chao.meng <chao.meng@unisoc.com>)
+10a84dc83: Show DHCP failure message even if we're not disabled yet. (Quang Anh Luong <qal@google.com>)
+```
+

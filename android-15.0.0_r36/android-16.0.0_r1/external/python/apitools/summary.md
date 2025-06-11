@@ -1,0 +1,22 @@
+```
+db71f32: Add janitors to the OWNERS file (Sadaf Ebrahimi <sadafebrahimi@google.com>)
+41f8fea: Update apitools version to 0.5.34. (#322) (cglouch <10370863+cglouch@users.noreply.github.c...)
+ac45a78:  Fix JSON encoding of nested message fields corresponding to query param... (cglouch <10370863+cglouch@users.noreply.github.c...)
+9f42461: Update to work with PY3.11. (#320) (cglouch <10370863+cglouch@users.noreply.github.c...)
+c7d44d6: Update apitools version to 0.5.33 (#316) (James Wu <jameslynnwu@users.noreply.github.com>)
+cf5555d: Remove client info from repo (#315) (James Wu <jameslynnwu@users.noreply.github.com>)
+103ef75: Include LICENSE in sdist and wheel (#294) (Uwe L. Korn <xhochy@users.noreply.github.com>)
+3f47048: Replace deprecated logging.warn with logging.warning (#313) (Hugo van Kemenade <hugovk@users.noreply.github.c...)
+2d62f0d: Handle unknown values in repeated enums (#314) (James Wu <jameslynnwu@users.noreply.github.com>)
+31cad2d: Announce apitools deprecation (#312) (James Lynn Wu <jameslynnwu@users.noreply.github....)
+8beb30a: Updated messages py for unpickling related issue (#311) (Ahmet Altay <aaltay@gmail.com>)
+70b500f: Remove rsa restriction (#310) (Dilip Pednekar <dilip.ped@gmail.com>)
+a09fad8: Fix a Python 3.7 test failure in protojson_test.py. (#309) (Rebecca Chen <rechen@google.com>)
+b6a61d6: Fix test failure in python37 because of tilde (#308) (Dilip Pednekar <dilip.ped@gmail.com>)
+816fb1f: Update apitools version to 0.5.32. (#307) (Ross Rauber <ross.rauber@gmail.com>)
+f11e098: Add option to overwrite transfer URLs with a client's base URL. (#306) (NickGoog <66492516+NickGoog@users.noreply.github...)
+9b7ef95: Handle nano secs in DateTime parsing. (#305) (Dilip Pednekar <dilip.ped@gmail.com>)
+a48cf52: Fix encoding issue with rfc822 messages (#304) (Dilip Pednekar <dilip.ped@gmail.com>)
+ca20945: Update imports to be explicitly relative (#296) (James Lynn Wu <jameslynnwu@users.noreply.github....)
+```
+

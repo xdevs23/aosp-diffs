@@ -1,0 +1,21 @@
+```
+588eb86: Check feature combination support status when create capture session (pashalee <pashalee@google.com>)
+ed7b3ed: [owners] Remove jasl@google.com from common/hal/OWNERS (Owner Cleanup Bot <swarming-tasks@owners-cleanup...)
+659b760: Fix C++23 build. (Elliott Hughes <enh@google.com>)
+5a3e29c: EmulatedCamera: Avoid advertising dynamic depth static tags (Emilian Peev <epeev@google.com>)
+eff0634: Revert "SensorListener: Remove direct IMapper/IAllocator dependencies" (Hongguang Chen <hgchen@google.com>)
+2e1edc9: GCH: Enable bpfmt in PREUPLOAD.cfg (Owen Kim <owenkmg@google.com>)
+799e7c2: SensorListener: Remove direct IMapper/IAllocator dependencies (Owen Kim <owenkmg@google.com>)
+3fbff7d: Enable batched shutter callback on HFR (Owen Kim <owenkmg@google.com>)
+ec52689: RealtimeProcessBlock: Plumb NotifyBatch interface (Owen Kim <owenkmg@google.com>)
+5a18740: BasicResultProcessor: Plumb NotifyBatch interface (Owen Kim <owenkmg@google.com>)
+820db6d: BasicCaptureSession: Plumb NotifyBatch interface (Owen Kim <owenkmg@google.com>)
+d36f249: ResultDispatcher: Plumb NotifyBatch interface (Owen Kim <owenkmg@google.com>)
+2271449: CameraDeviceSession: Plumb NotifyBatch interface (Owen Kim <owenkmg@google.com>)
+0724a3e: AidlCameraDeviceSession: Remove callback shared mutex (Owen Kim <owenkmg@google.com>)
+79fb9cf: AidlCameraDeviceSession: Plumb NotifyBatch interface (Owen Kim <owenkmg@google.com>)
+3e71547: Fix the typo of ConvertToAidlNotifyMessage (Owen Kim <owenkmg@google.com>)
+56428c5: Request batched size framework buffers at one binder call on HFR (Owen Kim <owenkmg@google.com>)
+2fc51ed: Add visual effect tags to emulated camera (Imran Ziad <imranziad@google.com>)
+```
+

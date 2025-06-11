@@ -1,0 +1,21 @@
+```
+7e86d0c: Android.bp: remove obsolete Android build number bits (Giuliano Procida <gprocida@google.com>)
+08b3fb4: test cases: symbol: absolute object: set size and value to zero (Giuliano Procida <gprocida@google.com>)
+e8f16bc: ELF reader: reject common symbols (Giuliano Procida <gprocida@google.com>)
+f6f0342: DWARF: rename address to location (Giuliano Procida <gprocida@google.com>)
+8caf4d9: ELF loader: isolate remaining ABS symbol processing (Giuliano Procida <gprocida@google.com>)
+43574a3: ELF reader: hoist address creation logic out of MaybeAddTypeInfo (Giuliano Procida <gprocida@google.com>)
+8e7f89d: ELF reader: skip and warn about unsupported Linux symbol types (Giuliano Procida <gprocida@google.com>)
+593501a: ELF reader: explicitly exclude undefined Linux symbols (Giuliano Procida <gprocida@google.com>)
+486084b: unification: move implementation of methods into unification.cc (Giuliano Procida <gprocida@google.com>)
+682934e: unification: mark Unification destructor as possibly throwing (Giuliano Procida <gprocida@google.com>)
+27a3f34: unification: fold Unification::Update into destructor (Giuliano Procida <gprocida@google.com>)
+34a5665: unification: replace external uses of Update with Find (Giuliano Procida <gprocida@google.com>)
+90704ac: graph: fold DenseIdMapping::Reserve into constructor (Giuliano Procida <gprocida@google.com>)
+082f9eb: graph: fold DenseIdSet::Reserve into constructor (Giuliano Procida <gprocida@google.com>)
+591af98: unification: fold Unification::Reserve into constructor (Giuliano Procida <gprocida@google.com>)
+3588256: comparison: mark graph helper function overloads as const (Giuliano Procida <gprocida@google.com>)
+d6af6d8: comparison: drop provisional diff map (Giuliano Procida <gprocida@google.com>)
+5750543: comparison: refactor main comparison function (Giuliano Procida <gprocida@google.com>)
+```
+

@@ -1,0 +1,22 @@
+```
+618791f: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+62105bc: Use a default value for the height if not known (Chalard Jean <jchalard@google.com>)
+dbe907a: Disable tracing on R (Remi NGUYEN VAN <reminv@google.com>)
+96a675a: Support launching CCT over browser dev/canary/beta versions if any. (Xiao Ma <xiaom@google.com>)
+6a53094: Add kernel tracing for test file deletion (Remi NGUYEN VAN <reminv@google.com>)
+bacfb21: Revert "Enable MediaProvider verbose logging during tests" (Remi NGUYEN VAN <reminv@google.com>)
+e58edc2: Fix the crash in testCaptivePortalUsingCustomTabs_multiNetworkNotSupport... (Xiao Ma <xiaom@google.com>)
+63227c5: Add a hidden option to use any custom tab provider, for testing (Chalard Jean <jchalard@google.com>)
+b0a70bf: Make the close icon invisible (Chalard Jean <jchalard@google.com>)
+3c0ef70: Correctly handle configuration changes (Chalard Jean <jchalard@google.com>)
+4e6fdcc: Enable MediaProvider verbose logging during tests (Remi NGUYEN VAN <reminv@google.com>)
+ba68d42: Use a partial tab to handle captive portals. (Chalard Jean <jchalard@google.com>)
+af13ddf: CaptivePortalLogin module target sdk to 36 (Maciej Żenczykowski <maze@google.com>)
+656f843: Do not show the custom tab title (Chalard Jean <jchalard@google.com>)
+7944b09: Remove black page when exiting the custom tab (Chalard Jean <jchalard@google.com>)
+48162a6: Remove obsolete platform CaptivePortalLogin app (Maciej Żenczykowski <maze@google.com>)
+1e1c552: Fix the flakiness of CaptivePortalLogin Tests (Xiao Ma <xiaom@google.com>)
+8d95d03: Call setDelegateUid API to bypass VPN permission for CustomTabs provider... (Xiao Ma <xiaom@google.com>)
+04e65a2: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+```
+

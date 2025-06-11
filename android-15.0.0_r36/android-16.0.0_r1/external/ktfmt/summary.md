@@ -1,0 +1,23 @@
+```
+ad9a58d: Fix ktfmt with Kotlin 2.1.0 (Jordan Demeulenaere <jdemeulenaere@google.com>)
+c3cdc4e: Bump version to 0.54 (Nivaldo Bondança <nbondanca@meta.com>)
+6a434eb: Bumping min Kotlin version to 2.0.0 (Nivaldo Bondança <nbondanca@meta.com>)
+3622096: Add janitors to the OWNERS file (Sadaf Ebrahimi <sadafebrahimi@google.com>)
+32cdc10: Report an error on unclosed comments (#520) (Nick Reid <nickreid@google.com>)
+3f10f99: Bump version to 0.54-SNAPSHOT (Nivaldo Bondança <nbondanca@meta.com>)
+8ab3bf6: Bump version to 0.53 (Nivaldo Bondança <nbondanca@meta.com>)
+ed949e8: Update google-java-format to 1.23.0 (Jeff Bahr <jbahr@meta.com>)
+9830466: Lint code clean up (Nivaldo Bondança <nbondanca@meta.com>)
+9dcd261: Workaround non-null parent requirement of StubBase (#513) (Jinseong Jeon <jsjeon@google.com>)
+9154b36: Run spotless as part of our build checks (Nivaldo Bondança <nbondanca@meta.com>)
+c3dc022: Apply Spotless to pom.xml (Nivaldo Bondança <nbondanca@meta.com>)
+aa5156a: Fix MVN plugin spotless version (Nivaldo Bondança <nbondanca@meta.com>)
+aa4fc71: Bump nexus-staging-maven-plugin to 1.7.0 also inside core/ (Nicola Corti <ncor@meta.com>)
+667336f: Update changelog (Nivaldo Bondança <nbondanca@meta.com>)
+9016eae: bump nexus-staging-maven plugin to 1.7.0 (#507) (Christoph Sturm <me@christophsturm.com>)
+5ff9fbb: fix: comment max width (#511) (rileymichael <riley.mcgee@thriveglobal.com>)
+6b7ca01: Update CHANGELOG.md (#509) (Sebastiano Poggi <rock3r@users.noreply.github.co...)
+fb470b0: Bump version to 1.0.0-SNAPSHOT (Nicola Corti <ncor@meta.com>)
+8b8d5fc: Revert "Bump braces and gulp in /website (#480)" (#508) (ktfmt <ktfmt@facebook.com>)
+```
+

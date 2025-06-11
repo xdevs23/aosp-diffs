@@ -1,0 +1,4946 @@
+```diff
+diff --git a/OWNERS b/OWNERS
+index 4683056..aa6f048 100644
+--- a/OWNERS
++++ b/OWNERS
+@@ -1,4 +1,3 @@
+ opg@google.com
+ dzshen@google.com
+-tedbauer@google.com
+ zhidou@google.com
+diff --git a/aconfigd/Android.bp b/aconfigd/Android.bp
+index c48ba78..c3168bf 100644
+--- a/aconfigd/Android.bp
++++ b/aconfigd/Android.bp
+@@ -4,108 +4,21 @@ rust_binary {
+     srcs: ["src/main.rs"],
+     rustlibs: [
+         "libaconfig_new_storage_flags_rust",
+-        "libaconfigd_system",
+         "libaconfigd_rust",
+         "libandroid_logger",
+         "librustutils",
+         "liblibc",
++        // TODO(370864013): Remove this once the CTS annotation issue is fixed.
++        "libcts_flags_tests_rust",
+     ],
++    cfgs: select(release_flag("RELEASE_DISABLE_SYSTEM_ACONFIGD_SOCKET"), {
++        true: ["disable_system_aconfigd_socket"],
++        default: [],
++    }),
+     native_coverage: false,
+     init_rc: ["aconfigd.rc"],
+ }
+ 
+-rust_library {
+-    name: "libaconfigd_system",
+-    crate_name: "aconfigd_system",
+-    defaults: ["aconfigd_system.defaults"],
+-    srcs: ["lib.rs"],
+-    rustlibs: [
+-        "libcxx",
+-        "libbase",
+-        "libaconfigd_protos_rust",
+-    ],
+-    static_libs: [
+-        "libcxx_aconfigd",
+-        "libaconfigd_protos_cc",
+-        "libaconfig_storage_file_cc",
+-        "libaconfig_new_storage_flags",
+-        "libaconfig_storage_read_api_cc",
+-        "libaconfig_storage_write_api_cc",
+-    ],
+-    shared_libs: [
+-        "libbase",
+-        "libaconfigd",
+-        "libprotobuf-cpp-lite",
+-    ],
+-}
+-
+-cc_library_static {
+-    name: "libcxx_aconfigd",
+-    srcs: ["libcxx_aconfigd.cpp"],
+-    generated_headers: [
+-        "cxx-bridge-header",
+-        "libcxx_aconfigd_bridge_header",
+-    ],
+-    static_libs: [
+-        "libaconfigd_protos_cc",
+-        "libaconfig_storage_file_cc",
+-        "libaconfig_new_storage_flags",
+-        "libaconfig_storage_read_api_cc",
+-        "libaconfig_storage_write_api_cc",
+-    ],
+-    shared_libs: [
+-        "libaconfigd",
+-        "libbase",
+-        "libprotobuf-cpp-lite",
+-    ],
+-    generated_sources: ["libcxx_aconfigd_bridge_code"],
+-}
+-
+-genrule {
+-    name: "libcxx_aconfigd_bridge_code",
+-    tools: ["cxxbridge"],
+-    cmd: "$(location cxxbridge) $(in) > $(out)",
+-    srcs: ["lib.rs"],
+-    out: ["libcxx_aconfigd_cxx_generated.cc"],
+-}
+-
+-genrule {
+-    name: "libcxx_aconfigd_bridge_header",
+-    tools: ["cxxbridge"],
+-    cmd: "$(location cxxbridge) $(in) --header > $(out)",
+-    srcs: ["lib.rs"],
+-    out: ["lib.rs.h"],
+-}
+-
+-cc_library {
+-    name: "libaconfigd",
+-    srcs: [
+-        "aconfigd.cpp",
+-        "aconfigd_util.cpp",
+-        "storage_files.cpp",
+-        "storage_files_manager.cpp",
+-    ],
+-    static_libs: [
+-        "libaconfig_flags_cc",
+-        "libaconfigd_protos_cc",
+-        "libaconfig_storage_file_cc",
+-        "libaconfig_new_storage_flags",
+-        "libaconfig_storage_read_api_cc",
+-        "libaconfig_storage_write_api_cc",
+-        // TODO(370864013): Remove this once the CTS annotation issue is fixed.
+-        "cts_flags_tests_cc",
+-    ],
+-    shared_libs: [
+-        "libcutils",
+-        "libprotobuf-cpp-lite",
+-        "libbase",
+-        "liblog",
+-        "libcrypto",
+-        "server_configurable_flags",
+-    ],
+-    export_include_dirs: ["include"],
+-}
+-
+ aconfig_declarations {
+     name: "aconfig_new_storage_flags",
+     package: "com.android.aconfig_new_storage",
+@@ -113,11 +26,6 @@ aconfig_declarations {
+     srcs: ["new_aconfig_storage.aconfig"],
+ }
+ 
+-cc_aconfig_library {
+-    name: "libaconfig_new_storage_flags",
+-    aconfig_declarations: "aconfig_new_storage_flags",
+-}
+-
+ rust_aconfig_library {
+     name: "libaconfig_new_storage_flags_rust",
+     crate_name: "aconfig_new_storage_flags",
+@@ -134,111 +42,6 @@ java_aconfig_library {
+     aconfig_declarations: "aconfig_new_storage_flags",
+ }
+ 
+-cc_test {
+-    name: "aconfigd_test",
+-    defaults: [
+-        "aconfig_lib_cc_shared_link.defaults",
+-    ],
+-    team: "trendy_team_android_core_experiments",
+-    srcs: [
+-        "aconfigd_test.cpp",
+-        "aconfigd_util.cpp",
+-    ],
+-    static_libs: [
+-        "libflagtest",
+-        "libgmock",
+-        "libaconfigd_protos_cc",
+-        "libaconfig_storage_file_cc",
+-        "libaconfig_new_storage_flags",
+-        "libaconfig_storage_read_api_cc",
+-        "libaconfig_storage_write_api_cc",
+-        "libaconfigd",
+-    ],
+-    shared_libs: [
+-        "libbase",
+-        "liblog",
+-        "libcrypto",
+-        "libprotobuf-cpp-lite",
+-        "server_configurable_flags",
+-    ],
+-    data: [
+-        "tests/data/v1/package.map",
+-        "tests/data/v1/flag.map",
+-        "tests/data/v1/flag.val",
+-        "tests/data/v1/flag.info",
+-        "tests/data/v2/package.map",
+-        "tests/data/v2/flag.map",
+-        "tests/data/v2/flag.val",
+-        "tests/data/v2/flag.info",
+-    ],
+-    test_suites: [
+-        "device-tests",
+-        "general-tests",
+-    ],
+-}
+-
+-cc_test {
+-    name: "aconfigd_proton_collider_test",
+-    defaults: [
+-        "aconfig_lib_cc_shared_link.defaults",
+-    ],
+-    team: "trendy_team_android_core_experiments",
+-    srcs: [
+-        "aconfigd_proton_collider_test.cpp",
+-    ],
+-    static_libs: [
+-        "libflagtest",
+-        "libgmock",
+-        "libaconfigd_protos_cc",
+-        "libaconfig_storage_file_cc",
+-        "libaconfig_new_storage_flags",
+-        "libaconfig_storage_read_api_cc",
+-        "libaconfig_storage_write_api_cc",
+-        "libaconfigd",
+-    ],
+-    shared_libs: [
+-        "libprotobuf-cpp-lite",
+-        "libbase",
+-        "liblog",
+-        "libcrypto",
+-        "server_configurable_flags",
+-    ],
+-    test_suites: [
+-        "device-tests",
+-        "general-tests",
+-    ],
+-    test_config: "AndroidTest.aconfigd_proton_collider_test.xml",
+-}
+-
+-cc_test {
+-    name: "aconfigd_socket_test",
+-    team: "trendy_team_android_core_experiments",
+-    srcs: [
+-        "aconfigd_socket_test.cpp",
+-    ],
+-    static_libs: [
+-        "libgmock",
+-        "libaconfigd_protos_cc",
+-        "libaconfig_new_storage_flags",
+-    ],
+-    shared_libs: [
+-        "libcutils",
+-        "libprotobuf-cpp-lite",
+-        "libbase",
+-        "liblog",
+-    ],
+-    data: [
+-        "tests/data/v1/package.map",
+-        "tests/data/v1/flag.map",
+-        "tests/data/v1/flag.val",
+-    ],
+-    test_suites: [
+-        "device-tests",
+-        "general-tests",
+-    ],
+-    test_config: "AndroidTest.aconfigd_socket_test.xml",
+-}
+-
+ java_library {
+     name: "aconfigd_java_utils",
+     srcs: [
+diff --git a/aconfigd/TEST_MAPPING b/aconfigd/TEST_MAPPING
+index 4ea951a..ab49034 100644
+--- a/aconfigd/TEST_MAPPING
++++ b/aconfigd/TEST_MAPPING
+@@ -1,13 +1,5 @@
+ {
+   "postsubmit": [
+-    {
+-      // aconfigd unit tests
+-      "name": "aconfigd_test"
+-    },
+-    {
+-      // aconfigd proton collider unit tests
+-      "name": "aconfigd_proton_collider_test"
+-    },
+     {
+       // aconfigd java utils test
+       "name": "aconfigd_java_utils_test"
+diff --git a/aconfigd/aconfigd.cpp b/aconfigd/aconfigd.cpp
+deleted file mode 100644
+index 2773c93..0000000
+--- a/aconfigd/aconfigd.cpp
++++ /dev/null
+@@ -1,415 +0,0 @@
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#include <memory>
+-#include <string>
+-#include <dirent.h>
+-
+-#include <android-base/file.h>
+-#include <android-base/logging.h>
+-#include <android-base/properties.h>
+-
+-#include "storage_files_manager.h"
+-#include "aconfigd_util.h"
+-#include "aconfigd.h"
+-
+-using namespace android::base;
+-
+-namespace android {
+-namespace aconfigd {
+-
+-/// Handle a flag override request
+-Result<void> Aconfigd::HandleFlagOverride(
+-    const StorageRequestMessage::FlagOverrideMessage& msg,
+-    StorageReturnMessage& return_msg) {
+-  auto result = storage_files_manager_->UpdateFlagValue(
+-      msg.package_name(), msg.flag_name(), msg.flag_value(),
+-      msg.override_type());
+-  RETURN_IF_ERROR(result, "Failed to set flag override");
+-  return_msg.mutable_flag_override_message();
+-  return {};
+-}
+-
+-/// Handle ota flag staging request
+-Result<void> Aconfigd::HandleOTAStaging(
+-    const StorageRequestMessage::OTAFlagStagingMessage& msg,
+-    StorageReturnMessage& return_msg) {
+-  auto ota_flags_pb_file = root_dir_ + "/flags/ota.pb";
+-  auto stored_pb_result =
+-      ReadPbFromFile<StorageRequestMessage::OTAFlagStagingMessage>(
+-          ota_flags_pb_file);
+-
+-  if (!stored_pb_result.ok() ||
+-      (msg.build_id() != (*stored_pb_result).build_id())) {
+-    LOG(INFO) << "discarding staged flags from " +
+-                     (*stored_pb_result).build_id() +
+-                     "; staging new flags for " + msg.build_id();
+-    auto result = WritePbToFile<StorageRequestMessage::OTAFlagStagingMessage>(
+-        msg, ota_flags_pb_file);
+-    RETURN_IF_ERROR(result, "Failed to stage OTA flags");
+-    return_msg.mutable_ota_staging_message();
+-    return {};
+-  }
+-
+-  std::set<std::string> qualified_names;
+-
+-  std::map<std::string, android::aconfigd::FlagOverride> new_name_to_override;
+-  for (const auto& flag_override : msg.overrides()) {
+-    auto qualified_name =
+-        flag_override.package_name() + "." + flag_override.flag_name();
+-    new_name_to_override[qualified_name] = flag_override;
+-
+-    qualified_names.insert(qualified_name);
+-  }
+-
+-  std::map<std::string, android::aconfigd::FlagOverride> prev_name_to_override;
+-  for (const auto& flag_override : (*stored_pb_result).overrides()) {
+-    auto qualified_name =
+-        flag_override.package_name() + "." + flag_override.flag_name();
+-    prev_name_to_override[qualified_name] = flag_override;
+-
+-    qualified_names.insert(qualified_name);
+-  }
+-
+-  std::vector<android::aconfigd::FlagOverride> overrides;
+-  for (const auto& qualified_name : qualified_names) {
+-    if (new_name_to_override.contains(qualified_name)) {
+-      overrides.push_back(new_name_to_override[qualified_name]);
+-    } else {
+-      overrides.push_back(prev_name_to_override[qualified_name]);
+-    }
+-  }
+-
+-  StorageRequestMessage::OTAFlagStagingMessage message_to_persist;
+-  message_to_persist.set_build_id(msg.build_id());
+-  for (const auto& flag_override : overrides) {
+-    auto override_ = message_to_persist.add_overrides();
+-    override_->set_flag_name(flag_override.flag_name());
+-    override_->set_package_name(flag_override.package_name());
+-    override_->set_flag_value(flag_override.flag_value());
+-  }
+-
+-  auto result = WritePbToFile<StorageRequestMessage::OTAFlagStagingMessage>(
+-      message_to_persist, ota_flags_pb_file);
+-  RETURN_IF_ERROR(result, "Failed to stage OTA flags");
+-  return_msg.mutable_ota_staging_message();
+-  return {};
+-}
+-
+-/// Handle new storage request
+-Result<void> Aconfigd::HandleNewStorage(
+-    const StorageRequestMessage::NewStorageMessage& msg,
+-    StorageReturnMessage& return_msg) {
+-  auto updated = storage_files_manager_->AddOrUpdateStorageFiles(
+-      msg.container(), msg.package_map(), msg.flag_map(), msg.flag_value(),
+-      msg.flag_info());
+-  RETURN_IF_ERROR(updated, "Failed to add or update container");
+-
+-  auto write_result = storage_files_manager_->WritePersistStorageRecordsToFile(
+-      persist_storage_records_);
+-  RETURN_IF_ERROR(write_result, "Failed to write to persist storage records");
+-
+-  auto copy = storage_files_manager_->CreateStorageBootCopy(msg.container());
+-  RETURN_IF_ERROR(copy, "Failed to make a boot copy for " + msg.container());
+-
+-  auto result_msg = return_msg.mutable_new_storage_message();
+-  result_msg->set_storage_updated(*updated);
+-  return {};
+-}
+-
+-/// Handle a flag query request
+-Result<void> Aconfigd::HandleFlagQuery(
+-    const StorageRequestMessage::FlagQueryMessage& msg,
+-    StorageReturnMessage& return_msg) {
+-  auto snapshot = storage_files_manager_->ListFlag(msg.package_name(), msg.flag_name());
+-  RETURN_IF_ERROR(snapshot, "Failed query failed");
+-  auto result_msg = return_msg.mutable_flag_query_message();
+-  result_msg->set_package_name(snapshot->package_name);
+-  result_msg->set_flag_name(snapshot->flag_name);
+-  result_msg->set_server_flag_value(snapshot->server_flag_value);
+-  result_msg->set_local_flag_value(snapshot->local_flag_value);
+-  result_msg->set_boot_flag_value(snapshot->boot_flag_value);
+-  result_msg->set_default_flag_value(snapshot->default_flag_value);
+-  result_msg->set_has_server_override(snapshot->has_server_override);
+-  result_msg->set_is_readwrite(snapshot->is_readwrite);
+-  result_msg->set_has_local_override(snapshot->has_local_override);
+-  return {};
+-}
+-
+-/// Handle override removal request
+-Result<void> Aconfigd::HandleLocalOverrideRemoval(
+-    const StorageRequestMessage::RemoveLocalOverrideMessage& msg,
+-    StorageReturnMessage& return_msg) {
+-  auto result = Result<void>();
+-  if (msg.remove_all()) {
+-    result = storage_files_manager_->RemoveAllLocalOverrides(
+-        msg.remove_override_type());
+-  } else {
+-    result = storage_files_manager_->RemoveFlagLocalOverride(
+-        msg.package_name(), msg.flag_name(), msg.remove_override_type());
+-  }
+-  RETURN_IF_ERROR(result, "");
+-  return_msg.mutable_remove_local_override_message();
+-  return {};
+-}
+-
+-/// Handle storage reset
+-Result<void> Aconfigd::HandleStorageReset(StorageReturnMessage& return_msg) {
+-  auto result = storage_files_manager_->ResetAllStorage();
+-  RETURN_IF_ERROR(result, "Failed to reset all storage");
+-
+-  result = storage_files_manager_->WritePersistStorageRecordsToFile(
+-      persist_storage_records_);
+-  RETURN_IF_ERROR(result, "Failed to write persist storage records");
+-
+-  return_msg.mutable_reset_storage_message();
+-  return {};
+-}
+-
+-/// Handle list storage
+-Result<void> Aconfigd::HandleListStorage(
+-    const StorageRequestMessage::ListStorageMessage& msg,
+-    StorageReturnMessage& return_message) {
+-  auto flags = Result<std::vector<StorageFiles::FlagSnapshot>>();
+-  switch (msg.msg_case()) {
+-    case StorageRequestMessage::ListStorageMessage::kAll: {
+-      flags = storage_files_manager_->ListAllAvailableFlags();
+-      break;
+-    }
+-    case StorageRequestMessage::ListStorageMessage::kContainer: {
+-      flags = storage_files_manager_->ListFlagsInContainer(msg.container());
+-      break;
+-    }
+-    case StorageRequestMessage::ListStorageMessage::kPackageName: {
+-      flags = storage_files_manager_->ListFlagsInPackage(msg.package_name());
+-      break;
+-    }
+-    default:
+-      return Error() << "Unknown list storage message type from aconfigd socket";
+-  }
+-  RETURN_IF_ERROR(flags, "Failed to list flags");
+-
+-  auto* result_msg = return_message.mutable_list_storage_message();
+-  for (const auto& flag : *flags) {
+-    auto* flag_msg = result_msg->add_flags();
+-    flag_msg->set_package_name(flag.package_name);
+-    flag_msg->set_flag_name(flag.flag_name);
+-    flag_msg->set_server_flag_value(flag.server_flag_value);
+-    flag_msg->set_local_flag_value(flag.local_flag_value);
+-    flag_msg->set_boot_flag_value(flag.boot_flag_value);
+-    flag_msg->set_default_flag_value(flag.default_flag_value);
+-    flag_msg->set_is_readwrite(flag.is_readwrite);
+-    flag_msg->set_has_server_override(flag.has_server_override);
+-    flag_msg->set_has_local_override(flag.has_local_override);
+-    flag_msg->set_has_boot_local_override(flag.has_boot_local_override);
+-  }
+-  return {};
+-}
+-
+-/// Read OTA flag overrides to be applied for current build
+-Result<std::vector<FlagOverride>> Aconfigd::ReadOTAFlagOverridesToApply() {
+-  auto ota_flags = std::vector<FlagOverride>();
+-  auto ota_flags_pb_file = root_dir_ + "/flags/ota.pb";
+-  if (FileExists(ota_flags_pb_file)) {
+-    auto build_id = GetProperty("ro.build.fingerprint", "");
+-    auto ota_flags_pb = ReadPbFromFile<StorageRequestMessage::OTAFlagStagingMessage>(
+-        ota_flags_pb_file);
+-    RETURN_IF_ERROR(ota_flags_pb, "Failed to read ota flags from pb file");
+-    if (ota_flags_pb->build_id() == build_id) {
+-      for (const auto& entry : ota_flags_pb->overrides()) {
+-        ota_flags.push_back(entry);
+-      }
+-      // delete staged ota flags file if it matches current build id, so that
+-      // it will not be reapplied in the future boots
+-      unlink(ota_flags_pb_file.c_str());
+-    }
+-  }
+-  return ota_flags;
+-}
+-
+-/// Initialize in memory aconfig storage records
+-Result<void> Aconfigd::InitializeInMemoryStorageRecords() {
+-  auto records_pb = ReadPbFromFile<PersistStorageRecords>(persist_storage_records_);
+-  RETURN_IF_ERROR(records_pb, "Unable to read persistent storage records");
+-  for (const auto& entry : records_pb->records()) {
+-    storage_files_manager_->RestoreStorageFiles(entry);
+-  }
+-  return {};
+-}
+-
+-/// Initialize platform RO partition flag storage
+-Result<void> Aconfigd::InitializePlatformStorage() {
+-  auto init_result = InitializeInMemoryStorageRecords();
+-  RETURN_IF_ERROR(init_result, "Failed to init from persist stoage records");
+-
+-  auto remove_result = RemoveFilesInDir(root_dir_ + "/boot");
+-  RETURN_IF_ERROR(remove_result, "Failed to clean boot dir");
+-
+-  auto ota_flags = ReadOTAFlagOverridesToApply();
+-  RETURN_IF_ERROR(ota_flags, "Failed to get remaining staged OTA flags");
+-  bool apply_ota_flag = !(ota_flags->empty());
+-
+-  auto partitions = std::vector<std::pair<std::string, std::string>>{
+-    {"system", "/system/etc/aconfig"},
+-    {"vendor", "/vendor/etc/aconfig"},
+-    {"product", "/product/etc/aconfig"}};
+-
+-  for (auto const& [container, storage_dir] : partitions) {
+-    auto package_file = std::string(storage_dir) + "/package.map";
+-    auto flag_file = std::string(storage_dir) + "/flag.map";
+-    auto value_file = std::string(storage_dir) + "/flag.val";
+-    auto info_file = std::string(storage_dir) + "/flag.info";
+-
+-    if (!FileNonZeroSize(value_file)) {
+-      continue;
+-    }
+-
+-    auto updated = storage_files_manager_->AddOrUpdateStorageFiles(
+-        container, package_file, flag_file, value_file, info_file);
+-    RETURN_IF_ERROR(updated, "Failed to add or update storage for container "
+-                    + container);
+-
+-    if (apply_ota_flag) {
+-      ota_flags = storage_files_manager_->ApplyOTAFlagsForContainer(
+-          container, *ota_flags);
+-      RETURN_IF_ERROR(ota_flags, "Failed to apply staged OTA flags");
+-    }
+-
+-    auto write_result = storage_files_manager_->WritePersistStorageRecordsToFile(
+-        persist_storage_records_);
+-    RETURN_IF_ERROR(write_result, "Failed to write to persist storage records");
+-
+-    auto copied = storage_files_manager_->CreateStorageBootCopy(container);
+-    RETURN_IF_ERROR(copied, "Failed to create boot snapshot for container "
+-                    + container);
+-  }
+-
+-  return {};
+-}
+-
+-/// Initialize mainline flag storage
+-Result<void> Aconfigd::InitializeMainlineStorage() {
+-  auto init_result = InitializeInMemoryStorageRecords();
+-  RETURN_IF_ERROR(init_result, "Failed to init from persist stoage records");
+-
+-  auto apex_dir = std::unique_ptr<DIR, int (*)(DIR*)>(opendir("/apex"), closedir);
+-  if (!apex_dir) {
+-    return {};
+-  }
+-
+-  struct dirent* entry;
+-  while ((entry = readdir(apex_dir.get())) != nullptr) {
+-    if (entry->d_type != DT_DIR) continue;
+-
+-    auto container = std::string(entry->d_name);
+-    if (container[0] == '.') continue;
+-    if (container.find('@') != std::string::npos) continue;
+-    if (container == "sharedlibs") continue;
+-
+-    auto storage_dir = std::string("/apex/") + container + "/etc";
+-    auto package_file = std::string(storage_dir) + "/package.map";
+-    auto flag_file = std::string(storage_dir) + "/flag.map";
+-    auto value_file = std::string(storage_dir) + "/flag.val";
+-    auto info_file = std::string(storage_dir) + "/flag.info";
+-
+-    if (!FileExists(value_file) || !FileNonZeroSize(value_file)) {
+-      continue;
+-    }
+-
+-    auto updated = storage_files_manager_->AddOrUpdateStorageFiles(
+-        container, package_file, flag_file, value_file, info_file);
+-    RETURN_IF_ERROR(updated, "Failed to add or update storage for container "
+-                    + container);
+-
+-    auto write_result = storage_files_manager_->WritePersistStorageRecordsToFile(
+-        persist_storage_records_);
+-    RETURN_IF_ERROR(write_result, "Failed to write to persist storage records");
+-
+-    auto copied = storage_files_manager_->CreateStorageBootCopy(container);
+-    RETURN_IF_ERROR(copied, "Failed to create boot snapshot for container "
+-                    + container);
+-  }
+-
+-  return {};
+-}
+-
+-/// Handle incoming messages to aconfigd socket
+-Result<void> Aconfigd::HandleSocketRequest(const StorageRequestMessage& message,
+-                                           StorageReturnMessage& return_message) {
+-  auto result = Result<void>();
+-
+-  switch (message.msg_case()) {
+-    case StorageRequestMessage::kNewStorageMessage: {
+-      auto msg = message.new_storage_message();
+-      LOG(INFO) << "received a new storage request for " << msg.container()
+-                << " with storage files " << msg.package_map() << " "
+-                << msg.flag_map() << " " << msg.flag_value();
+-      result = HandleNewStorage(msg, return_message);
+-      break;
+-    }
+-    case StorageRequestMessage::kFlagOverrideMessage: {
+-      auto msg = message.flag_override_message();
+-      LOG(DEBUG) << "received a '" << OverrideTypeToStr(msg.override_type())
+-                << "' flag override request for " << msg.package_name() << "/"
+-                << msg.flag_name() << " to " << msg.flag_value();
+-      result = HandleFlagOverride(msg, return_message);
+-      break;
+-    }
+-    case StorageRequestMessage::kOtaStagingMessage: {
+-      auto msg = message.ota_staging_message();
+-      LOG(INFO) << "received ota flag staging requests for " << msg.build_id();
+-      result = HandleOTAStaging(msg, return_message);
+-      break;
+-    }
+-    case StorageRequestMessage::kFlagQueryMessage: {
+-      auto msg = message.flag_query_message();
+-      LOG(INFO) << "received a flag query request for " << msg.package_name()
+-                << "/" << msg.flag_name();
+-      result = HandleFlagQuery(msg, return_message);
+-      break;
+-    }
+-    case StorageRequestMessage::kRemoveLocalOverrideMessage: {
+-      auto msg = message.remove_local_override_message();
+-      if (msg.remove_all()) {
+-        LOG(INFO) << "received a global local override removal request";
+-      } else {
+-        LOG(INFO) << "received local override removal request for "
+-                  << msg.package_name() << "/" << msg.flag_name();
+-      }
+-      result = HandleLocalOverrideRemoval(msg, return_message);
+-      break;
+-    }
+-    case StorageRequestMessage::kResetStorageMessage: {
+-      LOG(INFO) << "received reset storage request";
+-      result = HandleStorageReset(return_message);
+-      break;
+-    }
+-    case StorageRequestMessage::kListStorageMessage: {
+-      auto msg = message.list_storage_message();
+-      LOG(INFO) << "received list storage request";
+-      result = HandleListStorage(msg, return_message);
+-      break;
+-    }
+-    default:
+-      result = Error() << "Unknown message type from aconfigd socket";
+-      break;
+-  }
+-
+-  return result;
+-}
+-
+-} // namespace aconfigd
+-} // namespace android
+diff --git a/aconfigd/aconfigd_proton_collider_test.cpp b/aconfigd/aconfigd_proton_collider_test.cpp
+deleted file mode 100644
+index 62bd488..0000000
+--- a/aconfigd/aconfigd_proton_collider_test.cpp
++++ /dev/null
+@@ -1,170 +0,0 @@
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-
+-#include <android-base/file.h>
+-#include <android-base/logging.h>
+-#include <android-base/properties.h>
+-#include <flag_macros.h>
+-#include <gtest/gtest.h>
+-
+-#include "aconfigd_test_mock.h"
+-#include "aconfigd_util.h"
+-
+-namespace android {
+-namespace aconfigd {
+-
+-class AconfigdProtonColliderTest : public ::testing::Test {
+- protected:
+-
+-  StorageRequestMessage list_container_storage_message(const std::string& container) {
+-    auto message = StorageRequestMessage();
+-    auto* msg = message.mutable_list_storage_message();
+-    msg->set_container(container);
+-    return message;
+-  }
+-
+-  StorageRequestMessage ota_flag_staging_message(
+-      const std::string& build_id,
+-      const std::vector<std::tuple<std::string, std::string, std::string>> flags) {
+-    auto message = StorageRequestMessage();
+-    auto* msg = message.mutable_ota_staging_message();
+-    msg->set_build_id(build_id);
+-    for (auto const& [package_name, flag_name, flag_value] : flags) {
+-      auto* flag = msg->add_overrides();
+-      flag->set_package_name(package_name);
+-      flag->set_flag_name(flag_name);
+-      flag->set_flag_value(flag_value);
+-    }
+-    return message;
+-  }
+-
+-  void verify_ota_staging_return_message(base::Result<StorageReturnMessage> msg_result) {
+-    ASSERT_TRUE(msg_result.ok()) << msg_result.error();
+-    auto msg = *msg_result;
+-    ASSERT_TRUE(msg.has_ota_staging_message()) << msg.error_message();
+-  }
+-
+-  void verify_error_message(base::Result<StorageReturnMessage> msg_result,
+-                            const std::string& errmsg) {
+-    ASSERT_FALSE(msg_result.ok());
+-    ASSERT_TRUE(msg_result.error().message().find(errmsg) != std::string::npos)
+-        << msg_result.error().message();
+-  }
+-}; // class AconfigdProtonColliderTest
+-
+-
+-TEST_F(AconfigdProtonColliderTest, ota_flag_staging) {
+-  auto a_mock = AconfigdMock();
+-  auto request_msg = ota_flag_staging_message(
+-      "mock_build_id",
+-      {{"package_1", "flag_1", "true"},
+-       {"package_2", "flag_1", "false"}});
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_ota_staging_return_message(return_msg);
+-  ASSERT_TRUE(FileExists(a_mock.flags_dir + "/ota.pb"));
+-  auto pb = ReadPbFromFile<StorageRequestMessage::OTAFlagStagingMessage>(
+-      a_mock.flags_dir + "/ota.pb");
+-  ASSERT_TRUE(pb.ok());
+-  ASSERT_EQ(pb->build_id(), "mock_build_id");
+-  auto flags = pb->overrides();
+-  ASSERT_EQ(flags.size(), 2);
+-  auto flag = pb->overrides(0);
+-  ASSERT_EQ(flag.package_name(), "package_1");
+-  ASSERT_EQ(flag.flag_name(), "flag_1");
+-  ASSERT_EQ(flag.flag_value(), "true");
+-  flag = pb->overrides(1);
+-  ASSERT_EQ(flag.package_name(), "package_2");
+-  ASSERT_EQ(flag.flag_name(), "flag_1");
+-  ASSERT_EQ(flag.flag_value(), "false");
+-}
+-
+-TEST_F(AconfigdProtonColliderTest, ota_flag_unstaging) {
+-  // cerate mock aconfigd and initialize platform storage
+-  auto a_mock = AconfigdMock();
+-  auto init_result = a_mock.aconfigd.InitializePlatformStorage();
+-  ASSERT_TRUE(init_result.ok()) << init_result.error();
+-
+-  auto flags_to_stage =
+-      std::vector<std::tuple<std::string, std::string, std::string>>();
+-
+-  // for fake OTA flag overrides, flip all RW flag value
+-  auto request_msg = list_container_storage_message("system");
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  ASSERT_TRUE(return_msg.ok()) << return_msg.error();
+-  auto flags_msg = return_msg->list_storage_message();
+-
+-  for (auto const& flag : flags_msg.flags()) {
+-    if (flag.is_readwrite()) {
+-      flags_to_stage.push_back({
+-          flag.package_name(),
+-          flag.flag_name(),
+-          flag.server_flag_value() == "true" ? "false" : "true"
+-        });
+-    }
+-  }
+-
+-  // fake an OTA staging request, using current build id
+-  auto build_id = base::GetProperty("ro.build.fingerprint", "");
+-  request_msg = ota_flag_staging_message(build_id, flags_to_stage);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_ota_staging_return_message(return_msg);
+-  ASSERT_TRUE(FileExists(a_mock.flags_dir + "/ota.pb"));
+-
+-  init_result = a_mock.aconfigd.InitializePlatformStorage();
+-  ASSERT_TRUE(init_result.ok()) << init_result.error();
+-  ASSERT_FALSE(FileExists(a_mock.flags_dir + "/ota.pb"));
+-
+-  // list container
+-  request_msg = list_container_storage_message("system");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  ASSERT_TRUE(return_msg.ok()) << return_msg.error();
+-  flags_msg = return_msg->list_storage_message();
+-
+-  size_t i = 0;
+-  for (auto const& flag : flags_msg.flags()) {
+-    if (flag.is_readwrite()) {
+-      ASSERT_EQ(flag.package_name(), std::get<0>(flags_to_stage[i]));
+-      ASSERT_EQ(flag.flag_name(), std::get<1>(flags_to_stage[i]));
+-      ASSERT_EQ(flag.server_flag_value(), std::get<2>(flags_to_stage[i]));
+-      ++i;
+-    }
+-  }
+-}
+-
+-TEST_F(AconfigdProtonColliderTest, ota_flag_unstaging_negative) {
+-  // cerate mock aconfigd and initialize platform storage
+-  auto a_mock = AconfigdMock();
+-  auto init_result = a_mock.aconfigd.InitializePlatformStorage();
+-  ASSERT_TRUE(init_result.ok()) << init_result.error();
+-
+-  // fake an OTA staging request, using fake build id
+-  auto request_msg = ota_flag_staging_message(
+-      "some_fake_build_id",
+-      {{"abc", "def", "true"}});
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_ota_staging_return_message(return_msg);
+-  ASSERT_TRUE(FileExists(a_mock.flags_dir + "/ota.pb"));
+-
+-  init_result = a_mock.aconfigd.InitializePlatformStorage();
+-  ASSERT_TRUE(init_result.ok()) << init_result.error();
+-
+-  // the ota overrides file should still exist
+-  ASSERT_TRUE(FileExists(a_mock.flags_dir + "/ota.pb"));
+-}
+-
+-} // namespace aconfigd
+-} // namespace android
+diff --git a/aconfigd/aconfigd_socket_test.cpp b/aconfigd/aconfigd_socket_test.cpp
+deleted file mode 100644
+index 9a5d068..0000000
+--- a/aconfigd/aconfigd_socket_test.cpp
++++ /dev/null
+@@ -1,220 +0,0 @@
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#include <sys/socket.h>
+-#include <sys/un.h>
+-
+-#include <gtest/gtest.h>
+-#include <cutils/sockets.h>
+-#include <android-base/file.h>
+-#include <android-base/result.h>
+-#include <android-base/logging.h>
+-#include <android-base/unique_fd.h>
+-
+-#include <aconfigd.pb.h>
+-#include "com_android_aconfig_new_storage.h"
+-
+-using namespace android::base;
+-
+-namespace android {
+-namespace aconfigd {
+-
+-class AconfigdSocketTest : public ::testing::Test {
+- protected:
+-  Result<unique_fd> connect_aconfigd_socket() {
+-    auto sock_fd = unique_fd(socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0));
+-    if (sock_fd == -1) {
+-      return ErrnoError() << "failed create socket";
+-    }
+-
+-    auto addr = sockaddr_un();
+-    addr.sun_family = AF_UNIX;
+-    auto path = std::string("/dev/socket/aconfigd");
+-    strlcpy(addr.sun_path, path.c_str(), sizeof(addr.sun_path));
+-
+-    bool success = false;
+-    for (int retry = 0; retry < 5; retry++) {
+-      if (connect(sock_fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == 0) {
+-        success = true;
+-        break;
+-      }
+-      sleep(1);
+-    }
+-
+-    if (!success) {
+-      return ErrnoError() << "failed to connect to aconfigd socket";
+-    }
+-
+-    return sock_fd;
+-  }
+-
+-  // send a message to aconfigd socket, and capture return message
+-  Result<StorageReturnMessages> send_message(const StorageRequestMessages& messages) {
+-    auto sock_fd = connect_aconfigd_socket();
+-    if (!sock_fd.ok()) {
+-      return Error() << sock_fd.error();
+-    }
+-
+-    auto message_string = std::string();
+-    if (!messages.SerializeToString(&message_string)) {
+-      return Error() << "failed to serialize pb to string";
+-    }
+-
+-    unsigned char bytes[4];
+-    uint32_t msg_size = message_string.size();
+-    bytes[0] = (msg_size >> 24) & 0xFF;
+-    bytes[1] = (msg_size >> 16) & 0xFF;
+-    bytes[2] = (msg_size >> 8) & 0xFF;
+-    bytes[3] = (msg_size >> 0) & 0xFF;
+-
+-    auto num_bytes = TEMP_FAILURE_RETRY(send(*sock_fd, bytes, 4, 0));
+-    if (num_bytes != 4) {
+-      return ErrnoError() << "send() failed for msg size";
+-    }
+-
+-    num_bytes = TEMP_FAILURE_RETRY(
+-        send(*sock_fd, message_string.c_str(), message_string.size(), 0));
+-    if (num_bytes != static_cast<long>(message_string.size())) {
+-      return ErrnoError() << "send() failed for msg";
+-    }
+-
+-    num_bytes = TEMP_FAILURE_RETRY(recv(*sock_fd, bytes, 4, 0));
+-    if (num_bytes != 4) {
+-      return ErrnoError() << "recv() failed for return msg size";
+-    }
+-
+-    uint32_t payload_size =
+-        uint32_t(bytes[0]<<24 | bytes[1]<<16 | bytes[2]<<8 | bytes[3]);
+-    char buffer[payload_size];
+-    int payload_bytes_received = 0;
+-    while (payload_bytes_received < payload_size) {
+-      auto chunk_bytes = TEMP_FAILURE_RETRY(
+-          recv(*sock_fd, buffer + payload_bytes_received,
+-               payload_size - payload_bytes_received, 0));
+-      if (chunk_bytes <= 0) {
+-        return ErrnoError() << "recv() failed for return msg";
+-      }
+-      payload_bytes_received += chunk_bytes;
+-    }
+-
+-    auto return_messages = StorageReturnMessages{};
+-    if (!return_messages.ParseFromString(std::string(buffer, payload_size))) {
+-      return Error() << "failed to parse string into proto";
+-    }
+-
+-    if (return_messages.msgs_size() != messages.msgs_size()) {
+-      return Error() << "Send " << messages.msgs_size() << " request messages, get "
+-                     << return_messages.msgs_size() << " return messages";
+-    }
+-
+-    return return_messages;
+-  }
+-
+-  void add_new_storage_message(StorageRequestMessages& messages) {
+-    auto* message = messages.add_msgs();
+-    auto* msg = message->mutable_new_storage_message();
+-    auto test_dir = base::GetExecutableDirectory();
+-    msg->set_container("mockup");
+-    msg->set_package_map(test_dir + "/tests/data/v1/package.map");
+-    msg->set_flag_map(test_dir + "/tests/data/v1/flag.map");
+-    msg->set_flag_value(test_dir + "/tests/data/v1/flag.val");
+-  }
+-
+-  void add_flag_query_message(StorageRequestMessages& messages,
+-                              const std::string& package,
+-                              const std::string& flag) {
+-    auto* message = messages.add_msgs();
+-    auto* msg = message->mutable_flag_query_message();
+-    msg->set_package_name(package);
+-    msg->set_flag_name(flag);
+-  }
+-
+-  void add_list_storage_message(StorageRequestMessages& messages) {
+-    auto* message = messages.add_msgs();
+-    auto* msg = message->mutable_list_storage_message();
+-    msg->set_all(true);
+-  }
+-
+-  void verify_new_storage_return_message(const StorageReturnMessage& msg) {
+-    ASSERT_TRUE(msg.has_new_storage_message()) << msg.error_message();
+-    auto message = msg.new_storage_message();
+-    ASSERT_TRUE(message.storage_updated());
+-  }
+-
+-  void verify_list_storage_return_message(const StorageReturnMessage& msg) {
+-    ASSERT_TRUE(msg.has_list_storage_message()) << msg.error_message();
+-  }
+-
+-  void verify_error_message(const StorageReturnMessage& msg,
+-                            const std::string& errmsg) {
+-    ASSERT_TRUE(msg.has_error_message());
+-    ASSERT_TRUE(msg.error_message().find(errmsg) != std::string::npos)
+-        << msg.error_message();
+-  }
+-}; // class AconfigdSocketTest
+-
+-// single request test
+-TEST_F(AconfigdSocketTest, single_request) {
+-  if (!com::android::aconfig_new_storage::enable_aconfig_storage_daemon()) {
+-    return;
+-  }
+-  auto request_msgs = StorageRequestMessages();
+-  add_flag_query_message(request_msgs, "unknown_package", "unknown_flag");
+-  auto return_msgs = send_message(request_msgs);
+-  ASSERT_TRUE(return_msgs.ok()) << return_msgs.error();
+-  verify_error_message(return_msgs->msgs(0), "container not found");
+-}
+-
+-// multiple request test
+-TEST_F(AconfigdSocketTest, multiple_requests) {
+-  if (!com::android::aconfig_new_storage::enable_aconfig_storage_daemon()) {
+-    return;
+-  }
+-  auto request_msgs = StorageRequestMessages();
+-  size_t num_msgs = 10;
+-  for (size_t i=0; i<num_msgs; ++i) {
+-    add_flag_query_message(request_msgs, "unknown_package", "unknown_flag");
+-  }
+-  auto return_msgs = send_message(request_msgs);
+-  ASSERT_TRUE(return_msgs.ok()) << return_msgs.error();
+-  for (size_t i=0; i<num_msgs; ++i) {
+-    verify_error_message(return_msgs->msgs(i), "container not found");
+-  }
+-}
+-
+-// add a mockup container
+-TEST_F(AconfigdSocketTest, add_new_storage) {
+-  return;
+-  auto request_msgs = StorageRequestMessages();
+-  add_new_storage_message(request_msgs);
+-  auto return_msgs = send_message(request_msgs);
+-  ASSERT_TRUE(return_msgs.ok()) << return_msgs.error();
+-  verify_new_storage_return_message(return_msgs->msgs(0));
+-}
+-
+-TEST_F(AconfigdSocketTest, storage_list_package) {
+-  if (!com::android::aconfig_new_storage::enable_aconfig_storage_daemon()) {
+-    return;
+-  }
+-  auto request_msgs = StorageRequestMessages();
+-  add_list_storage_message(request_msgs);
+-  auto return_msgs = send_message(request_msgs);
+-  ASSERT_TRUE(return_msgs.ok()) << return_msgs.error();
+-  verify_list_storage_return_message(return_msgs->msgs(0));
+-}
+-
+-} // namespace aconfigd
+-} // namespace android
+diff --git a/aconfigd/aconfigd_test.cpp b/aconfigd/aconfigd_test.cpp
+deleted file mode 100644
+index 7ac2db9..0000000
+--- a/aconfigd/aconfigd_test.cpp
++++ /dev/null
+@@ -1,891 +0,0 @@
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#include "aconfigd.h"
+-
+-#include <android-base/file.h>
+-#include <android-base/logging.h>
+-#include <android-base/properties.h>
+-#include <flag_macros.h>
+-#include <gtest/gtest.h>
+-#include <sys/stat.h>
+-
+-#include "aconfigd_test_mock.h"
+-#include "aconfigd_util.h"
+-#include "com_android_aconfig_new_storage.h"
+-
+-#define ACONFIGD_NS com::android::aconfig_new_storage
+-
+-namespace android {
+-namespace aconfigd {
+-
+-class AconfigdTest : public ::testing::Test {
+- protected:
+-
+-  StorageRequestMessage new_storage_message(const std::string& container,
+-                                            const std::string& package_map_file,
+-                                            const std::string& flag_map_file,
+-                                            const std::string& flag_value_file,
+-                                            const std::string& flag_info_file) {
+-    auto message = StorageRequestMessage();
+-    auto* msg = message.mutable_new_storage_message();
+-    msg->set_container(container);
+-    msg->set_package_map(package_map_file);
+-    msg->set_flag_map(flag_map_file);
+-    msg->set_flag_value(flag_value_file);
+-    msg->set_flag_info(flag_info_file);
+-    return message;
+-  }
+-
+-  StorageRequestMessage new_storage_message(const ContainerMock& mock) {
+-    return new_storage_message(mock.container, mock.package_map, mock.flag_map,
+-                               mock.flag_val, mock.flag_info);
+-  }
+-
+-  StorageRequestMessage flag_override_message(const std::string& package,
+-                                              const std::string& flag,
+-                                              const std::string& value,
+-                                              bool is_local,
+-                                              bool is_immediate) {
+-    auto message = StorageRequestMessage();
+-    auto* msg = message.mutable_flag_override_message();
+-
+-    StorageRequestMessage::FlagOverrideType override_type;
+-    if (is_local && is_immediate) {
+-      override_type = StorageRequestMessage::LOCAL_IMMEDIATE;
+-    } else if (is_local && !is_immediate) {
+-      override_type = StorageRequestMessage::LOCAL_ON_REBOOT;
+-    } else {
+-      override_type = StorageRequestMessage::SERVER_ON_REBOOT;
+-    }
+-
+-    msg->set_package_name(package);
+-    msg->set_flag_name(flag);
+-    msg->set_flag_value(value);
+-    msg->set_override_type(override_type);
+-    return message;
+-  }
+-
+-  StorageRequestMessage flag_query_message(const std::string& package,
+-                                           const std::string& flag) {
+-    auto message = StorageRequestMessage();
+-    auto* msg = message.mutable_flag_query_message();
+-    msg->set_package_name(package);
+-    msg->set_flag_name(flag);
+-    return message;
+-  }
+-
+-  StorageRequestMessage flag_local_override_remove_message(
+-      const std::string& package,
+-      const std::string& flag,
+-      bool remove_all = false) {
+-    auto message = StorageRequestMessage();
+-    auto* msg = message.mutable_remove_local_override_message();
+-    msg->set_package_name(package);
+-    msg->set_flag_name(flag);
+-    msg->set_remove_all(remove_all);
+-    return message;
+-  }
+-
+-  StorageRequestMessage reset_storage_message() {
+-    auto message = StorageRequestMessage();
+-    auto* msg = message.mutable_reset_storage_message();
+-    return message;
+-  }
+-
+-  StorageRequestMessage list_storage_message() {
+-    auto message = StorageRequestMessage();
+-    auto* msg = message.mutable_list_storage_message();
+-    msg->set_all(true);
+-    return message;
+-  }
+-
+-  StorageRequestMessage list_container_storage_message(const std::string& container) {
+-    auto message = StorageRequestMessage();
+-    auto* msg = message.mutable_list_storage_message();
+-    msg->set_container(container);
+-    return message;
+-  }
+-
+-  StorageRequestMessage list_package_storage_message(const std::string& package) {
+-    auto message = StorageRequestMessage();
+-    auto* msg = message.mutable_list_storage_message();
+-    msg->set_package_name(package);
+-    return message;
+-  }
+-
+-  void verify_new_storage_return_message(base::Result<StorageReturnMessage> msg_result,
+-                                         bool ensure_updated = false) {
+-    ASSERT_TRUE(msg_result.ok()) << msg_result.error();
+-    auto msg = *msg_result;
+-    ASSERT_TRUE(msg.has_new_storage_message()) << msg.error_message();
+-    if (ensure_updated) {
+-      auto message = msg.new_storage_message();
+-      ASSERT_TRUE(message.storage_updated());
+-    }
+-  }
+-
+-  void verify_flag_override_return_message(
+-      base::Result<StorageReturnMessage> msg_result) {
+-    ASSERT_TRUE(msg_result.ok()) << msg_result.error();
+-    auto msg = *msg_result;
+-    ASSERT_TRUE(msg.has_flag_override_message()) << msg.error_message();
+-  }
+-
+-  void verify_flag_query_return_message(
+-      const StorageReturnMessage::FlagQueryReturnMessage& message,
+-      const std::string& package_name,
+-      const std::string& flag_name,
+-      const std::string& server_value,
+-      const std::string& local_value,
+-      const std::string& boot_value,
+-      const std::string& default_value,
+-      bool is_readwrite,
+-      bool has_server_override,
+-      bool has_local_override) {
+-    ASSERT_EQ(message.package_name(), package_name);
+-    ASSERT_EQ(message.flag_name(), flag_name);
+-    ASSERT_EQ(message.server_flag_value(), server_value);
+-    ASSERT_EQ(message.local_flag_value(), local_value);
+-    ASSERT_EQ(message.boot_flag_value(), boot_value);
+-    ASSERT_EQ(message.default_flag_value(), default_value);
+-    ASSERT_EQ(message.is_readwrite(), is_readwrite);
+-    ASSERT_EQ(message.has_server_override(), has_server_override);
+-    ASSERT_EQ(message.has_local_override(), has_local_override);
+-  }
+-
+-  void verify_flag_query_return_message(base::Result<StorageReturnMessage> msg_result,
+-                                        const std::string& package_name,
+-                                        const std::string& flag_name,
+-                                        const std::string& server_value,
+-                                        const std::string& local_value,
+-                                        const std::string& boot_value,
+-                                        const std::string& default_value,
+-                                        bool is_readwrite,
+-                                        bool has_server_override,
+-                                        bool has_local_override) {
+-    ASSERT_TRUE(msg_result.ok()) << msg_result.error();
+-    auto msg = *msg_result;
+-    ASSERT_TRUE(msg.has_flag_query_message()) << msg.error_message();
+-    auto message = msg.flag_query_message();
+-    verify_flag_query_return_message(
+-        message, package_name, flag_name, server_value, local_value, boot_value,
+-        default_value, is_readwrite, has_server_override, has_local_override);
+-  }
+-
+-  void verify_local_override_remove_return_message(
+-      base::Result<StorageReturnMessage> msg_result) {
+-    ASSERT_TRUE(msg_result.ok()) << msg_result.error();
+-    auto msg = *msg_result;
+-    ASSERT_TRUE(msg.has_remove_local_override_message()) << msg.error_message();
+-  }
+-
+-  void verify_reset_storage_message(base::Result<StorageReturnMessage> msg_result) {
+-    ASSERT_TRUE(msg_result.ok()) << msg_result.error();
+-    auto msg = *msg_result;
+-    ASSERT_TRUE(msg.has_reset_storage_message()) << msg.error_message();
+-  }
+-
+-  void verify_error_message(base::Result<StorageReturnMessage> msg_result,
+-                            const std::string& errmsg) {
+-    ASSERT_FALSE(msg_result.ok());
+-    ASSERT_TRUE(msg_result.error().message().find(errmsg) != std::string::npos)
+-        << msg_result.error().message();
+-  }
+-
+-  void verify_equal_file_content(const std::string& file_one,
+-                                 const std::string& file_two) {
+-    ASSERT_TRUE(FileExists(file_one)) << file_one << " does not exist";
+-    ASSERT_TRUE(FileExists(file_two)) << file_one << " does not exist";
+-    auto content_one = std::string();
+-    auto content_two = std::string();
+-    ASSERT_TRUE(base::ReadFileToString(file_one, &content_one)) << strerror(errno);
+-    ASSERT_TRUE(base::ReadFileToString(file_two, &content_two)) << strerror(errno);
+-    ASSERT_EQ(content_one, content_two) << file_one << " is different from "
+-                                        << file_two;
+-  }
+-
+-  // setup test suites
+-  static void SetUpTestSuite() {
+-    auto test_dir = base::GetExecutableDirectory();
+-    package_map_ = test_dir + "/tests/data/v1/package.map";
+-    flag_map_ = test_dir + "/tests/data/v1/flag.map";
+-    flag_val_ = test_dir + "/tests/data/v1/flag.val";
+-    flag_info_ = test_dir + "/tests/data/v1/flag.info";
+-    updated_package_map_ = test_dir + "/tests/data/v2/package.map";
+-    updated_flag_map_ = test_dir + "/tests/data/v2/flag.map";
+-    updated_flag_val_ = test_dir + "/tests/data/v2/flag.val";
+-    updated_flag_info_ = test_dir + "/tests/data/v2/flag.info";
+-  }
+-
+-  static std::string package_map_;
+-  static std::string flag_map_;
+-  static std::string flag_val_;
+-  static std::string flag_info_;
+-  static std::string updated_package_map_;
+-  static std::string updated_flag_map_;
+-  static std::string updated_flag_val_;
+-  static std::string updated_flag_info_;
+-}; // class AconfigdTest
+-
+-std::string AconfigdTest::package_map_;
+-std::string AconfigdTest::flag_map_;
+-std::string AconfigdTest::flag_val_;
+-std::string AconfigdTest::flag_info_;
+-std::string AconfigdTest::updated_package_map_;
+-std::string AconfigdTest::updated_flag_map_;
+-std::string AconfigdTest::updated_flag_val_;
+-std::string AconfigdTest::updated_flag_info_;
+-
+-TEST_F(AconfigdTest, init_platform_storage_fresh) {
+-  auto a_mock = AconfigdMock();
+-  auto init_result = a_mock.aconfigd.InitializePlatformStorage();
+-  ASSERT_TRUE(init_result.ok()) << init_result.error();
+-
+-  auto partitions = std::vector<std::pair<std::string, std::string>>{
+-    {"system", "/system/etc/aconfig"},
+-    {"vendor", "/vendor/etc/aconfig"},
+-    {"product", "/product/etc/aconfig"}};
+-
+-  for (auto const& [container, storage_dir] : partitions) {
+-    auto package_map = std::string(storage_dir) + "/package.map";
+-    auto flag_map = std::string(storage_dir) + "/flag.map";
+-    auto flag_val = std::string(storage_dir) + "/flag.val";
+-    auto flag_info = std::string(storage_dir) + "/flag.info";
+-    if (!FileNonZeroSize(flag_val)) {
+-      continue;
+-    }
+-
+-    verify_equal_file_content(a_mock.maps_dir + "/" + container + ".package.map", package_map);
+-    verify_equal_file_content(a_mock.maps_dir + "/" + container + ".flag.map", flag_map);
+-    verify_equal_file_content(a_mock.flags_dir + "/" + container + ".val", flag_val);
+-    verify_equal_file_content(a_mock.boot_dir + "/" + container + ".val", flag_val);
+-    verify_equal_file_content(a_mock.flags_dir + "/" + container + ".info", flag_info);
+-    verify_equal_file_content(a_mock.boot_dir + "/" + container + ".info", flag_info);
+-  }
+-}
+-
+-TEST_F(AconfigdTest, init_platform_storage_reboot) {
+-  auto a_mock = AconfigdMock();
+-  auto init_result = a_mock.aconfigd.InitializePlatformStorage();
+-  ASSERT_TRUE(init_result.ok()) << init_result.error();
+-
+-  init_result = a_mock.aconfigd.InitializePlatformStorage();
+-  ASSERT_TRUE(init_result.ok()) << init_result.error();
+-
+-  auto partitions = std::vector<std::pair<std::string, std::string>>{
+-    {"system", "/system/etc/aconfig"},
+-    {"vendor", "/vendor/etc/aconfig"},
+-    {"product", "/product/etc/aconfig"}};
+-
+-  for (auto const& [container, storage_dir] : partitions) {
+-    auto package_map = std::string(storage_dir) + "/package.map";
+-    auto flag_map = std::string(storage_dir) + "/flag.map";
+-    auto flag_val = std::string(storage_dir) + "/flag.val";
+-    auto flag_info = std::string(storage_dir) + "/flag.info";
+-    if (!FileNonZeroSize(flag_val)) {
+-      continue;
+-    }
+-
+-    verify_equal_file_content(a_mock.maps_dir + "/" + container + ".package.map", package_map);
+-    verify_equal_file_content(a_mock.maps_dir + "/" + container + ".flag.map", flag_map);
+-    verify_equal_file_content(a_mock.flags_dir + "/" + container + ".val", flag_val);
+-    verify_equal_file_content(a_mock.boot_dir + "/" + container + ".val", flag_val);
+-    verify_equal_file_content(a_mock.flags_dir + "/" + container + ".info", flag_info);
+-    verify_equal_file_content(a_mock.boot_dir + "/" + container + ".info", flag_info);
+-  }
+-}
+-
+-TEST_F(AconfigdTest, init_mainline_storage_fresh) {
+-  auto a_mock = AconfigdMock();
+-  auto init_result = a_mock.aconfigd.InitializeMainlineStorage();
+-  ASSERT_TRUE(init_result.ok()) << init_result.error();
+-}
+-
+-TEST_F(AconfigdTest, add_new_storage) {
+-  // create mocks
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  // mock a socket request
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  auto digest = GetFilesDigest(
+-      {c_mock.package_map, c_mock.flag_map, c_mock.flag_val, c_mock.flag_info});
+-  ASSERT_TRUE(digest.ok());
+-
+-  // verify the record exists in persist records pb
+-  auto persist_records_pb = PersistStorageRecords();
+-  auto content = std::string();
+-  ASSERT_TRUE(base::ReadFileToString(a_mock.persist_pb, &content)) << strerror(errno);
+-  ASSERT_TRUE(persist_records_pb.ParseFromString(content)) << strerror(errno);
+-  bool found = false;
+-  for (auto& entry : persist_records_pb.records()) {
+-    if (entry.container() == "mockup") {
+-      found = true;
+-      ASSERT_EQ(entry.version(), 1);
+-      ASSERT_EQ(entry.package_map(), c_mock.package_map);
+-      ASSERT_EQ(entry.flag_map(), c_mock.flag_map);
+-      ASSERT_EQ(entry.flag_val(), c_mock.flag_val);
+-      ASSERT_EQ(entry.flag_info(), c_mock.flag_info);
+-      ASSERT_EQ(entry.digest(), *digest);
+-      break;
+-    }
+-  }
+-  ASSERT_TRUE(found);
+-
+-  // verify persist and boot files
+-  verify_equal_file_content(a_mock.maps_dir + "/mockup.package.map", package_map_);
+-  verify_equal_file_content(a_mock.maps_dir + "/mockup.flag.map", flag_map_);
+-  verify_equal_file_content(a_mock.flags_dir + "/mockup.val", flag_val_);
+-  verify_equal_file_content(a_mock.boot_dir + "/mockup.val", flag_val_);
+-  verify_equal_file_content(a_mock.flags_dir + "/mockup.info", flag_info_);
+-  verify_equal_file_content(a_mock.boot_dir + "/mockup.info", flag_info_);
+-}
+-
+-TEST_F(AconfigdTest, container_update_in_ota) {
+-  // create mocks
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  // mock a socket request
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  // mock an ota container update
+-  c_mock.UpdateFiles(
+-      updated_package_map_, updated_flag_map_, updated_flag_val_, updated_flag_info_);
+-
+-  // force update
+-  request_msg = new_storage_message(c_mock);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  auto digest = GetFilesDigest(
+-      {c_mock.package_map, c_mock.flag_map, c_mock.flag_val, c_mock.flag_info});
+-  ASSERT_TRUE(digest.ok());
+-
+-  // verify the record exists in persist records pb
+-  auto persist_records_pb = PersistStorageRecords();
+-  auto content = std::string();
+-  ASSERT_TRUE(base::ReadFileToString(a_mock.persist_pb, &content))
+-      << strerror(errno);
+-  ASSERT_TRUE(persist_records_pb.ParseFromString(content)) << strerror(errno);
+-  bool found = false;
+-  for (auto& entry : persist_records_pb.records()) {
+-    if (entry.container() == "mockup") {
+-      found = true;
+-      ASSERT_EQ(entry.version(), 1);
+-      ASSERT_EQ(entry.package_map(), c_mock.package_map);
+-      ASSERT_EQ(entry.flag_map(), c_mock.flag_map);
+-      ASSERT_EQ(entry.flag_val(), c_mock.flag_val);
+-      ASSERT_EQ(entry.flag_info(), c_mock.flag_info);
+-      ASSERT_EQ(entry.digest(), *digest);
+-      break;
+-    }
+-  }
+-  ASSERT_TRUE(found);
+-
+-  // verify persist and boot files
+-  verify_equal_file_content(a_mock.maps_dir + "/mockup.package.map", updated_package_map_);
+-  verify_equal_file_content(a_mock.maps_dir + "/mockup.flag.map", updated_flag_map_);
+-  verify_equal_file_content(a_mock.flags_dir + "/mockup.val", updated_flag_val_);
+-  verify_equal_file_content(a_mock.flags_dir + "/mockup.info", updated_flag_info_);
+-
+-  // the boot copy should never be updated
+-  verify_equal_file_content(a_mock.boot_dir + "/mockup.val", flag_val_);
+-  verify_equal_file_content(a_mock.boot_dir + "/mockup.info", flag_info_);
+-}
+-
+-TEST_F(AconfigdTest, server_override) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_rw", "false", false, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_1", "enabled_rw", "false", "",
+-      "true", "true", true, true, false);
+-
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_rw", "true", false, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_1", "enabled_rw", "true", "",
+-      "true", "true", true, true, false);
+-}
+-
+-TEST_F(AconfigdTest, server_override_survive_update) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  // create a server override
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_rw", "false", false, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_1", "enabled_rw", "false", "",
+-      "true", "true", true, true, false);
+-
+-  // mock an ota container update
+-  c_mock.UpdateFiles(
+-      updated_package_map_, updated_flag_map_, updated_flag_val_, updated_flag_info_);
+-
+-  // force update
+-  request_msg = new_storage_message(c_mock);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  // server override should persist
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_1", "enabled_rw", "false", "",
+-      "true", "true", true, true, false);
+-}
+-
+-TEST_F_WITH_FLAGS(AconfigdTest, local_override_immediate,
+-                  REQUIRES_FLAGS_ENABLED(ACONFIG_FLAG(
+-                      ACONFIGD_NS, support_immediate_local_overrides))) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_rw", "false", true, true);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  request_msg =
+-      flag_query_message("com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_1", "enabled_rw", "",
+-      "false", "false", "true", true, false, true);
+-}
+-
+-TEST_F(AconfigdTest, local_override) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_rw", "false", true, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_1", "enabled_rw", "", "false",
+-      "true", "true", true, false, true);
+-
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_rw", "true", true, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_1", "enabled_rw", "", "true",
+-      "true", "true", true, false, true);
+-}
+-
+-TEST_F(AconfigdTest, local_override_survive_update) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  // create a local override
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_rw", "false", true, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_1", "enabled_rw", "", "false",
+-      "true", "true", true, false, true);
+-
+-  // mock an ota container update
+-  c_mock.UpdateFiles(
+-      updated_package_map_, updated_flag_map_, updated_flag_val_, updated_flag_info_);
+-
+-  // force update
+-  request_msg = new_storage_message(c_mock);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  // local override should persist
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_1", "enabled_rw", "", "false",
+-      "true", "true", true, false, true);
+-}
+-
+-TEST_F(AconfigdTest, single_local_override_remove) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  // local override enabled_rw
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_rw", "false", true, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  // local override disabled_rw
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_2",
+-                                      "disabled_rw", "true", true, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  // remove local override enabled_rw
+-  request_msg = flag_local_override_remove_message(
+-      "com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_local_override_remove_return_message(return_msg);
+-
+-  // enabled_rw local override should be gone
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_1", "enabled_rw", "", "",
+-      "true", "true", true, false, false);
+-
+-  // disabled_rw local override should still exists
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_2", "disabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_2", "disabled_rw", "", "true",
+-      "false", "false", true, false, true);
+-}
+-
+-TEST_F(AconfigdTest, readonly_flag_override) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_ro", "false", false, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_error_message(return_msg, "Cannot update read only flag");
+-
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_ro", "false", true, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_error_message(return_msg, "Cannot update read only flag");
+-}
+-
+-TEST_F(AconfigdTest, nonexist_flag_override) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  request_msg =
+-      flag_override_message("unknown", "enabled_rw", "false", false, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_error_message(return_msg, "Failed to find owning container");
+-
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "unknown", "false", false, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_error_message(return_msg, "Flag does not exist");
+-}
+-
+-TEST_F(AconfigdTest, nonexist_flag_query) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  request_msg = flag_query_message("unknown", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_error_message(return_msg, "Failed to find owning container");
+-
+-  request_msg = flag_query_message("com.android.aconfig.storage.test_1", "unknown");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_error_message(return_msg, "unknown does not exist");
+-}
+-
+-TEST_F(AconfigdTest, storage_reset) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  // server override enabled_rw
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_rw", "false", false, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  // local override disabled_rw
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_2",
+-                                      "disabled_rw", "true", true, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  // storage reset
+-  request_msg = reset_storage_message();
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_reset_storage_message(return_msg);
+-
+-  // enabled_rw server override should be gone
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_1", "enabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_1", "enabled_rw", "", "",
+-      "true", "true", true, false, false);
+-
+-  // disabled_rw local override should be gone
+-  request_msg = flag_query_message(
+-      "com.android.aconfig.storage.test_2", "disabled_rw");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_query_return_message(
+-      return_msg, "com.android.aconfig.storage.test_2", "disabled_rw", "", "",
+-      "false", "false", true, false, false);
+-}
+-
+-TEST_F(AconfigdTest, list_package) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  // server override disabled_rw
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "disabled_rw", "true", false, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  // local override enabled_rw
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "enabled_rw", "false", true, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  // list package
+-  request_msg = list_package_storage_message("com.android.aconfig.storage.test_1");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  ASSERT_TRUE(return_msg.ok()) << return_msg.error();
+-  auto flags_msg = return_msg->list_storage_message();
+-  ASSERT_EQ(flags_msg.flags_size(), 3);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(0), "com.android.aconfig.storage.test_1", "disabled_rw",
+-      "true", "", "false", "false", true, true, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(1), "com.android.aconfig.storage.test_1", "enabled_ro",
+-      "", "", "true", "true", false, false, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(2), "com.android.aconfig.storage.test_1", "enabled_rw",
+-      "", "false", "true", "true", true, false, true);
+-}
+-
+-TEST_F(AconfigdTest, list_container) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  // server override test1.disabled_rw
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "disabled_rw", "true", false, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  // local override test2.disabled_rw
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_2",
+-                                      "disabled_rw", "false", true, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  // list container
+-  request_msg = list_container_storage_message("mockup");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  ASSERT_TRUE(return_msg.ok()) << return_msg.error();
+-  auto flags_msg = return_msg->list_storage_message();
+-  ASSERT_EQ(flags_msg.flags_size(), 8);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(0), "com.android.aconfig.storage.test_1", "disabled_rw",
+-      "true", "", "false", "false", true, true, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(1), "com.android.aconfig.storage.test_1", "enabled_ro",
+-      "", "", "true", "true", false, false, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(2), "com.android.aconfig.storage.test_1", "enabled_rw",
+-      "", "", "true", "true", true, false, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(3), "com.android.aconfig.storage.test_2", "disabled_rw",
+-      "", "false", "false", "false", true, false, true);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(4), "com.android.aconfig.storage.test_2", "enabled_fixed_ro",
+-      "", "", "true", "true", false, false, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(5), "com.android.aconfig.storage.test_2", "enabled_ro",
+-      "", "", "true", "true", false, false, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(6), "com.android.aconfig.storage.test_4", "enabled_fixed_ro",
+-      "", "", "true", "true", false, false, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(7), "com.android.aconfig.storage.test_4", "enabled_rw",
+-      "", "", "true", "true", true, false, false);
+-}
+-
+-TEST_F(AconfigdTest, list_all) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  // server override test1.disabled_rw
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_1",
+-                                      "disabled_rw", "true", false, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  // local override test2.disabled_rw
+-  request_msg = flag_override_message("com.android.aconfig.storage.test_2",
+-                                      "disabled_rw", "false", true, false);
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_flag_override_return_message(return_msg);
+-
+-  // list all storage
+-  request_msg = list_storage_message();
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  ASSERT_TRUE(return_msg.ok()) << return_msg.error();
+-  auto flags_msg = return_msg->list_storage_message();
+-  ASSERT_EQ(flags_msg.flags_size(), 8);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(0), "com.android.aconfig.storage.test_1", "disabled_rw",
+-      "true", "", "false", "false", true, true, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(1), "com.android.aconfig.storage.test_1", "enabled_ro",
+-      "", "", "true", "true", false, false, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(2), "com.android.aconfig.storage.test_1", "enabled_rw",
+-      "", "", "true", "true", true, false, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(3), "com.android.aconfig.storage.test_2", "disabled_rw",
+-      "", "false", "false", "false", true, false, true);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(4), "com.android.aconfig.storage.test_2", "enabled_fixed_ro",
+-      "", "", "true", "true", false, false, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(5), "com.android.aconfig.storage.test_2", "enabled_ro",
+-      "", "", "true", "true", false, false, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(6), "com.android.aconfig.storage.test_4", "enabled_fixed_ro",
+-      "", "", "true", "true", false, false, false);
+-  verify_flag_query_return_message(
+-      flags_msg.flags(7), "com.android.aconfig.storage.test_4", "enabled_rw",
+-      "", "", "true", "true", true, false, false);
+-}
+-
+-TEST_F(AconfigdTest, list_nonexist_package) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  request_msg = list_package_storage_message("unknown");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_error_message(return_msg, "container not found");
+-}
+-
+-TEST_F(AconfigdTest, list_nonexist_container) {
+-  auto a_mock = AconfigdMock();
+-  auto c_mock = ContainerMock("mockup", package_map_, flag_map_, flag_val_, flag_info_);
+-
+-  auto request_msg = new_storage_message(c_mock);
+-  auto return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_new_storage_return_message(return_msg, true);
+-
+-  request_msg = list_container_storage_message("unknown");
+-  return_msg = a_mock.SendRequestToSocket(request_msg);
+-  verify_error_message(return_msg, "Missing storage files object");
+-}
+-
+-} // namespace aconfigd
+-} // namespace android
+diff --git a/aconfigd/aconfigd_test_mock.h b/aconfigd/aconfigd_test_mock.h
+deleted file mode 100644
+index e2795a6..0000000
+--- a/aconfigd/aconfigd_test_mock.h
++++ /dev/null
+@@ -1,101 +0,0 @@
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#pragma once
+-
+-#include <string>
+-#include <android-base/file.h>
+-
+-#include "aconfigd.h"
+-#include "aconfigd_util.h"
+-
+-namespace android {
+-namespace aconfigd {
+-
+-struct AconfigdMock {
+-  TemporaryDir root_dir;
+-  const std::string flags_dir;
+-  const std::string maps_dir;
+-  const std::string boot_dir;
+-  const std::string persist_pb;
+-  Aconfigd aconfigd;
+-
+-  AconfigdMock()
+-      : root_dir()
+-      , flags_dir(std::string(root_dir.path) + "/flags")
+-      , maps_dir(std::string(root_dir.path) + "/maps")
+-      , boot_dir(std::string(root_dir.path) + "/boot")
+-      , persist_pb(std::string(root_dir.path) + "/persist.pb")
+-      , aconfigd(root_dir.path, persist_pb) {
+-    mkdir(flags_dir.c_str(), 0770);
+-    mkdir(maps_dir.c_str(), 0770);
+-    mkdir(boot_dir.c_str(), 0775);
+-  }
+-
+-  base::Result<StorageReturnMessage> SendRequestToSocket(
+-      const StorageRequestMessage& request) {
+-    auto return_msg = StorageReturnMessage();
+-    auto result = aconfigd.HandleSocketRequest(request, return_msg);
+-    if (!result.ok()) {
+-      return base::Error() << result.error();
+-    } else {
+-      return return_msg;
+-    }
+-  }
+-};
+-
+-struct ContainerMock {
+-  TemporaryDir root_dir;
+-  const std::string container;
+-  const std::string package_map;
+-  const std::string flag_map;
+-  const std::string flag_val;
+-  const std::string flag_info;
+-
+-  ContainerMock(const std::string& container_name,
+-                const std::string& package_map_file,
+-                const std::string& flag_map_file,
+-                const std::string& flag_val_file,
+-                const std::string& flag_info_file)
+-      : root_dir()
+-      , container(container_name)
+-      , package_map(std::string(root_dir.path) + "/etc/aconfig/package.map")
+-      , flag_map(std::string(root_dir.path) + "/etc/aconfig/flag.map")
+-      , flag_val(std::string(root_dir.path) + "/etc/aconfig/flag.val")
+-      , flag_info(std::string(root_dir.path) + "/etc/aconfig/flag.info") {
+-    auto etc_dir = std::string(root_dir.path) + "/etc";
+-    auto aconfig_dir = etc_dir + "/aconfig";
+-    mkdir(etc_dir.c_str(), 0777);
+-    mkdir(aconfig_dir.c_str(), 0777);
+-    CopyFile(package_map_file, package_map, 0444);
+-    CopyFile(flag_map_file, flag_map, 0444);
+-    CopyFile(flag_val_file, flag_val, 0444);
+-    CopyFile(flag_info_file, flag_info, 0444);
+-  }
+-
+-  void UpdateFiles(const std::string& package_map_file,
+-                   const std::string& flag_map_file,
+-                   const std::string& flag_val_file,
+-                   const std::string& flag_info_file) {
+-    CopyFile(package_map_file, package_map, 0444);
+-    CopyFile(flag_map_file, flag_map, 0444);
+-    CopyFile(flag_val_file, flag_val, 0444);
+-    CopyFile(flag_info_file, flag_info, 0444);
+-  }
+-};
+-
+-} // namespace aconfigd
+-} // namespace android
+diff --git a/aconfigd/aconfigd_util.cpp b/aconfigd/aconfigd_util.cpp
+deleted file mode 100644
+index 8b3507e..0000000
+--- a/aconfigd/aconfigd_util.cpp
++++ /dev/null
+@@ -1,167 +0,0 @@
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#include <memory>
+-#include <sys/sendfile.h>
+-#include <dirent.h>
+-#include <stdio.h>
+-#include <openssl/sha.h>
+-#include <fstream>
+-#include <sstream>
+-
+-#include <android-base/file.h>
+-#include <android-base/logging.h>
+-#include <android-base/unique_fd.h>
+-
+-#include <aconfigd.pb.h>
+-#include "aconfigd_util.h"
+-
+-using namespace android::base;
+-
+-namespace android {
+-namespace aconfigd {
+-
+-/// Remove all files in a dir
+-Result<void> RemoveFilesInDir(const std::string& dir) {
+-  auto dir_ptr = std::unique_ptr<DIR, int (*)(DIR*)>(opendir(dir.c_str()), closedir);
+-  if (!dir_ptr) {
+-    return ErrnoError() << "failed to open dir " << dir;
+-  }
+-
+-  struct dirent* entry;
+-  while ((entry = readdir(dir_ptr.get())) != nullptr) {
+-    if (entry->d_type != DT_REG) {
+-      continue;
+-    }
+-    auto file = dir + "/" + entry->d_name;
+-    if (unlink(file.c_str()) == -1) {
+-      return ErrnoError() << "unlink() failed for " << file;
+-    }
+-  }
+-
+-  return {};
+-}
+-
+-/// Copy file
+-Result<void> CopyFile(const std::string& src, const std::string& dst, mode_t mode) {
+-  android::base::unique_fd src_fd(
+-      TEMP_FAILURE_RETRY(open(src.c_str(), O_RDONLY | O_NOFOLLOW | O_CLOEXEC)));
+-  if (src_fd == -1) {
+-    return ErrnoError() << "open() failed for " << src;
+-  }
+-
+-  if (FileExists(dst.c_str())) {
+-    if (chmod(dst.c_str(), 0644) == -1) {
+-      return ErrnoError() << "chmod() failed for " << dst;
+-    }
+-  }
+-
+-  android::base::unique_fd dst_fd(TEMP_FAILURE_RETRY(
+-      open(dst.c_str(), O_WRONLY | O_CREAT | O_NOFOLLOW | O_TRUNC | O_CLOEXEC, 0644)));
+-  if (dst_fd == -1) {
+-    return ErrnoError() << "open() failed for " << dst;
+-  }
+-
+-  struct stat st;
+-  if (fstat(src_fd.get(), &st) == -1) {
+-    return ErrnoError() << "fstat() failed";
+-  }
+-  auto len = st.st_size;
+-
+-  if (sendfile(dst_fd, src_fd, nullptr, len) == -1) {
+-    return ErrnoError() << "sendfile() failed";
+-  }
+-
+-  if (chmod(dst.c_str(), mode) == -1) {
+-    return ErrnoError() << "chmod() failed";
+-  }
+-
+-  return {};
+-}
+-
+-/// Get a file's timestamp in nano second
+-Result<uint64_t> GetFileTimeStamp(const std::string& file) {
+-  struct stat st;
+-  int result = stat(file.c_str(), &st);
+-  if (result == -1) {
+-    return ErrnoError() << "stat() failed";
+-  }
+-  uint64_t timestamp = st.st_mtim.tv_sec*1000000000 + st.st_mtim.tv_nsec;
+-  return timestamp;
+-}
+-
+-bool FileExists(const std::string& file) {
+-  struct stat st;
+-  return stat(file.c_str(), &st) == 0 ? true : false;
+-}
+-
+-bool FileNonZeroSize(const std::string& file) {
+-  struct stat st;
+-  return stat(file.c_str(), &st) == 0 ? st.st_size > 0 : false;
+-}
+-
+-Result<std::string> GetFilesDigest(const std::vector<std::string>& files) {
+-  SHA512_CTX ctx;
+-  SHA512_Init(&ctx);
+-
+-  for (const auto& file : files) {
+-    std::ifstream stream(file, std::ios::binary);
+-    if (stream.bad()) {
+-      return Error() << "Failed to open " << file;
+-    }
+-
+-    char buf[1024];
+-    while (!stream.eof()) {
+-      stream.read(buf, 1024);
+-      if (stream.bad()) {
+-        return Error() << "Failed to read " << file;
+-      }
+-      int bytes_read = stream.gcount();
+-      SHA512_Update(&ctx, buf, bytes_read);
+-    }
+-  }
+-
+-  uint8_t hash[SHA512_DIGEST_LENGTH];
+-  SHA512_Final(hash, &ctx);
+-  std::stringstream ss;
+-  ss << std::hex;
+-  for (int i = 0; i < SHA512_DIGEST_LENGTH; i++) {
+-    ss << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
+-  }
+-  return ss.str();
+-}
+-
+-/// convert override type enum to string
+-std::string OverrideTypeToStr(
+-    const StorageRequestMessage::FlagOverrideType& override_type) {
+-  switch (override_type) {
+-    case StorageRequestMessage::LOCAL_IMMEDIATE: {
+-      return "local immediate";
+-    }
+-    case StorageRequestMessage::LOCAL_ON_REBOOT: {
+-      return "local on reboot";
+-    }
+-    case StorageRequestMessage::SERVER_ON_REBOOT: {
+-      return "server on reboot";
+-    }
+-    default: {
+-      return "unknown";
+-    }
+-  }
+-}
+-
+-} // namespace aconfig
+-} // namespace android
+diff --git a/aconfigd/aconfigd_util.h b/aconfigd/aconfigd_util.h
+deleted file mode 100644
+index 7d23f33..0000000
+--- a/aconfigd/aconfigd_util.h
++++ /dev/null
+@@ -1,95 +0,0 @@
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#pragma once
+-
+-#include <string>
+-#include <sys/stat.h>
+-
+-#include <android-base/result.h>
+-#include <android-base/file.h>
+-
+-#define RETURN_IF_ERROR(RESULT, ERROR) \
+-if (!RESULT.ok()) {\
+-  return android::base::Error() << ERROR << ": " << RESULT.error();\
+-}
+-
+-namespace android {
+-  namespace aconfigd {
+-
+-  /// Remove files in a dir
+-  base::Result<void> RemoveFilesInDir(const std::string& dir);
+-
+-  /// Copy file
+-  base::Result<void> CopyFile(const std::string& src,
+-                              const std::string& dst,
+-                              mode_t mode);
+-
+-  /// Get a file's timestamp in nano second
+-  base::Result<uint64_t> GetFileTimeStamp(const std::string& file);
+-
+-  /// Check if file exists
+-  bool FileExists(const std::string& file);
+-
+-  /// Check if file exists and has non zero size
+-  bool FileNonZeroSize(const std::string& file);
+-
+-  /// Get file digest
+-  base::Result<std::string> GetFilesDigest(const std::vector<std::string>& files);
+-
+-  /// Read protobuf from file
+-  template <typename T>
+-  base::Result<T> ReadPbFromFile(const std::string& pb_file) {
+-    auto pb = T();
+-    if (FileExists(pb_file)) {
+-      auto content = std::string();
+-      if (!base::ReadFileToString(pb_file, &content)) {
+-        return base::ErrnoError() << "ReadFileToString() failed";
+-      }
+-
+-      if (!pb.ParseFromString(content)) {
+-        return base::ErrnoError() << "Unable to parse to protobuf";
+-      }
+-    }
+-    return pb;
+-  }
+-
+-  /// Write protobuf to file
+-  template <typename T>
+-  base::Result<void> WritePbToFile(const T& pb,
+-                                   const std::string& file_name,
+-                                   mode_t mode = 0644) {
+-    auto content = std::string();
+-    if (!pb.SerializeToString(&content)) {
+-      return base::ErrnoError() << "Unable to serialize protobuf to string";
+-    }
+-
+-    if (!base::WriteStringToFile(content, file_name)) {
+-      return base::ErrnoError() << "WriteStringToFile() failed";
+-    }
+-
+-    if (chmod(file_name.c_str(), mode) == -1) {
+-      return base::ErrnoError() << "chmod() failed";
+-    };
+-
+-    return {};
+-  }
+-
+-  /// convert override type enum to string
+-  std::string OverrideTypeToStr(const StorageRequestMessage::FlagOverrideType&);
+-
+-  }// namespace aconfig
+-} // namespace android
+diff --git a/aconfigd/include/aconfigd.h b/aconfigd/include/aconfigd.h
+deleted file mode 100644
+index 5f69454..0000000
+--- a/aconfigd/include/aconfigd.h
++++ /dev/null
+@@ -1,131 +0,0 @@
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#pragma once
+-
+-#include <string>
+-#include <android-base/result.h>
+-#include <aconfigd.pb.h>
+-
+-#include "storage_files_manager.h"
+-
+-namespace android {
+-  namespace aconfigd {
+-
+-    /// Aconfigd socket name
+-    static constexpr char kAconfigdSocket[] = "aconfigd";
+-
+-    /// Aconfigd root dir
+-    static constexpr char kAconfigdRootDir[] = "/metadata/aconfig";
+-
+-    /// Persistent storage records pb file full path
+-    static constexpr char kPersistentStorageRecordsFileName[] =
+-        "/metadata/aconfig/storage_records.pb";
+-
+-  class Aconfigd {
+-    public:
+-
+-    /// constructor
+-    Aconfigd(const std::string& root_dir,
+-             const std::string& persist_storage_records)
+-        : root_dir_(root_dir)
+-        , persist_storage_records_(persist_storage_records)
+-        , storage_files_manager_(nullptr) {
+-      storage_files_manager_.reset(new StorageFilesManager(root_dir_));
+-    }
+-
+-    /// destructor
+-    ~Aconfigd() = default;
+-
+-    /// no copy
+-    Aconfigd(const Aconfigd&) = delete;
+-    Aconfigd& operator=(const Aconfigd&) = delete;
+-
+-    /// move constructor and assignment
+-    Aconfigd(Aconfigd&& rhs)
+-        : root_dir_(rhs.root_dir_)
+-        , persist_storage_records_(rhs.persist_storage_records_)
+-        , storage_files_manager_(std::move(rhs.storage_files_manager_))
+-    {}
+-    Aconfigd& operator=(Aconfigd&& rhs) = delete;
+-
+-    public:
+-
+-    /// Initialize in memory aconfig storage records
+-    base::Result<void> InitializeInMemoryStorageRecords();
+-
+-    /// Initialize platform RO partition flag storage
+-    base::Result<void> InitializePlatformStorage();
+-
+-    /// Initialize mainline flag storage
+-    base::Result<void> InitializeMainlineStorage();
+-
+-    /// Handle incoming messages to aconfigd socket
+-    base::Result<void> HandleSocketRequest(const StorageRequestMessage& message,
+-                                     StorageReturnMessage& return_message);
+-
+-    private:
+-
+-    /// Handle a flag override request
+-    base::Result<void> HandleFlagOverride(
+-        const StorageRequestMessage::FlagOverrideMessage& msg,
+-        StorageReturnMessage& return_msg);
+-
+-    /// Handle OTA flag staging request
+-    base::Result<void> HandleOTAStaging(
+-        const StorageRequestMessage::OTAFlagStagingMessage& msg,
+-        StorageReturnMessage& return_msg);
+-
+-    /// Handle new storage request
+-    base::Result<void> HandleNewStorage(
+-        const StorageRequestMessage::NewStorageMessage& msg,
+-        StorageReturnMessage& return_msg);
+-
+-    /// Handle a flag query request
+-    base::Result<void> HandleFlagQuery(
+-        const StorageRequestMessage::FlagQueryMessage& msg,
+-        StorageReturnMessage& return_msg);
+-
+-    /// Handle override removal request
+-    base::Result<void> HandleLocalOverrideRemoval(
+-        const StorageRequestMessage::RemoveLocalOverrideMessage& msg,
+-        StorageReturnMessage& return_msg);
+-
+-    /// Handle storage reset
+-    base::Result<void> HandleStorageReset(StorageReturnMessage& return_msg);
+-
+-    /// Handle list storage
+-    base::Result<void> HandleListStorage(
+-        const StorageRequestMessage::ListStorageMessage& msg,
+-        StorageReturnMessage& return_message);
+-
+-    /// Read OTA flag overrides to be applied for current build
+-    base::Result<std::vector<FlagOverride>> ReadOTAFlagOverridesToApply();
+-
+-    private:
+-
+-    /// root storage dir
+-    const std::string root_dir_;
+-
+-    /// persist storage records pb file
+-    const std::string persist_storage_records_;
+-
+-    /// storage files manager
+-    std::unique_ptr<StorageFilesManager> storage_files_manager_;
+-  };
+-
+-  } // namespace aconfigd
+-} // namespace android
+diff --git a/aconfigd/lib.rs b/aconfigd/lib.rs
+deleted file mode 100644
+index 2fac912..0000000
+--- a/aconfigd/lib.rs
++++ /dev/null
+@@ -1,122 +0,0 @@
+-//! Library for interacting with aconfigd.
+-use crate::ffi::{CppAconfigd, CppResultStatus, CppStringResult, CppVoidResult};
+-use cxx::{let_cxx_string, CxxString, UniquePtr};
+-use std::error::Error;
+-use std::fmt;
+-
+-/// Wrapper for interacting with aconfigd.
+-pub struct Aconfigd {
+-    cpp_aconfigd: UniquePtr<CppAconfigd>,
+-}
+-
+-impl Aconfigd {
+-    /// Create a new Aconfigd.
+-    pub fn new(root_dir: &str, persist_storage_records: &str) -> Self {
+-        let_cxx_string!(root_dir_ = root_dir);
+-        let_cxx_string!(persist_storage_records_ = persist_storage_records);
+-        Self { cpp_aconfigd: ffi::new_cpp_aconfigd(&root_dir_, &persist_storage_records_) }
+-    }
+-
+-    /// Create persistent storage files for platform partition.
+-    pub fn initialize_platform_storage(&self) -> Result<(), CppAconfigdError> {
+-        self.cpp_aconfigd.initialize_platform_storage().into()
+-    }
+-
+-    /// Create persistent storage files for mainline modules.
+-    pub fn initialize_mainline_storage(&self) -> Result<(), CppAconfigdError> {
+-        self.cpp_aconfigd.initialize_mainline_storage().into()
+-    }
+-
+-    /// Read storage records into memory.
+-    pub fn initialize_in_memory_storage_records(&self) -> Result<(), CppAconfigdError> {
+-        self.cpp_aconfigd.initialize_in_memory_storage_records().into()
+-    }
+-
+-    /// Process a `StorageRequestMessages`, and return the bytes of a `StorageReturnMessages`.
+-    ///
+-    /// `messages_bytes` should contain the serialized bytes of a `StorageRequestMessages`.
+-    pub fn handle_socket_request(
+-        &self,
+-        messages_bytes: &[u8],
+-    ) -> Result<Vec<u8>, CppAconfigdError> {
+-        let_cxx_string!(messages_string_ = messages_bytes);
+-        let res: Result<UniquePtr<CxxString>, CppAconfigdError> =
+-            self.cpp_aconfigd.handle_socket_request(&messages_string_).into();
+-        res.map(|s| s.as_bytes().to_vec())
+-    }
+-}
+-
+-/// Represents an error in the C++ aconfigd.
+-///
+-/// The C++ aconfigd uses the C++ Result type. Result errors are mapped
+-/// to this type.
+-#[derive(Debug)]
+-pub struct CppAconfigdError {
+-    msg: String,
+-}
+-
+-impl CppAconfigdError {
+-    pub fn new(msg: &str) -> Self {
+-        Self { msg: msg.to_string() }
+-    }
+-}
+-
+-impl fmt::Display for CppAconfigdError {
+-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+-        write!(f, "CppAconfigd error: {}", self.msg)
+-    }
+-}
+-
+-impl Error for CppAconfigdError {}
+-
+-#[cxx::bridge(namespace = "aconfigdwrapper")]
+-mod ffi {
+-    enum CppResultStatus {
+-        Ok,
+-        Err,
+-    }
+-
+-    struct CppVoidResult {
+-        error_message: String,
+-        status: CppResultStatus,
+-    }
+-
+-    struct CppStringResult {
+-        data: UniquePtr<CxxString>,
+-        error_message: String,
+-        status: CppResultStatus,
+-    }
+-
+-    unsafe extern "C++" {
+-        include!("libcxx_aconfigd.hpp");
+-
+-        type CppAconfigd;
+-
+-        fn new_cpp_aconfigd(str1: &CxxString, str2: &CxxString) -> UniquePtr<CppAconfigd>;
+-        fn initialize_platform_storage(&self) -> CppVoidResult;
+-        fn initialize_mainline_storage(&self) -> CppVoidResult;
+-
+-        fn initialize_in_memory_storage_records(&self) -> CppVoidResult;
+-        fn handle_socket_request(&self, message_string: &CxxString) -> CppStringResult;
+-    }
+-}
+-
+-impl Into<Result<(), CppAconfigdError>> for CppVoidResult {
+-    fn into(self) -> Result<(), CppAconfigdError> {
+-        match self.status {
+-            CppResultStatus::Ok => Ok(()),
+-            CppResultStatus::Err => Err(CppAconfigdError::new(&self.error_message)),
+-            _ => Err(CppAconfigdError::new("unknown status")),
+-        }
+-    }
+-}
+-
+-impl Into<Result<UniquePtr<CxxString>, CppAconfigdError>> for CppStringResult {
+-    fn into(self) -> Result<UniquePtr<CxxString>, CppAconfigdError> {
+-        match self.status {
+-            CppResultStatus::Ok => Ok(self.data),
+-            CppResultStatus::Err => Err(CppAconfigdError::new(&self.error_message)),
+-            _ => Err(CppAconfigdError::new("unknown status")),
+-        }
+-    }
+-}
+diff --git a/aconfigd/libcxx_aconfigd.cpp b/aconfigd/libcxx_aconfigd.cpp
+deleted file mode 100644
+index d5e1d46..0000000
+--- a/aconfigd/libcxx_aconfigd.cpp
++++ /dev/null
+@@ -1,97 +0,0 @@
+-#include "libcxx_aconfigd.hpp"
+-
+-#include <stdexcept>
+-
+-#include "com_android_aconfig_new_storage.h"
+-#include "include/aconfigd.h"
+-#include "lib.rs.h"
+-#include "rust/cxx.h"
+-
+-namespace aconfigdwrapper {
+-
+-class CppAconfigd::impl {
+-  friend CppAconfigd;
+-
+- public:
+-  impl(const std::string& root_dir, const std::string& storage_records)
+-      : m_aconfigd(std::make_unique<android::aconfigd::Aconfigd>(
+-            root_dir, storage_records))
+-
+-  {}
+-
+- private:
+-  std::unique_ptr<android::aconfigd::Aconfigd> m_aconfigd;
+-};
+-
+-CppAconfigd::CppAconfigd(const std::string& str1, const std::string& str2)
+-    : impl(new class CppAconfigd::impl(str1, str2)) {}
+-
+-CppVoidResult CppAconfigd::initialize_platform_storage() const {
+-  auto init_result = impl->m_aconfigd->InitializePlatformStorage();
+-
+-  CppVoidResult result;
+-  if (!init_result.ok()) {
+-    result.error_message = init_result.error().message();
+-    result.status = CppResultStatus::Err;
+-  } else {
+-    result.status = CppResultStatus::Ok;
+-  }
+-  return result;
+-}
+-
+-CppVoidResult CppAconfigd::initialize_mainline_storage() const {
+-  auto init_result = impl->m_aconfigd->InitializeMainlineStorage();
+-
+-  CppVoidResult result;
+-  if (!init_result.ok()) {
+-    result.error_message = init_result.error().message();
+-    result.status = CppResultStatus::Err;
+-  } else {
+-    result.status = CppResultStatus::Ok;
+-  }
+-  return result;
+-}
+-
+-CppVoidResult CppAconfigd::initialize_in_memory_storage_records() const {
+-  auto init_result = impl->m_aconfigd->InitializeInMemoryStorageRecords();
+-
+-  CppVoidResult result;
+-  if (!init_result.ok()) {
+-    result.error_message = init_result.error().message();
+-    result.status = CppResultStatus::Err;
+-  } else {
+-    result.status = CppResultStatus::Ok;
+-  }
+-  return result;
+-}
+-
+-CppStringResult CppAconfigd::handle_socket_request(
+-    const std::string& messages_string) const {
+-  auto request_messages = android::aconfigd::StorageRequestMessages{};
+-  request_messages.ParseFromString(messages_string);
+-
+-  auto return_messages = android::aconfigd::StorageReturnMessages();
+-  for (auto& request : request_messages.msgs()) {
+-    auto* return_msg = return_messages.add_msgs();
+-    auto result = impl->m_aconfigd->HandleSocketRequest(request, *return_msg);
+-    if (!result.ok()) {
+-      auto* errmsg = return_msg->mutable_error_message();
+-      *errmsg = result.error().message();
+-    }
+-  }
+-
+-  auto content = std::string();
+-  return_messages.SerializeToString(&content);
+-
+-  CppStringResult result;
+-  result.data = std::make_unique<std::string>(content);
+-  result.status = CppResultStatus::Ok;
+-  return result;
+-}
+-
+-std::unique_ptr<CppAconfigd> new_cpp_aconfigd(const std::string& str1,
+-                                              const std::string& str2) {
+-  return std::make_unique<CppAconfigd>(str1, str2);
+-}
+-
+-}  // namespace aconfigdwrapper
+diff --git a/aconfigd/libcxx_aconfigd.hpp b/aconfigd/libcxx_aconfigd.hpp
+deleted file mode 100644
+index 7a5d2a9..0000000
+--- a/aconfigd/libcxx_aconfigd.hpp
++++ /dev/null
+@@ -1,29 +0,0 @@
+-#pragma once
+-
+-#include "include/aconfigd.h"
+-#include "rust/cxx.h"
+-
+-namespace aconfigdwrapper {
+-
+-struct CppVoidResult;
+-struct CppStringResult;
+-enum class CppResultStatus : uint8_t;
+-
+-class CppAconfigd {
+- public:
+-  CppAconfigd(const std::string& aconfigd_root_dir,
+-              const std::string& storage_records);
+-  CppVoidResult initialize_platform_storage() const;
+-  CppVoidResult initialize_mainline_storage() const;
+-  CppVoidResult initialize_in_memory_storage_records() const;
+-  CppStringResult handle_socket_request(
+-      const std::string& messages_string) const;
+-
+- private:
+-  class impl;
+-  std::shared_ptr<impl> impl;
+-};
+-
+-std::unique_ptr<CppAconfigd> new_cpp_aconfigd(const std::string& str1,
+-                                              const std::string& str2);
+-}  // namespace aconfigdwrapper
+diff --git a/aconfigd/new_aconfig_storage.aconfig b/aconfigd/new_aconfig_storage.aconfig
+index 7351be2..55f0ea5 100644
+--- a/aconfigd/new_aconfig_storage.aconfig
++++ b/aconfigd/new_aconfig_storage.aconfig
+@@ -41,3 +41,14 @@ flag {
+   description: "When enabled, launch aconfigd from config infra module."
+   is_fixed_read_only: true
+ }
++
++flag {
++  name: "bluetooth_flag_value_bug_fix"
++  namespace: "core_experiments_team_internal"
++  bug: "391802823"
++  description: "Fix bluetooth module java flag value inconsistency"
++  is_fixed_read_only: true
++  metadata {
++    purpose: PURPOSE_BUGFIX
++  }
++}
+diff --git a/aconfigd/src/aconfigd_commands.rs b/aconfigd/src/aconfigd_commands.rs
+index 3455fc0..8b630aa 100644
+--- a/aconfigd/src/aconfigd_commands.rs
++++ b/aconfigd/src/aconfigd_commands.rs
+@@ -16,7 +16,6 @@
+ 
+ use aconfigd_protos::ProtoStorageReturnMessage;
+ use aconfigd_rust::aconfigd::Aconfigd;
+-use aconfigd_system::Aconfigd as CXXAconfigd;
+ use anyhow::{anyhow, bail, Result};
+ use log::{debug, error, info};
+ use std::io::{Read, Write};
+@@ -48,59 +47,19 @@ pub fn start_socket() -> Result<()> {
+         STORAGE_RECORDS
+     };
+ 
+-    if aconfig_new_storage_flags::enable_full_rust_system_aconfigd() {
+-        let mut aconfigd = Aconfigd::new(Path::new(ACONFIGD_ROOT_DIR), Path::new(storage_records));
+-        aconfigd.initialize_from_storage_record()?;
++    let mut aconfigd = Aconfigd::new(Path::new(ACONFIGD_ROOT_DIR), Path::new(storage_records));
++    aconfigd.initialize_from_storage_record()?;
+ 
+-        debug!("start waiting for a new client connection through socket.");
+-        for stream in listener.incoming() {
+-            match stream {
+-                Ok(mut stream) => {
+-                    if let Err(errmsg) = aconfigd.handle_socket_request_from_stream(&mut stream) {
+-                        error!("failed to handle socket request: {:?}", errmsg);
+-                    }
+-                }
+-                Err(errmsg) => {
+-                    error!("failed to listen for an incoming message: {:?}", errmsg);
++    debug!("start waiting for a new client connection through socket.");
++    for stream in listener.incoming() {
++        match stream {
++            Ok(mut stream) => {
++                if let Err(errmsg) = aconfigd.handle_socket_request_from_stream(&mut stream) {
++                    error!("failed to handle socket request: {:?}", errmsg);
+                 }
+             }
+-        }
+-    } else {
+-        let aconfigd = CXXAconfigd::new(ACONFIGD_ROOT_DIR, storage_records);
+-        aconfigd
+-            .initialize_in_memory_storage_records()
+-            .map_err(|e| anyhow!("failed to init memory storage records: {e}"))?;
+-
+-        debug!("start waiting for a new client connection through socket.");
+-        for stream in listener.incoming() {
+-            match stream {
+-                Ok(mut stream) => {
+-                    let mut length_buffer = [0u8; 4];
+-                    stream.read_exact(&mut length_buffer)?;
+-                    let message_length = u32::from_be_bytes(length_buffer);
+-
+-                    let mut message_buffer = vec![0u8; message_length as usize];
+-                    stream.read_exact(&mut message_buffer)?;
+-
+-                    match aconfigd.handle_socket_request(&message_buffer) {
+-                        Ok(response_buffer) => {
+-                            let mut response_length_buffer: [u8; 4] = [0; 4];
+-                            let response_size = &response_buffer.len();
+-                            response_length_buffer[0] = (response_size >> 24) as u8;
+-                            response_length_buffer[1] = (response_size >> 16) as u8;
+-                            response_length_buffer[2] = (response_size >> 8) as u8;
+-                            response_length_buffer[3] = *response_size as u8;
+-                            stream.write_all(&response_length_buffer)?;
+-                            stream.write_all(&response_buffer)?;
+-                        }
+-                        Err(e) => {
+-                            error!("failed to process socket request: {e}");
+-                        }
+-                    };
+-                }
+-                Err(errmsg) => {
+-                    error!("failed to listen for an incoming message: {:?}", errmsg);
+-                }
++            Err(errmsg) => {
++                error!("failed to listen for an incoming message: {:?}", errmsg);
+             }
+         }
+     }
+@@ -110,15 +69,9 @@ pub fn start_socket() -> Result<()> {
+ 
+ /// initialize mainline module storage files
+ pub fn mainline_init() -> Result<()> {
+-    if aconfig_new_storage_flags::enable_full_rust_system_aconfigd() {
+-        let mut aconfigd = Aconfigd::new(Path::new(ACONFIGD_ROOT_DIR), Path::new(STORAGE_RECORDS));
+-        aconfigd.initialize_from_storage_record()?;
+-        Ok(aconfigd.initialize_mainline_storage()?)
+-    } else {
+-        CXXAconfigd::new(ACONFIGD_ROOT_DIR, STORAGE_RECORDS)
+-            .initialize_mainline_storage()
+-            .map_err(|e| anyhow!("failed to init mainline storage: {e}"))
+-    }
++    let mut aconfigd = Aconfigd::new(Path::new(ACONFIGD_ROOT_DIR), Path::new(STORAGE_RECORDS));
++    aconfigd.initialize_from_storage_record()?;
++    Ok(aconfigd.initialize_mainline_storage()?)
+ }
+ 
+ /// initialize platform storage files
+@@ -129,14 +82,8 @@ pub fn platform_init() -> Result<()> {
+         STORAGE_RECORDS
+     };
+ 
+-    if aconfig_new_storage_flags::enable_full_rust_system_aconfigd() {
+-        let mut aconfigd = Aconfigd::new(Path::new(ACONFIGD_ROOT_DIR), Path::new(storage_records));
+-        aconfigd.remove_boot_files()?;
+-        aconfigd.initialize_from_storage_record()?;
+-        Ok(aconfigd.initialize_platform_storage()?)
+-    } else {
+-        CXXAconfigd::new(ACONFIGD_ROOT_DIR, storage_records)
+-            .initialize_platform_storage()
+-            .map_err(|e| anyhow!("failed to init platform storage: {e}"))
+-    }
++    let mut aconfigd = Aconfigd::new(Path::new(ACONFIGD_ROOT_DIR), Path::new(storage_records));
++    aconfigd.remove_boot_files()?;
++    aconfigd.initialize_from_storage_record()?;
++    Ok(aconfigd.initialize_platform_storage()?)
+ }
+diff --git a/aconfigd/src/main.rs b/aconfigd/src/main.rs
+index 7867f41..4a1145c 100644
+--- a/aconfigd/src/main.rs
++++ b/aconfigd/src/main.rs
+@@ -49,8 +49,8 @@ fn main() {
+     }
+ 
+     // SAFETY: nobody has taken ownership of the inherited FDs yet.
+-    // This needs to be called before logger initialization as logger setup will create a
+-    // file descriptor.
++    // This needs to be called before logger initialization as logger setup will
++    // create a file descriptor.
+     unsafe {
+         if let Err(errmsg) = rustutils::inherited_fd::init_once() {
+             error!("failed to run init_once for inherited fds: {:?}.", errmsg);
+@@ -68,7 +68,15 @@ fn main() {
+ 
+     let cli = Cli::parse();
+     let command_return = match cli.command {
+-        Command::StartSocket => aconfigd_commands::start_socket(),
++        Command::StartSocket => {
++            if cfg!(disable_system_aconfigd_socket) {
++                info!("aconfigd_system is build-disabled, exiting");
++                Ok(())
++            } else {
++                info!("aconfigd_system is build-enabled, starting socket");
++                aconfigd_commands::start_socket()
++            }
++        }
+         Command::PlatformInit => aconfigd_commands::platform_init(),
+         Command::MainlineInit => {
+             if aconfig_new_storage_flags::enable_aconfigd_from_mainline() {
+diff --git a/aconfigd/storage_files.cpp b/aconfigd/storage_files.cpp
+deleted file mode 100644
+index 360fd2c..0000000
+--- a/aconfigd/storage_files.cpp
++++ /dev/null
+@@ -1,1087 +0,0 @@
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#include "storage_files.h"
+-
+-#include <android-base/logging.h>
+-#include <unistd.h>
+-
+-#include <aconfig_storage/aconfig_storage_file.hpp>
+-
+-#include "aconfigd.h"
+-#include "aconfigd_util.h"
+-#include "com_android_aconfig_new_storage.h"
+-
+-using namespace aconfig_storage;
+-
+-namespace android {
+-  namespace aconfigd {
+-
+-  /// constructor for a new storage file set
+-  StorageFiles::StorageFiles(const std::string& container,
+-                             const std::string& package_map,
+-                             const std::string& flag_map,
+-                             const std::string& flag_val,
+-                             const std::string& flag_info,
+-                             const std::string& root_dir,
+-                             base::Result<void>& status)
+-      : container_(container)
+-      , storage_record_()
+-      , package_map_(nullptr)
+-      , flag_map_(nullptr)
+-      , flag_val_(nullptr)
+-      , boot_flag_val_(nullptr)
+-      , boot_flag_info_(nullptr)
+-      , persist_flag_val_(nullptr)
+-      , persist_flag_info_(nullptr) {
+-    auto version = get_storage_file_version(flag_val);
+-    if (!version.ok()) {
+-      status = base::Error() << "failed to get file version: " << version.error();
+-      return;
+-    }
+-
+-    auto digest = GetFilesDigest({package_map, flag_map, flag_val, flag_info});
+-    if (!digest.ok()) {
+-      status = base::Error() << "failed to get files digest: " << digest.error();
+-      return;
+-    }
+-
+-    storage_record_.version = *version;
+-    storage_record_.container = container;
+-    storage_record_.package_map = package_map;
+-    storage_record_.flag_map = flag_map;
+-    storage_record_.flag_val = flag_val;
+-    storage_record_.flag_info = flag_info;
+-    storage_record_.persist_package_map =
+-        root_dir + "/maps/" + container + ".package.map";
+-    storage_record_.persist_flag_map =
+-        root_dir + "/maps/" + container + ".flag.map";
+-    storage_record_.persist_flag_val =
+-        root_dir + "/flags/" + container + ".val";
+-    storage_record_.persist_flag_info =
+-        root_dir + "/flags/" + container + ".info";
+-    storage_record_.local_overrides =
+-        root_dir + "/flags/" + container + "_local_overrides.pb";
+-    storage_record_.boot_flag_val =
+-        root_dir + "/boot/" + container + ".val";
+-    storage_record_.boot_flag_info =
+-        root_dir + "/boot/" + container + ".info";
+-    storage_record_.digest= *digest;
+-
+-    // copy package map file
+-    auto copy_result = CopyFile(package_map, storage_record_.persist_package_map, 0444);
+-    if (!copy_result.ok()) {
+-      status = base::Error() << "CopyFile failed for " << package_map << ": "
+-                             << copy_result.error();
+-      return;
+-    }
+-
+-    // copy flag map file
+-    copy_result = CopyFile(flag_map, storage_record_.persist_flag_map, 0444);
+-    if (!copy_result.ok()) {
+-      status = base::Error() << "CopyFile failed for " << flag_map << ": "
+-                             << copy_result.error();
+-      return;
+-    }
+-
+-    // copy flag value file
+-    copy_result = CopyFile(flag_val, storage_record_.persist_flag_val, 0644);
+-    if (!copy_result.ok()) {
+-      status = base::Error() << "CopyFile failed for " << flag_val << ": "
+-                             << copy_result.error();
+-      return;
+-    }
+-
+-    // copy flag info file
+-    copy_result = CopyFile(flag_info, storage_record_.persist_flag_info, 0644);
+-    if (!copy_result.ok()) {
+-      status = base::Error() << "CopyFile failed for " << flag_info << ": "
+-                             << copy_result.error();
+-      return;
+-    }
+-  }
+-
+-  /// constructor for existing new storage file set
+-  StorageFiles::StorageFiles(const PersistStorageRecord& pb,
+-                             const std::string& root_dir)
+-      : container_(pb.container())
+-      , storage_record_()
+-      , package_map_(nullptr)
+-      , flag_map_(nullptr)
+-      , flag_val_(nullptr)
+-      , boot_flag_val_(nullptr)
+-      , boot_flag_info_(nullptr)
+-      , persist_flag_val_(nullptr)
+-      , persist_flag_info_(nullptr) {
+-    storage_record_.version = pb.version();
+-    storage_record_.container = pb.container();
+-    storage_record_.package_map = pb.package_map();
+-    storage_record_.flag_map = pb.flag_map();
+-    storage_record_.flag_val = pb.flag_val();
+-    if (pb.has_flag_info()) {
+-      storage_record_.flag_info = pb.flag_info();
+-    } else {
+-      auto val_file = storage_record_.flag_val;
+-      storage_record_.flag_info = val_file.substr(0, val_file.size()-3) + "info";
+-    }
+-    storage_record_.persist_package_map =
+-        root_dir + "/maps/" + pb.container() + ".package.map";
+-    storage_record_.persist_flag_map =
+-        root_dir + "/maps/" + pb.container() + ".flag.map";
+-    storage_record_.persist_flag_val =
+-        root_dir + "/flags/" + pb.container() + ".val";
+-    storage_record_.persist_flag_info =
+-        root_dir + "/flags/" + pb.container() + ".info";
+-    storage_record_.local_overrides =
+-        root_dir + "/flags/" + pb.container() + "_local_overrides.pb";
+-    storage_record_.boot_flag_val =
+-        root_dir + "/boot/" + pb.container() + ".val";
+-    storage_record_.boot_flag_info =
+-        root_dir + "/boot/" + pb.container() + ".info";
+-    storage_record_.digest = pb.digest();
+-  }
+-
+-  /// move constructor
+-  StorageFiles::StorageFiles(StorageFiles&& rhs) {
+-    if (this != &rhs) {
+-      *this = std::move(rhs);
+-    }
+-  }
+-
+-  /// move assignment
+-  StorageFiles& StorageFiles::operator=(StorageFiles&& rhs) {
+-    if (this != &rhs) {
+-      container_ = rhs.container_;
+-      storage_record_ = std::move(rhs.storage_record_);
+-      package_map_ = std::move(rhs.package_map_);
+-      flag_map_ = std::move(rhs.flag_map_);
+-      flag_val_ = std::move(rhs.flag_val_);
+-      boot_flag_val_ = std::move(rhs.boot_flag_val_);
+-      boot_flag_info_ = std::move(rhs.boot_flag_info_);
+-      persist_flag_val_ = std::move(rhs.persist_flag_val_);
+-      persist_flag_info_ = std::move(rhs.persist_flag_info_);
+-    }
+-    return *this;
+-  }
+-
+-  /// get package map
+-  base::Result<const MappedStorageFile*> StorageFiles::GetPackageMap() {
+-    if (!package_map_) {
+-      if (storage_record_.persist_package_map.empty()) {
+-        return base::Error() << "Missing persist package map file";
+-      }
+-      auto package_map = map_storage_file(storage_record_.persist_package_map);
+-      RETURN_IF_ERROR(package_map, "Failed to map persist package map file for " + container_);
+-      package_map_.reset(*package_map);
+-    }
+-    return package_map_.get();
+-  }
+-
+-  /// get flag map
+-  base::Result<const MappedStorageFile*> StorageFiles::GetFlagMap() {
+-    if (!flag_map_) {
+-      if (storage_record_.persist_flag_map.empty()) {
+-        return base::Error() << "Missing persist flag map file";
+-      }
+-      auto flag_map = map_storage_file(storage_record_.persist_flag_map);
+-      RETURN_IF_ERROR(flag_map, "Failed to map persist flag map file for " + container_);
+-      flag_map_.reset(*flag_map);
+-    }
+-    return flag_map_.get();
+-  }
+-
+-  /// get default flag val
+-  base::Result<const MappedStorageFile*> StorageFiles::GetFlagVal() {
+-    if (!flag_val_) {
+-      if (storage_record_.flag_val.empty()) {
+-        return base::Error() << "Missing flag val file";
+-      }
+-      auto flag_val = map_storage_file(storage_record_.flag_val);
+-      RETURN_IF_ERROR(flag_val, "Failed to map flag val file for " + container_);
+-      flag_val_.reset(*flag_val);
+-    }
+-    return flag_val_.get();
+-  }
+-
+-  /// get boot flag val
+-  base::Result<const MappedStorageFile*> StorageFiles::GetBootFlagVal() {
+-    if (!boot_flag_val_) {
+-      if (storage_record_.boot_flag_val.empty()) {
+-        return base::Error() << "Missing boot flag val file";
+-      }
+-      auto flag_val = map_storage_file(storage_record_.boot_flag_val);
+-      RETURN_IF_ERROR(flag_val, "Failed to map boot flag val file for " + container_);
+-      boot_flag_val_.reset(*flag_val);
+-    }
+-    return boot_flag_val_.get();
+-  }
+-
+-  /// get boot flag info
+-  base::Result<const MappedStorageFile*> StorageFiles::GetBootFlagInfo() {
+-    if (!boot_flag_info_) {
+-      if (storage_record_.boot_flag_info.empty()) {
+-        return base::Error() << "Missing boot flag info file";
+-      }
+-      auto flag_info = map_storage_file(storage_record_.boot_flag_info);
+-      RETURN_IF_ERROR(flag_info, "Failed to map boot flag info file for " + container_);
+-      boot_flag_info_.reset(*flag_info);
+-    }
+-    return boot_flag_info_.get();
+-  }
+-
+-  /// get persist flag val
+-  base::Result<const MutableMappedStorageFile*> StorageFiles::GetPersistFlagVal() {
+-    if (!persist_flag_val_) {
+-      if (storage_record_.persist_flag_val.empty()) {
+-        return base::Error() << "Missing persist flag value file";
+-      }
+-      auto flag_val = map_mutable_storage_file(storage_record_.persist_flag_val);
+-      RETURN_IF_ERROR(flag_val, "Failed to map persist flag val file for " + container_);
+-      persist_flag_val_.reset(*flag_val);
+-    }
+-    return persist_flag_val_.get();
+-  }
+-
+-  /// get persist flag info
+-  base::Result<const MutableMappedStorageFile*> StorageFiles::GetPersistFlagInfo() {
+-    if (!persist_flag_info_) {
+-      if (storage_record_.persist_flag_info.empty()) {
+-        return base::Error() << "Missing persist flag info file";
+-      }
+-      auto flag_info = map_mutable_storage_file(storage_record_.persist_flag_info);
+-      RETURN_IF_ERROR(flag_info, "Failed to map persist flag info file for " + container_);
+-      persist_flag_info_.reset(*flag_info);
+-    }
+-    return persist_flag_info_.get();
+-  }
+-
+-  /// check if flag is read only
+-  base::Result<bool> StorageFiles::IsFlagReadOnly(const PackageFlagContext& context) {
+-    if (!context.flag_exists) {
+-      return base::Error() << "Flag does not exist";
+-    }
+-
+-    auto flag_info_file = GetPersistFlagInfo();
+-    if (!flag_info_file.ok()) {
+-      return base::Error() << flag_info_file.error();
+-    }
+-
+-    auto attribute = get_flag_attribute(
+-        **flag_info_file, context.value_type, context.flag_index);
+-
+-    if (!attribute.ok()) {
+-      return base::Error() << "Failed to get flag attribute";
+-    }
+-
+-    return !(*attribute & FlagInfoBit::IsReadWrite);
+-  }
+-
+-  /// apply local update to boot flag value copy
+-  base::Result<void> StorageFiles::ApplyLocalOverrideToBootFlagValue() {
+-    auto flag_value_result = map_mutable_storage_file(storage_record_.boot_flag_val);
+-    if (!flag_value_result.ok()) {
+-      return base::Error() << "Failed to map boot flag value file for local override: "
+-                           << flag_value_result.error();
+-    }
+-    auto flag_value = std::unique_ptr<MutableMappedStorageFile>(*flag_value_result);
+-
+-    auto pb_file = storage_record_.local_overrides;
+-    auto pb = ReadPbFromFile<LocalFlagOverrides>(pb_file);
+-    if (!pb.ok()) {
+-      return base::Error() << "Failed to read pb from " << pb_file << ": " << pb.error();
+-    }
+-
+-    auto applied_overrides = LocalFlagOverrides();
+-    for (auto& entry : pb->overrides()) {
+-
+-      // find flag value type and index
+-      auto context = GetPackageFlagContext(entry.package_name(), entry.flag_name());
+-      if (!context.ok()) {
+-        return base::Error() << "Failed to find flag: " << context.error();
+-      }
+-
+-      if (!context->flag_exists) {
+-        continue;
+-      }
+-
+-      // apply a local override
+-      switch (context->value_type) {
+-        case FlagValueType::Boolean: {
+-          // validate value
+-          if (entry.flag_value() != "true" && entry.flag_value() != "false") {
+-            return base::Error() << "Invalid boolean flag value, it should be true|false";
+-          }
+-
+-          // update flag value
+-          auto update_result = set_boolean_flag_value(
+-              *flag_value, context->flag_index, entry.flag_value() == "true");
+-          if (!update_result.ok()) {
+-            return base::Error() << "Failed to update flag value: " << update_result.error();
+-          }
+-
+-          break;
+-        }
+-        default:
+-          return base::Error() << "Unsupported flag value type";
+-      }
+-
+-      // mark it applied
+-      auto new_applied = applied_overrides.add_overrides();
+-      new_applied->set_package_name(entry.package_name());
+-      new_applied->set_flag_name(entry.flag_name());
+-      new_applied->set_flag_value(entry.flag_value());
+-    }
+-
+-    if (pb->overrides_size() != applied_overrides.overrides_size()) {
+-      auto result = WritePbToFile<LocalFlagOverrides>(applied_overrides, pb_file);
+-      if (!result.ok()) {
+-        return base::Error() << result.error();
+-      }
+-    }
+-
+-    return {};
+-  }
+-
+-  /// has boot copy
+-  bool StorageFiles::HasBootCopy() {
+-    return FileExists(storage_record_.boot_flag_val)
+-        && FileExists(storage_record_.boot_flag_info);
+-  }
+-
+-  /// Find flag value type and global index
+-  base::Result<StorageFiles::PackageFlagContext> StorageFiles::GetPackageFlagContext(
+-      const std::string& package,
+-      const std::string& flag) {
+-    auto result = PackageFlagContext(package, flag);
+-
+-    // early return
+-    if (package.empty()) {
+-      result.package_exists = false;
+-      result.flag_exists = false;
+-      return result;
+-    }
+-
+-    // find package context
+-    auto package_map = GetPackageMap();
+-    if (!package_map.ok()) {
+-      return base::Error() << package_map.error();
+-    }
+-
+-    auto package_context = get_package_read_context(**package_map, package);
+-    if (!package_context.ok()) {
+-      return base::Error() << "Failed to get package context for " << package
+-                           << " in " << container_  << " :" << package_context.error();
+-    }
+-
+-    if (!package_context->package_exists) {
+-      result.flag_exists = false;
+-      return result;
+-    } else {
+-      result.package_exists = true;
+-    }
+-
+-    // early return
+-    if (flag.empty()) {
+-      return result;
+-    }
+-
+-    uint32_t package_id = package_context->package_id;
+-    uint32_t boolean_flag_start_index = package_context->boolean_start_index;
+-
+-    // find flag context
+-    auto flag_map = GetFlagMap();
+-    if (!flag_map.ok()) {
+-      return base::Error() << flag_map.error();
+-    }
+-
+-    auto flag_context = get_flag_read_context(**flag_map, package_id, flag);
+-    if (!flag_context.ok()) {
+-      return base::Error() << "Failed to get flag context of " << package << "/"
+-                           << flag << " in " << container_  << " :"
+-                           << flag_context.error();
+-    }
+-
+-    if (!flag_context->flag_exists) {
+-      result.flag_exists = false;
+-      return result;
+-    }
+-
+-    StoredFlagType stored_type = flag_context->flag_type;
+-    uint16_t within_package_flag_index = flag_context->flag_index;
+-    auto value_type = map_to_flag_value_type(stored_type);
+-    if (!value_type.ok()) {
+-      return base::Error() << "Failed to get flag value type :" << value_type.error();
+-    }
+-
+-    result.flag_exists = true;
+-    result.value_type = *value_type;
+-    result.flag_index = boolean_flag_start_index + within_package_flag_index;
+-    return result;
+-  }
+-
+-  /// check if has package
+-  base::Result<bool> StorageFiles::HasPackage(const std::string& package) {
+-    auto type_and_index = GetPackageFlagContext(package, "");
+-    if (!type_and_index.ok()) {
+-      return base::Error() << type_and_index.error();
+-    }
+-    return type_and_index->package_exists;
+-  }
+-
+-  /// check if has flag
+-  base::Result<bool> StorageFiles::HasFlag(const std::string& package,
+-                                           const std::string& flag) {
+-    auto type_and_index = GetPackageFlagContext(package, flag);
+-    if (!type_and_index.ok()) {
+-      return base::Error() << type_and_index.error();
+-    }
+-    return type_and_index->flag_exists;
+-  }
+-
+-  /// get persistent flag attribute
+-  base::Result<uint8_t> StorageFiles::GetFlagAttribute(
+-      const PackageFlagContext& context) {
+-    if (!context.flag_exists) {
+-      return base::Error() << "Flag does not exist";
+-    }
+-
+-    auto flag_info_file = GetPersistFlagInfo();
+-    if (!flag_info_file.ok()) {
+-      return base::Error() << flag_info_file.error();
+-    }
+-
+-    auto attribute = get_flag_attribute(**flag_info_file, context.value_type, context.flag_index);
+-    if (!attribute.ok()) {
+-      return base::Error() << "Failed to get flag info: " << attribute.error();
+-    }
+-
+-    return *attribute;
+-  }
+-
+-  /// get server flag value
+-  base::Result<std::string> StorageFiles::GetServerFlagValue(
+-      const PackageFlagContext& context) {
+-    auto attribute = GetFlagAttribute(context);
+-    RETURN_IF_ERROR(attribute, "Failed to get flag attribute");
+-
+-    if (!(*attribute & FlagInfoBit::HasServerOverride)) {
+-      return std::string();
+-    }
+-
+-    if (!context.flag_exists) {
+-      return base::Error() << "Flag does not exist";
+-    }
+-
+-    auto flag_value_file = GetPersistFlagVal();
+-    if (!flag_value_file.ok()) {
+-      return base::Error() << flag_value_file.error();
+-    }
+-
+-    switch (context.value_type) {
+-      case FlagValueType::Boolean: {
+-        auto value = get_boolean_flag_value(**flag_value_file, context.flag_index);
+-        if (!value.ok()) {
+-          return base::Error() << "Failed to get flag value: " << value.error();
+-        }
+-        return *value ? "true" : "false";
+-        break;
+-      }
+-      default:
+-        return base::Error() << "Unsupported flag value type";
+-    }
+-
+-    return base::Error() << "Failed to find flag in value file";
+-  }
+-
+-  /// get local flag value
+-  base::Result<std::string> StorageFiles::GetLocalFlagValue(
+-      const PackageFlagContext& context) {
+-    auto attribute = GetFlagAttribute(context);
+-    RETURN_IF_ERROR(attribute, "Failed to get flag attribute");
+-
+-    if (!(*attribute & FlagInfoBit::HasLocalOverride)) {
+-      return std::string();
+-    }
+-
+-    if (!context.flag_exists) {
+-      return base::Error() << "Flag does not exist";
+-    }
+-
+-    auto pb_file = storage_record_.local_overrides;
+-    auto pb = ReadPbFromFile<LocalFlagOverrides>(pb_file);
+-    if (!pb.ok()) {
+-      return base::Error() << "Failed to read pb from " << pb_file << ": " << pb.error();
+-    }
+-
+-    for (auto& entry : pb->overrides()) {
+-      if (context.package == entry.package_name()
+-          && context.flag == entry.flag_name()) {
+-        return entry.flag_value();
+-      }
+-    }
+-
+-    return base::Error() << "Failed to find flag local override value";
+-  }
+-
+-  /// get boot flag value
+-  base::Result<std::string> StorageFiles::GetBootFlagValue(
+-      const PackageFlagContext& context) {
+-    if (!context.flag_exists) {
+-      return base::Error() << "Flag does not exist";
+-    }
+-
+-    auto flag_value_file = GetBootFlagVal();
+-    if (!flag_value_file.ok()) {
+-      return base::Error() << flag_value_file.error();
+-    }
+-
+-    switch (context.value_type) {
+-      case FlagValueType::Boolean: {
+-        auto value = get_boolean_flag_value(**flag_value_file, context.flag_index);
+-        if (!value.ok()) {
+-          return base::Error() << "Failed to get boot flag value: " << value.error();
+-        }
+-        return *value ? "true" : "false";
+-        break;
+-      }
+-      default:
+-        return base::Error() << "Unsupported flag value type";
+-    }
+-
+-    return base::Error() << "Failed to find flag in value file";
+-  }
+-
+-  /// get default flag value
+-  base::Result<std::string> StorageFiles::GetDefaultFlagValue(
+-      const PackageFlagContext& context) {
+-    if (!context.flag_exists) {
+-      return base::Error() << "Flag does not exist";
+-    }
+-
+-    auto flag_value_file = GetFlagVal();
+-    if (!flag_value_file.ok()) {
+-      return base::Error() << flag_value_file.error();
+-    }
+-
+-    switch (context.value_type) {
+-      case FlagValueType::Boolean: {
+-        auto value = get_boolean_flag_value(**flag_value_file, context.flag_index);
+-        if (!value.ok()) {
+-          return base::Error() << "Failed to get default flag value: " << value.error();
+-        }
+-        return *value ? "true" : "false";
+-        break;
+-      }
+-      default:
+-        return base::Error() << "Unsupported flag value type";
+-    }
+-
+-    return base::Error() << "Failed to find flag in value file";
+-  }
+-
+-  /// server flag override, update persistent flag value
+-  base::Result<void> StorageFiles::SetServerFlagValue(const PackageFlagContext& context,
+-                                                      const std::string& flag_value) {
+-    if (!context.flag_exists) {
+-      return base::Error() << "Flag does not exist";
+-    }
+-
+-    auto readonly = IsFlagReadOnly(context);
+-    RETURN_IF_ERROR(readonly, "Failed to check if flag is readonly");
+-    if (*readonly) {
+-      return base::Error() << "Cannot update read only flag";
+-    }
+-
+-    auto flag_value_file = GetPersistFlagVal();
+-    RETURN_IF_ERROR(flag_value_file, "Cannot get persist flag value file");
+-
+-    switch (context.value_type) {
+-      case FlagValueType::Boolean: {
+-        if (flag_value != "true" && flag_value != "false") {
+-          return base::Error() << "Invalid boolean flag value, it should be true|false";
+-        }
+-
+-        auto update = set_boolean_flag_value(
+-            **flag_value_file, context.flag_index, flag_value == "true");
+-        RETURN_IF_ERROR(update, "Failed to update flag value");
+-
+-        update = SetHasServerOverride(context, true);
+-        RETURN_IF_ERROR(update, "Failed to set flag has server override");
+-
+-        break;
+-      }
+-      default:
+-        return base::Error() << "Unsupported flag value type";
+-    }
+-
+-    return {};
+-  }
+-
+-  /// Set value and has_local_override for boot copy immediately.
+-  base::Result<void> StorageFiles::UpdateBootValueAndInfoImmediately(
+-      const PackageFlagContext& context, const std::string& flag_value,
+-      bool has_local_override) {
+-    if (chmod(storage_record_.boot_flag_val.c_str(), 0644) == -1) {
+-      return base::ErrnoError() << "chmod() failed to set boot val to 0644";
+-    }
+-
+-    auto flag_value_file =
+-        map_mutable_storage_file(storage_record_.boot_flag_val);
+-    auto update_result = set_boolean_flag_value(
+-        **flag_value_file, context.flag_index, flag_value == "true");
+-    RETURN_IF_ERROR(update_result, "Failed to update boot flag value");
+-
+-    if (chmod(storage_record_.boot_flag_val.c_str(), 0444) == -1) {
+-      return base::ErrnoError() << "chmod() failed to set boot val to 0444";
+-    }
+-
+-    if (chmod(storage_record_.boot_flag_info.c_str(), 0644) == -1) {
+-      return base::ErrnoError() << "chmod() failed to set boot info to 0644";
+-    }
+-
+-    auto flag_info_file =
+-        map_mutable_storage_file(storage_record_.boot_flag_info);
+-    auto update_info_result =
+-        set_flag_has_local_override(**flag_info_file, context.value_type,
+-                                    context.flag_index, has_local_override);
+-    RETURN_IF_ERROR(update_info_result, "Failed to update boot flag info");
+-
+-    if (chmod(storage_record_.boot_flag_info.c_str(), 0444) == -1) {
+-      return base::ErrnoError() << "chmod() failed to set boot info to 0444";
+-    }
+-
+-    return {};
+-  }
+-
+-  /// local flag override, update local flag override pb filee
+-  base::Result<void> StorageFiles::SetLocalFlagValue(
+-      const PackageFlagContext& context, const std::string& flag_value) {
+-    if (!context.flag_exists) {
+-      return base::Error() << "Flag does not exist";
+-    }
+-
+-    auto readonly = IsFlagReadOnly(context);
+-    RETURN_IF_ERROR(readonly, "Failed to check if flag is readonly")
+-    if (*readonly) {
+-      return base::Error() << "Cannot update read only flag";
+-    }
+-
+-    auto pb_file = storage_record_.local_overrides;
+-    auto pb = ReadPbFromFile<LocalFlagOverrides>(pb_file);
+-    if (!pb.ok()) {
+-      return base::Error() << "Failed to read pb from " << pb_file << ": " << pb.error();
+-    }
+-
+-    bool exist = false;
+-    for (auto& entry : *(pb->mutable_overrides())) {
+-      if (entry.package_name() == context.package
+-          && entry.flag_name() == context.flag) {
+-        if (entry.flag_value() == flag_value) {
+-          return {};
+-        }
+-        exist = true;
+-        entry.set_flag_value(flag_value);
+-        break;
+-      }
+-    }
+-
+-    if (!exist) {
+-      auto new_override = pb->add_overrides();
+-      new_override->set_package_name(context.package);
+-      new_override->set_flag_name(context.flag);
+-      new_override->set_flag_value(flag_value);
+-    }
+-
+-    auto write = WritePbToFile<LocalFlagOverrides>(*pb, pb_file);
+-    if (!write.ok()) {
+-      return base::Error() << "Failed to write pb to " << pb_file << ": " << write.error();
+-    }
+-
+-    auto update = SetHasLocalOverride(context, true);
+-    RETURN_IF_ERROR(update, "Failed to set flag has local override");
+-
+-    return {};
+-  }
+-
+-  /// set has server override in flag info
+-  base::Result<void> StorageFiles::SetHasServerOverride(const PackageFlagContext& context,
+-                                                        bool has_server_override) {
+-    if (!context.flag_exists) {
+-      return base::Error() << "Flag does not exist";
+-    }
+-
+-    auto flag_info_file = GetPersistFlagInfo();
+-    if (!flag_info_file.ok()) {
+-      return base::Error() << flag_info_file.error();
+-    }
+-
+-    auto update_result = set_flag_has_server_override(
+-        **flag_info_file, context.value_type, context.flag_index, has_server_override);
+-    if (!update_result.ok()) {
+-      return base::Error() << "Failed to update flag has server override: "
+-                           << update_result.error();
+-    }
+-
+-    return {};
+-  }
+-
+-  /// set has local override in flag info
+-  base::Result<void> StorageFiles::SetHasLocalOverride(const PackageFlagContext& context,
+-                                                       bool has_local_override) {
+-    if (!context.flag_exists) {
+-      return base::Error() << "Flag does not exist";
+-    }
+-
+-    auto flag_info_file = GetPersistFlagInfo();
+-    if (!flag_info_file.ok()) {
+-      return base::Error() << flag_info_file.error();
+-    }
+-
+-    auto update_result = set_flag_has_local_override(
+-        **flag_info_file, context.value_type, context.flag_index, has_local_override);
+-    if (!update_result.ok()) {
+-      return base::Error() << "Failed to update flag has local override: "
+-                           << update_result.error();
+-    }
+-
+-    return {};
+-  }
+-
+-  /// remove a single flag local override, return if removed
+-  base::Result<bool> StorageFiles::RemoveLocalFlagValue(
+-      const PackageFlagContext& context, bool immediate) {
+-    auto pb_file = storage_record_.local_overrides;
+-    auto pb = ReadPbFromFile<LocalFlagOverrides>(pb_file);
+-    if (!pb.ok()) {
+-      return base::Error() << "Failed to read pb from " << pb_file << ": " << pb.error();
+-    }
+-
+-    auto remaining_overrides = LocalFlagOverrides();
+-    for (auto entry : pb->overrides()) {
+-      if (entry.package_name() == context.package
+-          && entry.flag_name() == context.flag) {
+-        continue;
+-      }
+-      auto kept_override = remaining_overrides.add_overrides();
+-      kept_override->set_package_name(entry.package_name());
+-      kept_override->set_flag_name(entry.flag_name());
+-      kept_override->set_flag_value(entry.flag_value());
+-    }
+-
+-    bool return_result;
+-    if (remaining_overrides.overrides_size() != pb->overrides_size()) {
+-      auto result = WritePbToFile<LocalFlagOverrides>(remaining_overrides, pb_file);
+-      if (!result.ok()) {
+-        return base::Error() << result.error();
+-      }
+-
+-      auto update = SetHasLocalOverride(context, false);
+-      RETURN_IF_ERROR(update, "Failed to unset flag has local override");
+-
+-      return_result = true;
+-    } else {
+-      return_result = false;
+-    }
+-
+-    if (immediate) {
+-      auto attribute = GetFlagAttribute(context);
+-      RETURN_IF_ERROR(
+-          attribute,
+-          "Failed to get flag attribute for removing override immediately");
+-
+-      auto value = ((*attribute) & FlagInfoBit::HasServerOverride)
+-                       ? GetServerFlagValue(context)
+-                       : GetDefaultFlagValue(context);
+-      RETURN_IF_ERROR(value, "Failed to get server or default value");
+-
+-      auto update = UpdateBootValueAndInfoImmediately(context, *value, false);
+-      RETURN_IF_ERROR(update,
+-                      "Failed to remove local override boot flag value");
+-    }
+-
+-    return return_result;
+-  }
+-
+-  /// remove all local overrides
+-  base::Result<void> StorageFiles::RemoveAllLocalFlagValue(bool immediate) {
+-    auto pb_file = storage_record_.local_overrides;
+-    auto overrides_pb = ReadPbFromFile<LocalFlagOverrides>(pb_file);
+-    RETURN_IF_ERROR(overrides_pb, "Failed to read local overrides");
+-
+-    for (auto& entry : overrides_pb->overrides()) {
+-      auto context = GetPackageFlagContext(entry.package_name(), entry.flag_name());
+-      RETURN_IF_ERROR(context, "Failed to find package flag context for flag "
+-                      + entry.package_name() + "/" + entry.flag_name());
+-
+-      auto update = SetHasLocalOverride(*context, false);
+-      RETURN_IF_ERROR(update, "Failed to unset flag has local override");
+-
+-      if (immediate) {
+-        auto attribute = GetFlagAttribute(*context);
+-        RETURN_IF_ERROR(
+-            attribute,
+-            "Failed to get flag attribute for removing override immediately");
+-
+-        auto value = ((*attribute) & FlagInfoBit::HasServerOverride)
+-                         ? GetServerFlagValue(*context)
+-                         : GetDefaultFlagValue(*context);
+-        RETURN_IF_ERROR(value, "Failed to get server or default value");
+-
+-        auto boot_update =
+-            UpdateBootValueAndInfoImmediately(*context, *value, false);
+-        RETURN_IF_ERROR(boot_update,
+-                        "Failed to remove local override boot flag value");
+-      }
+-    }
+-
+-    if (overrides_pb->overrides_size()) {
+-      auto result = WritePbToFile<LocalFlagOverrides>(
+-          LocalFlagOverrides(), pb_file);
+-      RETURN_IF_ERROR(result, "Failed to flush local overrides pb file");
+-    }
+-
+-    return {};
+-  }
+-
+-  /// get all current server override
+-  base::Result<std::vector<StorageFiles::ServerOverride>>
+-      StorageFiles::GetServerFlagValues() {
+-    auto listed_flags = list_flags_with_info(storage_record_.persist_package_map,
+-                                             storage_record_.persist_flag_map,
+-                                             storage_record_.persist_flag_val,
+-                                             storage_record_.persist_flag_info);
+-    RETURN_IF_ERROR(
+-        listed_flags, "Failed to list all flags for " + storage_record_.container);
+-
+-    auto server_updated_flags = std::vector<ServerOverride>();
+-    for (const auto& flag : *listed_flags) {
+-      if (flag.has_server_override) {
+-        auto server_override = ServerOverride();
+-        server_override.package_name = std::move(flag.package_name);
+-        server_override.flag_name = std::move(flag.flag_name);
+-        server_override.flag_value = std::move(flag.flag_value);
+-        server_updated_flags.push_back(server_override);
+-      }
+-    }
+-
+-    return server_updated_flags;
+-  }
+-
+-  /// remove all storage files
+-  base::Result<void> StorageFiles::RemoveAllPersistFiles() {
+-    package_map_.reset(nullptr);
+-    flag_map_.reset(nullptr);
+-    flag_val_.reset(nullptr);
+-    boot_flag_val_.reset(nullptr);
+-    boot_flag_info_.reset(nullptr);
+-    persist_flag_val_.reset(nullptr);
+-    persist_flag_info_.reset(nullptr);
+-    if (unlink(storage_record_.persist_package_map.c_str()) == -1) {
+-      return base::ErrnoError() << "unlink() failed for "
+-                                << storage_record_.persist_package_map;
+-    }
+-    if (unlink(storage_record_.persist_flag_map.c_str()) == -1) {
+-      return base::ErrnoError() << "unlink() failed for "
+-                                << storage_record_.persist_flag_map;
+-    }
+-    if (unlink(storage_record_.persist_flag_val.c_str()) == -1) {
+-      return base::ErrnoError() << "unlink() failed for "
+-                                << storage_record_.persist_flag_val;
+-    }
+-    if (unlink(storage_record_.persist_flag_info.c_str()) == -1) {
+-      return base::ErrnoError() << "unlink() failed for "
+-                                << storage_record_.persist_flag_info;
+-    }
+-    if (unlink(storage_record_.local_overrides.c_str()) == -1) {
+-      return base::ErrnoError() << "unlink() failed for " << storage_record_.local_overrides;
+-    }
+-    return {};
+-  }
+-
+-  /// create boot flag value and info files
+-  base::Result<void> StorageFiles::CreateBootStorageFiles() {
+-    // If the boot copy already exists, do nothing. Never update the boot copy, the boot
+-    // copy should be boot stable. So in the following scenario: a container storage
+-    // file boot copy is created, then an updated container is mounted along side existing
+-    // container. In this case, we should update the persistent storage file copy. But
+-    // never touch the current boot copy.
+-    if (FileExists(storage_record_.boot_flag_val)
+-        && FileExists(storage_record_.boot_flag_info)) {
+-      return {};
+-    }
+-
+-    auto copy = CopyFile(
+-        storage_record_.persist_flag_val, storage_record_.boot_flag_val, 0444);
+-    RETURN_IF_ERROR(copy, "CopyFile failed for " + storage_record_.persist_flag_val);
+-
+-    copy = CopyFile(
+-        storage_record_.persist_flag_info, storage_record_.boot_flag_info, 0444);
+-    RETURN_IF_ERROR(copy, "CopyFile failed for " + storage_record_.persist_flag_info);
+-
+-    // change boot flag value file to 0644 to allow write
+-    if (chmod(storage_record_.boot_flag_val.c_str(), 0644) == -1) {
+-      return base::ErrnoError() << "chmod() failed to set to 0644";
+-    };
+-
+-    auto apply_result = ApplyLocalOverrideToBootFlagValue();
+-
+-    // change boot flag value file back to 0444
+-    if (chmod(storage_record_.boot_flag_val.c_str(), 0444) == -1) {
+-      if (!apply_result.ok()) {
+-        return base::ErrnoError() << apply_result.error() << ": "
+-                                  << "chmod() failed to set to 0444";
+-      } else {
+-        return base::ErrnoError() << "chmod() failed to set to 0444";
+-      }
+-    };
+-
+-    return apply_result;
+-  }
+-
+-  /// list a flag
+-  base::Result<StorageFiles::FlagSnapshot> StorageFiles::ListFlag(
+-      const std::string& package,
+-      const std::string& flag) {
+-
+-    auto context = GetPackageFlagContext(package, flag);
+-    RETURN_IF_ERROR(context, "Failed to find package flag context");
+-
+-    if (!context->flag_exists) {
+-      return base::Error() << "Flag " << package << "/" << flag << " does not exist";
+-    }
+-
+-    auto attribute = GetFlagAttribute(*context);
+-    RETURN_IF_ERROR(context, "Failed to get flag attribute");
+-
+-    auto server_value = GetServerFlagValue(*context);
+-    RETURN_IF_ERROR(server_value, "Failed to get server flag value");
+-
+-    auto local_value = GetLocalFlagValue(*context);
+-    RETURN_IF_ERROR(local_value, "Failed to get local flag value");
+-
+-    auto boot_value = GetBootFlagValue(*context);
+-    RETURN_IF_ERROR(boot_value, "Failed to get boot flag value");
+-
+-    auto default_value = GetDefaultFlagValue(*context);
+-    RETURN_IF_ERROR(default_value, "Failed to get default flag value");
+-
+-    auto snapshot = FlagSnapshot();
+-    snapshot.package_name = package;
+-    snapshot.flag_name = flag;
+-    snapshot.default_flag_value = *default_value;
+-    snapshot.boot_flag_value = *boot_value;
+-    snapshot.server_flag_value = *server_value;
+-    snapshot.local_flag_value = *local_value;
+-    snapshot.is_readwrite = *attribute & FlagInfoBit::IsReadWrite;
+-    snapshot.has_server_override = *attribute & FlagInfoBit::HasServerOverride;
+-    snapshot.has_local_override = *attribute & FlagInfoBit::HasLocalOverride;
+-
+-    return snapshot;
+-  }
+-
+-  /// list flags
+-  base::Result<std::vector<StorageFiles::FlagSnapshot>> StorageFiles::ListFlags(
+-      const std::string& package) {
+-    if (!package.empty()) {
+-      auto has_package = HasPackage(package);
+-      RETURN_IF_ERROR(
+-          has_package, package + " does not exist in " + storage_record_.container);
+-    }
+-
+-    // fill default value
+-    auto snapshots = std::vector<FlagSnapshot>();
+-    auto idxs = std::unordered_map<std::string, size_t>();
+-
+-    auto listed_flags = list_flags(storage_record_.package_map,
+-                                   storage_record_.flag_map,
+-                                   storage_record_.flag_val);
+-    RETURN_IF_ERROR(
+-        listed_flags, "Failed to list default flags for " + storage_record_.container);
+-
+-    for (auto const& flag : *listed_flags) {
+-      if (package.empty() || package == flag.package_name) {
+-        idxs[flag.package_name + "/" + flag.flag_name] = snapshots.size();
+-        snapshots.emplace_back();
+-        auto& snapshot = snapshots.back();
+-        snapshot.package_name = std::move(flag.package_name);
+-        snapshot.flag_name = std::move(flag.flag_name);
+-        snapshot.default_flag_value = std::move(flag.flag_value);
+-      }
+-    }
+-
+-    // fill boot value
+-    auto listed_flags_boot = list_flags_with_info(
+-        storage_record_.package_map, storage_record_.flag_map,
+-        storage_record_.boot_flag_val, storage_record_.boot_flag_info);
+-    RETURN_IF_ERROR(listed_flags_boot, "Failed to list boot flags for " +
+-                                           storage_record_.container);
+-
+-    for (auto const& flag : *listed_flags_boot) {
+-      auto full_flag_name = flag.package_name + "/" + flag.flag_name;
+-      if (!idxs.count(full_flag_name)) {
+-        continue;
+-      }
+-      auto idx = idxs[full_flag_name];
+-      snapshots[idx].boot_flag_value = std::move(flag.flag_value);
+-      snapshots[idx].has_boot_local_override = flag.has_local_override;
+-    }
+-
+-    // fill server value and attribute
+-    auto listed_flags_with_info = list_flags_with_info(storage_record_.package_map,
+-                                                       storage_record_.flag_map,
+-                                                       storage_record_.persist_flag_val,
+-                                                       storage_record_.persist_flag_info);
+-    RETURN_IF_ERROR(listed_flags_with_info,
+-                    "Failed to list persist flags for " + storage_record_.container);
+-
+-    for (auto const& flag : *listed_flags_with_info) {
+-      auto full_flag_name = flag.package_name + "/" + flag.flag_name;
+-      if (!idxs.count(full_flag_name)) {
+-        continue;
+-      }
+-      auto idx = idxs[full_flag_name];
+-      if (flag.has_server_override) {
+-        snapshots[idx].server_flag_value = std::move(flag.flag_value);
+-      }
+-      snapshots[idx].is_readwrite = flag.is_readwrite;
+-      snapshots[idx].has_server_override = flag.has_server_override;
+-      snapshots[idx].has_local_override = flag.has_local_override;
+-    }
+-
+-    // fill local value
+-    auto const& pb_file = storage_record_.local_overrides;
+-    auto pb = ReadPbFromFile<LocalFlagOverrides>(pb_file);
+-    RETURN_IF_ERROR(pb, "Failed to read pb from " + pb_file);
+-    for (const auto& flag : pb->overrides()) {
+-      auto full_flag_name = flag.package_name() + "/" + flag.flag_name();
+-      if (!idxs.count(full_flag_name)) {
+-        continue;
+-      }
+-      auto idx = idxs[full_flag_name];
+-      snapshots[idx].local_flag_value = flag.flag_value();
+-    }
+-
+-    auto comp = [](const auto& v1, const auto& v2){
+-      return (v1.package_name + "/" + v1.flag_name) <
+-          (v2.package_name + "/" + v2.flag_name);
+-    };
+-    std::sort(snapshots.begin(), snapshots.end(), comp);
+-
+-    return snapshots;
+-  }
+-
+-  } // namespace aconfigd
+-} // namespace android
+diff --git a/aconfigd/storage_files.h b/aconfigd/storage_files.h
+deleted file mode 100644
+index f7cd41d..0000000
+--- a/aconfigd/storage_files.h
++++ /dev/null
+@@ -1,257 +0,0 @@
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#pragma once
+-
+-#include <string>
+-
+-#include <android-base/result.h>
+-
+-#include <aconfig_storage/aconfig_storage_read_api.hpp>
+-#include <aconfig_storage/aconfig_storage_write_api.hpp>
+-#include <aconfigd.pb.h>
+-
+-namespace android {
+-  namespace aconfigd {
+-
+-    /// In memory data structure for storage file locations for each container
+-    struct StorageRecord {
+-      int version;
+-      std::string container;            // container name
+-      std::string package_map;          // package.map on container
+-      std::string flag_map;             // flag.map on container
+-      std::string flag_val;             // flag.val on container
+-      std::string flag_info;            // flag.info on container
+-      std::string persist_package_map;  // persist package.map (backup copy for OTA)
+-      std::string persist_flag_map;     // persist flag.map (backup copy for OTA)
+-      std::string persist_flag_val;     // persist flag.val
+-      std::string persist_flag_info;    // persist flag.info
+-      std::string local_overrides;      // local flag overrides pb file
+-      std::string boot_flag_val;        // boot flag.val
+-      std::string boot_flag_info;       // boot flag.info
+-      std::string digest;               // digest of storage files
+-    };
+-
+-    /// Mapped files for a container
+-    class StorageFiles {
+-      public:
+-
+-      /// constructor for a new storage file set
+-      StorageFiles(const std::string& container,
+-                   const std::string& package_map,
+-                   const std::string& flag_map,
+-                   const std::string& flag_val,
+-                   const std::string& flag_info,
+-                   const std::string& root_dir,
+-                   base::Result<void>& status);
+-
+-      /// constructor for existing new storage file set
+-      StorageFiles(const PersistStorageRecord& pb,
+-                   const std::string& root_dir);
+-
+-      /// destructor
+-      ~StorageFiles() = default;
+-
+-      /// no copy
+-      StorageFiles(const StorageFiles&) = delete;
+-      StorageFiles& operator=(const StorageFiles&) = delete;
+-
+-      /// move constructor and assignment
+-      StorageFiles(StorageFiles&& rhs);
+-      StorageFiles& operator=(StorageFiles&& rhs);
+-
+-      /// get storage record
+-      const StorageRecord& GetStorageRecord() {
+-        return storage_record_;
+-      }
+-
+-      /// has boot copy
+-      bool HasBootCopy();
+-
+-      /// return result for package and flag context
+-      struct PackageFlagContext {
+-        const std::string& package;
+-        const std::string& flag;
+-        bool package_exists;
+-        bool flag_exists;
+-        aconfig_storage::FlagValueType value_type;
+-        uint32_t flag_index;
+-
+-        PackageFlagContext(const std::string& package_name,
+-                           const std::string& flag_name)
+-            : package(package_name)
+-            , flag(flag_name)
+-            , package_exists(false)
+-            , flag_exists(false)
+-            , value_type()
+-            , flag_index()
+-        {}
+-      };
+-
+-      /// Find package and flag context
+-      base::Result<PackageFlagContext> GetPackageFlagContext(
+-          const std::string& package, const std::string& flag);
+-
+-      /// check if has package
+-      base::Result<bool> HasPackage(const std::string& package);
+-
+-      /// check if has flag
+-      base::Result<bool> HasFlag(const std::string& package,
+-                                 const std::string& flag);
+-
+-      /// get persistent flag attribute
+-      base::Result<uint8_t> GetFlagAttribute(const PackageFlagContext& context);
+-
+-      /// get server flag value
+-      base::Result<std::string> GetServerFlagValue(const PackageFlagContext& context);
+-
+-      /// get local flag value
+-      base::Result<std::string> GetLocalFlagValue(const PackageFlagContext& context);
+-
+-      /// get boot flag value
+-      base::Result<std::string> GetBootFlagValue(const PackageFlagContext& context);
+-
+-      /// get default flag value
+-      base::Result<std::string> GetDefaultFlagValue(const PackageFlagContext& context);
+-
+-      /// server flag override, update persistent flag value
+-      base::Result<void> SetServerFlagValue(const PackageFlagContext& context,
+-                                            const std::string& flag_value);
+-
+-      /// Set boot value and local_override info immediately
+-      base::Result<void> UpdateBootValueAndInfoImmediately(
+-          const PackageFlagContext& context, const std::string& flag_value,
+-          bool has_local_override);
+-
+-      /// local flag override, update local flag override pb filee
+-      base::Result<void> SetLocalFlagValue(const PackageFlagContext& context,
+-                                           const std::string& flag_value);
+-
+-      /// set has server override in flag info
+-      base::Result<void> SetHasServerOverride(const PackageFlagContext& context,
+-                                              bool has_server_override);
+-
+-      /// set has local override in flag info
+-      base::Result<void> SetHasLocalOverride(const PackageFlagContext& context,
+-                                             bool has_local_override);
+-
+-      /// remove a single flag local override, return if removed
+-      base::Result<bool> RemoveLocalFlagValue(const PackageFlagContext& context,
+-                                              bool immediate);
+-
+-      /// remove all local overrides
+-      base::Result<void> RemoveAllLocalFlagValue(bool immediate);
+-
+-      /// strcut for server flag value entries
+-      struct ServerOverride {
+-        std::string package_name;
+-        std::string flag_name;
+-        std::string flag_value;
+-      };
+-
+-      /// get all current server override
+-      base::Result<std::vector<ServerOverride>> GetServerFlagValues();
+-
+-      /// remove all persist storage files
+-      base::Result<void> RemoveAllPersistFiles();
+-
+-      /// create boot flag value and info files
+-      base::Result<void> CreateBootStorageFiles();
+-
+-      /// struct for flag snapshot
+-      struct FlagSnapshot {
+-        std::string package_name;
+-        std::string flag_name;
+-        std::string server_flag_value;
+-        std::string local_flag_value;
+-        std::string boot_flag_value;
+-        std::string default_flag_value;
+-        bool is_readwrite;
+-        bool has_server_override;
+-        bool has_local_override;
+-        bool has_boot_local_override;
+-      };
+-
+-      /// list a flag
+-      base::Result<StorageFiles::FlagSnapshot> ListFlag(const std::string& package,
+-                                                        const std::string& flag);
+-
+-      /// list flags
+-      base::Result<std::vector<FlagSnapshot>> ListFlags(
+-          const std::string& package = "");
+-
+-      private:
+-
+-      /// get package map
+-      base::Result<const aconfig_storage::MappedStorageFile*> GetPackageMap();
+-
+-      /// get flag map
+-      base::Result<const aconfig_storage::MappedStorageFile*> GetFlagMap();
+-
+-      /// get default flag val
+-      base::Result<const aconfig_storage::MappedStorageFile*> GetFlagVal();
+-
+-      /// get boot flag val
+-      base::Result<const aconfig_storage::MappedStorageFile*> GetBootFlagVal();
+-
+-      /// get boot flag info
+-      base::Result<const aconfig_storage::MappedStorageFile*> GetBootFlagInfo();
+-
+-      /// get persist flag val
+-      base::Result<const aconfig_storage::MutableMappedStorageFile*> GetPersistFlagVal();
+-
+-      /// get persist flag info
+-      base::Result<const aconfig_storage::MutableMappedStorageFile*> GetPersistFlagInfo();
+-
+-      /// check if flag is read only
+-      base::Result<bool> IsFlagReadOnly(const PackageFlagContext& context);
+-
+-      /// apply local update to boot flag value copy
+-      base::Result<void> ApplyLocalOverrideToBootFlagValue();
+-
+-      private:
+-
+-      /// container name
+-      std::string container_;
+-
+-      // storage record for current container
+-      StorageRecord storage_record_;
+-
+-      /// mapped package map file
+-      std::unique_ptr<aconfig_storage::MappedStorageFile> package_map_;
+-
+-      /// mapped flag map file
+-      std::unique_ptr<aconfig_storage::MappedStorageFile> flag_map_;
+-
+-      /// mapped default flag value file
+-      std::unique_ptr<aconfig_storage::MappedStorageFile> flag_val_;
+-
+-      /// mapped boot flag value file
+-      std::unique_ptr<aconfig_storage::MappedStorageFile> boot_flag_val_;
+-
+-      /// mapped boot flag info file
+-      std::unique_ptr<aconfig_storage::MappedStorageFile> boot_flag_info_;
+-
+-      /// mapped persist flag value file
+-      std::unique_ptr<aconfig_storage::MutableMappedStorageFile> persist_flag_val_;
+-
+-      /// mapped persist flag info file
+-      std::unique_ptr<aconfig_storage::MutableMappedStorageFile> persist_flag_info_;
+-
+-    }; // class StorageFiles
+-
+-  } // namespace aconfigd
+-} // namespace android
+diff --git a/aconfigd/storage_files_manager.cpp b/aconfigd/storage_files_manager.cpp
+deleted file mode 100644
+index 68185d5..0000000
+--- a/aconfigd/storage_files_manager.cpp
++++ /dev/null
+@@ -1,438 +0,0 @@
+-
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#include "storage_files_manager.h"
+-
+-#include <android-base/logging.h>
+-
+-#include "aconfigd.h"
+-#include "aconfigd_util.h"
+-#include "com_android_aconfig_new_storage.h"
+-
+-using namespace aconfig_storage;
+-
+-namespace android {
+-  namespace aconfigd {
+-
+-  /// get storage files object for a container
+-  base::Result<StorageFiles*> StorageFilesManager::GetStorageFiles(
+-      const std::string& container) {
+-    if (all_storage_files_.count(container) == 0) {
+-      return base::Error() << "Missing storage files object for " << container;
+-    }
+-    return all_storage_files_[container].get();
+-  }
+-
+-  /// create mapped files for a container
+-  base::Result<StorageFiles*> StorageFilesManager::AddNewStorageFiles(
+-      const std::string& container,
+-      const std::string& package_map,
+-      const std::string& flag_map,
+-      const std::string& flag_val,
+-      const std::string& flag_info) {
+-    if (all_storage_files_.count(container)) {
+-      return base::Error() << "Storage file object for " << container << " already exists";
+-    }
+-
+-    auto result = base::Result<void>({});
+-    auto storage_files = std::make_unique<StorageFiles>(
+-          container, package_map, flag_map, flag_val, flag_info, root_dir_, result);
+-
+-    if (!result.ok()) {
+-      return base::Error() << "Failed to create storage file object for " << container
+-                     << ": " << result.error();
+-    }
+-
+-    auto storage_files_ptr = storage_files.get();
+-    all_storage_files_[container].reset(storage_files.release());
+-    return storage_files_ptr;
+-  }
+-
+-  /// restore storage files object from a storage record pb entry
+-  base::Result<void> StorageFilesManager::RestoreStorageFiles(
+-      const PersistStorageRecord& pb) {
+-    if (all_storage_files_.count(pb.container())) {
+-      return base::Error() << "Storage file object for " << pb.container()
+-                     << " already exists";
+-    }
+-
+-    all_storage_files_[pb.container()] = std::make_unique<StorageFiles>(pb, root_dir_);
+-    return {};
+-  }
+-
+-  /// update existing storage files object with new storage file set
+-  base::Result<void> StorageFilesManager::UpdateStorageFiles(
+-      const std::string& container,
+-      const std::string& package_map,
+-      const std::string& flag_map,
+-      const std::string& flag_val,
+-      const std::string& flag_info) {
+-    if (!all_storage_files_.count(container)) {
+-      return base::Error() << "Failed to update storage files object for " << container
+-                     << ", it does not exist";
+-    }
+-
+-    // backup server and local override
+-    auto storage_files = GetStorageFiles(container);
+-    RETURN_IF_ERROR(storage_files, "Failed to get storage files object");
+-    auto server_overrides = (**storage_files).GetServerFlagValues();
+-    RETURN_IF_ERROR(server_overrides, "Failed to get existing server overrides");
+-
+-    auto pb_file = (**storage_files).GetStorageRecord().local_overrides;
+-    auto local_overrides = ReadPbFromFile<LocalFlagOverrides>(pb_file);
+-    RETURN_IF_ERROR(local_overrides, "Failed to read local overrides from " + pb_file);
+-
+-    // clean up existing storage files object and recreate
+-    (**storage_files).RemoveAllPersistFiles();
+-    all_storage_files_.erase(container);
+-    storage_files = AddNewStorageFiles(
+-        container, package_map, flag_map, flag_val, flag_info);
+-    RETURN_IF_ERROR(storage_files, "Failed to add a new storage object for " + container);
+-
+-    // reapply local overrides
+-    auto updated_local_overrides = LocalFlagOverrides();
+-    for (const auto& entry : local_overrides->overrides()) {
+-      auto has_flag = (**storage_files).HasFlag(entry.package_name(), entry.flag_name());
+-      RETURN_IF_ERROR(has_flag, "Failed to check if has flag for " + entry.package_name()
+-                      + "/" + entry.flag_name());
+-      if (*has_flag) {
+-        auto context = (**storage_files).GetPackageFlagContext(
+-            entry.package_name(), entry.flag_name());
+-        RETURN_IF_ERROR(context, "Failed to find package flag context for " +
+-                        entry.package_name() + "/" + entry.flag_name());
+-
+-        auto update = (**storage_files).SetHasLocalOverride(*context, true);
+-        RETURN_IF_ERROR(update, "Failed to set flag has local override");
+-
+-        auto* new_override = updated_local_overrides.add_overrides();
+-        new_override->set_package_name(entry.package_name());
+-        new_override->set_flag_name(entry.flag_name());
+-        new_override->set_flag_value(entry.flag_value());
+-      }
+-    }
+-    auto result = WritePbToFile<LocalFlagOverrides>(updated_local_overrides, pb_file);
+-
+-    // reapply server overrides
+-    for (const auto& entry : *server_overrides) {
+-      auto has_flag = (**storage_files).HasFlag(entry.package_name, entry.flag_name);
+-      RETURN_IF_ERROR(has_flag, "Failed to check if has flag for " + entry.package_name
+-                      + "/" + entry.flag_name);
+-      if (*has_flag) {
+-        auto context = (**storage_files).GetPackageFlagContext(
+-            entry.package_name, entry.flag_name);
+-        RETURN_IF_ERROR(context, "Failed to find package flag context for " +
+-                        entry.package_name + "/" + entry.flag_name);
+-
+-        auto update = (**storage_files).SetServerFlagValue(*context, entry.flag_value);
+-        RETURN_IF_ERROR(update, "Failed to set server flag value");
+-      }
+-    }
+-
+-    return {};
+-  }
+-
+-  /// add or update storage file set for a container
+-  base::Result<bool> StorageFilesManager::AddOrUpdateStorageFiles(
+-      const std::string& container,
+-      const std::string& package_map,
+-      const std::string& flag_map,
+-      const std::string& flag_val,
+-      const std::string& flag_info) {
+-    bool new_container = !HasContainer(container);
+-    bool update_existing_container = false;
+-    if (!new_container) {
+-      auto digest = GetFilesDigest({package_map, flag_map, flag_val, flag_info});
+-      RETURN_IF_ERROR(digest, "Failed to get digest for " + container);
+-      auto storage_files = GetStorageFiles(container);
+-      RETURN_IF_ERROR(storage_files, "Failed to get storage files object");
+-      if ((**storage_files).GetStorageRecord().digest != *digest) {
+-        update_existing_container = true;
+-      }
+-    }
+-
+-    // early return if no update is needed
+-    if (!(new_container || update_existing_container)) {
+-      return false;
+-    }
+-
+-    if (new_container) {
+-      auto storage_files = AddNewStorageFiles(
+-          container, package_map, flag_map, flag_val, flag_info);
+-      RETURN_IF_ERROR(storage_files, "Failed to add a new storage object for " + container);
+-    } else {
+-      auto storage_files = UpdateStorageFiles(
+-          container, package_map, flag_map, flag_val, flag_info);
+-      RETURN_IF_ERROR(storage_files, "Failed to update storage object for " + container);
+-    }
+-
+-    return true;
+-  }
+-
+-  /// create boot copy
+-  base::Result<void> StorageFilesManager::CreateStorageBootCopy(
+-      const std::string& container) {
+-    if (!HasContainer(container)) {
+-      return base::Error() << "Cannot create boot copy without persist copy for " << container;
+-    }
+-    auto storage_files = GetStorageFiles(container);
+-    auto copy_result = (**storage_files).CreateBootStorageFiles();
+-    RETURN_IF_ERROR(copy_result, "Failed to create boot copies for " + container);
+-    return {};
+-  }
+-
+-  /// reset all storage
+-  base::Result<void> StorageFilesManager::ResetAllStorage() {
+-    for (const auto& container : GetAllContainers()) {
+-      auto storage_files = GetStorageFiles(container);
+-      RETURN_IF_ERROR(storage_files, "Failed to get storage files object");
+-      bool available = (**storage_files).HasBootCopy();
+-      StorageRecord record = (**storage_files).GetStorageRecord();
+-
+-      (**storage_files).RemoveAllPersistFiles();
+-      all_storage_files_.erase(container);
+-
+-      if (available) {
+-        auto storage_files = AddNewStorageFiles(
+-            container, record.package_map, record.flag_map, record.flag_val, record.flag_info);
+-        RETURN_IF_ERROR(storage_files, "Failed to add a new storage object for " + container);
+-      }
+-    }
+-    return {};
+-  }
+-
+-  /// get container name given flag package name
+-  base::Result<std::string> StorageFilesManager::GetContainer(
+-      const std::string& package) {
+-    if (package_to_container_.count(package)) {
+-      return package_to_container_[package];
+-    }
+-
+-    for (const auto& [container, storage_files] : all_storage_files_) {
+-      auto has_flag = storage_files->HasPackage(package);
+-      RETURN_IF_ERROR(has_flag, "Failed to check if has flag");
+-
+-      if (*has_flag) {
+-        package_to_container_[package] = container;
+-        return container;
+-      }
+-    }
+-
+-    return base::Error() << "container not found";
+-  }
+-
+-  /// Get all storage records
+-  std::vector<const StorageRecord*> StorageFilesManager::GetAllStorageRecords() {
+-    auto all_records = std::vector<const StorageRecord*>();
+-    for (auto const& [container, files_ptr] : all_storage_files_) {
+-      all_records.push_back(&(files_ptr->GetStorageRecord()));
+-    }
+-    return all_records;
+-  }
+-
+-  /// get all containers
+-  std::vector<std::string> StorageFilesManager::GetAllContainers() {
+-    auto containers = std::vector<std::string>();
+-    for (const auto& item : all_storage_files_) {
+-      containers.push_back(item.first);
+-    }
+-    return containers;
+-  }
+-
+-  /// write to persist storage records pb file
+-  base::Result<void> StorageFilesManager::WritePersistStorageRecordsToFile(
+-      const std::string& file_name) {
+-    auto records_pb = PersistStorageRecords();
+-    for (const auto& [container, storage_files] : all_storage_files_) {
+-      const auto& record = storage_files->GetStorageRecord();
+-      auto* record_pb = records_pb.add_records();
+-      record_pb->set_version(record.version);
+-      record_pb->set_container(record.container);
+-      record_pb->set_package_map(record.package_map);
+-      record_pb->set_flag_map(record.flag_map);
+-      record_pb->set_flag_val(record.flag_val);
+-      record_pb->set_flag_info(record.flag_info);
+-      record_pb->set_digest(record.digest);
+-    }
+-    return WritePbToFile<PersistStorageRecords>(records_pb, file_name);
+-  }
+-
+-  /// apply flag override
+-  base::Result<void> StorageFilesManager::UpdateFlagValue(
+-      const std::string& package_name, const std::string& flag_name,
+-      const std::string& flag_value,
+-      const StorageRequestMessage::FlagOverrideType override_type) {
+-    auto container = GetContainer(package_name);
+-    RETURN_IF_ERROR(container, "Failed to find owning container");
+-
+-    auto storage_files = GetStorageFiles(*container);
+-    RETURN_IF_ERROR(storage_files, "Failed to get storage files object");
+-
+-    auto context = (**storage_files).GetPackageFlagContext(package_name, flag_name);
+-    RETURN_IF_ERROR(context, "Failed to find package flag context");
+-
+-    switch (override_type) {
+-      case StorageRequestMessage::LOCAL_ON_REBOOT: {
+-        auto update = (**storage_files).SetLocalFlagValue(*context, flag_value);
+-        RETURN_IF_ERROR(update, "Failed to set local flag override");
+-        break;
+-      }
+-      case StorageRequestMessage::SERVER_ON_REBOOT: {
+-        auto update =
+-            (**storage_files).SetServerFlagValue(*context, flag_value);
+-        RETURN_IF_ERROR(update, "Failed to set server flag value");
+-        break;
+-      }
+-      case StorageRequestMessage::LOCAL_IMMEDIATE: {
+-        auto updateOverride =
+-            (**storage_files).SetLocalFlagValue(*context, flag_value);
+-        RETURN_IF_ERROR(updateOverride, "Failed to set local flag override");
+-        auto updateBootFile =
+-            (**storage_files)
+-                .UpdateBootValueAndInfoImmediately(*context, flag_value, true);
+-        RETURN_IF_ERROR(updateBootFile,
+-                        "Failed to write local override to boot file");
+-        break;
+-      }
+-      default:
+-        return base::Error() << "unknown flag override type";
+-    }
+-
+-    return {};
+-  }
+-
+-  /// apply ota flags and return remaining ota flags
+-  base::Result<std::vector<FlagOverride>> StorageFilesManager::ApplyOTAFlagsForContainer(
+-      const std::string& container,
+-      const std::vector<FlagOverride>& ota_flags) {
+-    auto storage_files = GetStorageFiles(container);
+-    RETURN_IF_ERROR(storage_files, "Failed to get storage files object");
+-
+-    auto remaining_ota_flags = std::vector<FlagOverride>();
+-    for (const auto& entry : ota_flags) {
+-      auto has_flag = (**storage_files).HasPackage(entry.package_name());
+-      RETURN_IF_ERROR(has_flag, "Failed to check if has flag");
+-      if (*has_flag) {
+-        auto result = UpdateFlagValue(entry.package_name(),
+-                                      entry.flag_name(),
+-                                      entry.flag_value());
+-        if (!result.ok()) {
+-          LOG(ERROR) << "Failed to apply staged OTA flag " << entry.package_name()
+-                     << "/" << entry.flag_name() << ": " << result.error();
+-        }
+-      } else {
+-        remaining_ota_flags.push_back(entry);
+-      }
+-    }
+-
+-    return remaining_ota_flags;
+-  }
+-
+-  /// remove all local overrides
+-  base::Result<void> StorageFilesManager::RemoveAllLocalOverrides(
+-      const StorageRequestMessage::RemoveOverrideType remove_override_type) {
+-    for (const auto& [container, storage_files] : all_storage_files_) {
+-      bool immediate =
+-          remove_override_type == StorageRequestMessage::REMOVE_LOCAL_IMMEDIATE;
+-      auto update = storage_files->RemoveAllLocalFlagValue(immediate);
+-      RETURN_IF_ERROR(update, "Failed to remove local overrides for " + container);
+-    }
+-    return {};
+-  }
+-
+-  /// remove a local override
+-  base::Result<void> StorageFilesManager::RemoveFlagLocalOverride(
+-      const std::string& package, const std::string& flag,
+-      const StorageRequestMessage::RemoveOverrideType remove_override_type) {
+-    auto container = GetContainer(package);
+-    RETURN_IF_ERROR(container, "Failed to find owning container");
+-
+-    auto storage_files = GetStorageFiles(*container);
+-    RETURN_IF_ERROR(storage_files, "Failed to get storage files object");
+-
+-    auto context = (**storage_files).GetPackageFlagContext(package, flag);
+-    RETURN_IF_ERROR(context, "Failed to find package flag context");
+-
+-    bool immediate =
+-        remove_override_type == StorageRequestMessage::REMOVE_LOCAL_IMMEDIATE;
+-    auto removed = (**storage_files).RemoveLocalFlagValue(*context, immediate);
+-    RETURN_IF_ERROR(removed, "Failed to remove local override");
+-
+-    return {};
+-  }
+-
+-  /// list a flag
+-  base::Result<StorageFiles::FlagSnapshot> StorageFilesManager::ListFlag(
+-      const std::string& package,
+-      const std::string& flag) {
+-    auto container = GetContainer(package);
+-    RETURN_IF_ERROR(container, "Failed to find owning container");
+-    auto storage_files = GetStorageFiles(*container);
+-    RETURN_IF_ERROR(storage_files, "Failed to get storage files object");
+-
+-    if ((**storage_files).HasBootCopy()) {
+-      return (**storage_files).ListFlag(package, flag);
+-    } else{
+-      return base::Error() << "Container " << *container << " is currently unavailable";
+-    }
+-  }
+-
+-  /// list flags in a package
+-  base::Result<std::vector<StorageFiles::FlagSnapshot>>
+-      StorageFilesManager::ListFlagsInPackage(const std::string& package) {
+-    auto container = GetContainer(package);
+-    RETURN_IF_ERROR(container, "Failed to find owning container for " + package);
+-    auto storage_files = GetStorageFiles(*container);
+-    RETURN_IF_ERROR(storage_files, "Failed to get storage files object");
+-
+-    if ((**storage_files).HasBootCopy()) {
+-      return (**storage_files).ListFlags(package);
+-    } else{
+-      return base::Error() << "Container " << *container << " is currently unavailable";
+-    }
+-  }
+-
+-  /// list flags in a container
+-  base::Result<std::vector<StorageFiles::FlagSnapshot>>
+-      StorageFilesManager::ListFlagsInContainer(const std::string& container) {
+-    auto storage_files = GetStorageFiles(container);
+-    RETURN_IF_ERROR(storage_files, "Failed to get storage files object");
+-
+-    if ((**storage_files).HasBootCopy()) {
+-      return (**storage_files).ListFlags();
+-    } else {
+-      return base::Error() << "Container " << container << " is currently unavailable";
+-    }
+-  }
+-
+-  /// list all available flags
+-  base::Result<std::vector<StorageFiles::FlagSnapshot>>
+-      StorageFilesManager::ListAllAvailableFlags() {
+-    auto total_flags = std::vector<StorageFiles::FlagSnapshot>();
+-    for (const auto& [container, storage_files] : all_storage_files_) {
+-      if (!storage_files->HasBootCopy()) {
+-        continue;
+-      }
+-      auto flags = storage_files->ListFlags();
+-      RETURN_IF_ERROR(flags, "Failed to list flags in " + container);
+-      total_flags.reserve(total_flags.size() + flags->size());
+-      total_flags.insert(total_flags.end(), flags->begin(), flags->end());
+-    }
+-    return total_flags;
+-  }
+-
+-  } // namespace aconfigd
+-} // namespace android
+diff --git a/aconfigd/storage_files_manager.h b/aconfigd/storage_files_manager.h
+deleted file mode 100644
+index 0483128..0000000
+--- a/aconfigd/storage_files_manager.h
++++ /dev/null
+@@ -1,160 +0,0 @@
+-/*
+- * Copyright (C) 2024 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#pragma once
+-
+-#include <vector>
+-#include <string>
+-#include <memory>
+-#include <unordered_map>
+-
+-#include <aconfigd.pb.h>
+-#include "storage_files.h"
+-
+-namespace android {
+-  namespace aconfigd {
+-    /// Manager all storage files across different containers
+-    class StorageFilesManager {
+-      public:
+-
+-      /// constructor
+-      StorageFilesManager(const std::string& root_dir)
+-          : root_dir_(root_dir)
+-          , all_storage_files_()
+-          , package_to_container_()
+-      {}
+-
+-      /// destructor
+-      ~StorageFilesManager() = default;
+-
+-      /// no copy
+-      StorageFilesManager(const StorageFilesManager&) = delete;
+-      StorageFilesManager& operator=(const StorageFilesManager&) = delete;
+-
+-      /// move constructor and assignment
+-      StorageFilesManager(StorageFilesManager&& rhs)
+-          : root_dir_(rhs.root_dir_)
+-          , all_storage_files_()
+-          , package_to_container_() {
+-        if (this != &rhs) {
+-          all_storage_files_ = std::move(rhs.all_storage_files_);
+-          package_to_container_ = std::move(rhs.package_to_container_);
+-        }
+-      }
+-      StorageFilesManager& operator=(StorageFilesManager&& rhs) = delete;
+-
+-      /// has container
+-      bool HasContainer(const std::string& container) {
+-        return all_storage_files_.count(container);
+-      }
+-
+-      /// get mapped files for a container
+-      base::Result<StorageFiles*> GetStorageFiles(const std::string& container);
+-
+-      /// create mapped files for a container
+-      base::Result<StorageFiles*> AddNewStorageFiles(const std::string& container,
+-                                                     const std::string& package_map,
+-                                                     const std::string& flag_map,
+-                                                     const std::string& flag_val,
+-                                                     const std::string& flag_info);
+-
+-      /// restore storage files object from a storage record pb entry
+-      base::Result<void> RestoreStorageFiles(const PersistStorageRecord& pb);
+-
+-      /// update existing storage files object with new storage file set
+-      base::Result<void> UpdateStorageFiles(const std::string& container,
+-                                            const std::string& package_map,
+-                                            const std::string& flag_map,
+-                                            const std::string& flag_val,
+-                                            const std::string& flag_info);
+-
+-      /// add or update storage file set for a container
+-      base::Result<bool> AddOrUpdateStorageFiles(const std::string& container,
+-                                                 const std::string& package_map,
+-                                                 const std::string& flag_map,
+-                                                 const std::string& flag_val,
+-                                                 const std::string& flag_info);
+-
+-      /// create boot copy
+-      base::Result<void> CreateStorageBootCopy(const std::string& container);
+-
+-      /// reset all storage
+-      base::Result<void> ResetAllStorage();
+-
+-      /// get container name given flag package name
+-      base::Result<std::string> GetContainer(const std::string& package);
+-
+-      /// get all storage records
+-      std::vector<const StorageRecord*> GetAllStorageRecords();
+-
+-      /// get all containers
+-      std::vector<std::string> GetAllContainers();
+-
+-      /// write to persist storage records pb file
+-      base::Result<void> WritePersistStorageRecordsToFile(
+-          const std::string& file_name);
+-
+-      /// apply flag override
+-      base::Result<void> UpdateFlagValue(
+-          const std::string& package_name, const std::string& flag_name,
+-          const std::string& flag_value,
+-          const StorageRequestMessage::FlagOverrideType overrideType =
+-              StorageRequestMessage::SERVER_ON_REBOOT);
+-
+-      /// apply ota flags and return remaining ota flags
+-      base::Result<std::vector<FlagOverride>> ApplyOTAFlagsForContainer(
+-          const std::string& container,
+-          const std::vector<FlagOverride>& ota_flags);
+-
+-      /// remove all local overrides
+-      base::Result<void> RemoveAllLocalOverrides(
+-          const StorageRequestMessage::RemoveOverrideType removeOverrideType);
+-
+-      /// remove a local override
+-      base::Result<void> RemoveFlagLocalOverride(
+-          const std::string& package, const std::string& flag,
+-          const StorageRequestMessage::RemoveOverrideType removeOverrideType);
+-
+-      /// list a flag
+-      base::Result<StorageFiles::FlagSnapshot> ListFlag(const std::string& package,
+-                                                        const std::string& flag);
+-
+-      /// list flags in a package
+-      base::Result<std::vector<StorageFiles::FlagSnapshot>> ListFlagsInPackage(
+-          const std::string& package);
+-
+-      /// list flags in a containers
+-      base::Result<std::vector<StorageFiles::FlagSnapshot>> ListFlagsInContainer(
+-          const std::string& container);
+-
+-      /// list all available flags
+-      base::Result<std::vector<StorageFiles::FlagSnapshot>> ListAllAvailableFlags();
+-
+-      private:
+-
+-      /// root directory to store storage files
+-      const std::string root_dir_;
+-
+-      /// a hash table from container name to mapped files
+-      std::unordered_map<std::string, std::unique_ptr<StorageFiles>> all_storage_files_;
+-
+-      /// a hash table from package name to container name
+-      std::unordered_map<std::string, std::string> package_to_container_;
+-
+-    }; // class StorageFilesManager
+-
+-  } // namespace aconfigd
+-} // namespace android
+diff --git a/aconfigd/tests/data/v1/flag.info b/aconfigd/tests/data/v1/flag.info
+deleted file mode 100644
+index 6223edf..0000000
+Binary files a/aconfigd/tests/data/v1/flag.info and /dev/null differ
+diff --git a/aconfigd/tests/data/v1/flag.map b/aconfigd/tests/data/v1/flag.map
+deleted file mode 100644
+index e868f53..0000000
+Binary files a/aconfigd/tests/data/v1/flag.map and /dev/null differ
+diff --git a/aconfigd/tests/data/v1/flag.val b/aconfigd/tests/data/v1/flag.val
+deleted file mode 100644
+index ed203d4..0000000
+Binary files a/aconfigd/tests/data/v1/flag.val and /dev/null differ
+diff --git a/aconfigd/tests/data/v1/package.map b/aconfigd/tests/data/v1/package.map
+deleted file mode 100644
+index 6c46a03..0000000
+Binary files a/aconfigd/tests/data/v1/package.map and /dev/null differ
+diff --git a/aconfigd/tests/data/v2/flag.info b/aconfigd/tests/data/v2/flag.info
+deleted file mode 100644
+index 06e464f..0000000
+Binary files a/aconfigd/tests/data/v2/flag.info and /dev/null differ
+diff --git a/aconfigd/tests/data/v2/flag.map b/aconfigd/tests/data/v2/flag.map
+deleted file mode 100644
+index 38aebde..0000000
+Binary files a/aconfigd/tests/data/v2/flag.map and /dev/null differ
+diff --git a/aconfigd/tests/data/v2/flag.val b/aconfigd/tests/data/v2/flag.val
+deleted file mode 100644
+index 6e9f652..0000000
+Binary files a/aconfigd/tests/data/v2/flag.val and /dev/null differ
+diff --git a/aconfigd/tests/data/v2/package.map b/aconfigd/tests/data/v2/package.map
+deleted file mode 100644
+index dc0be2b..0000000
+Binary files a/aconfigd/tests/data/v2/package.map and /dev/null differ
+```
+

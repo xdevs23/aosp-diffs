@@ -1,0 +1,21 @@
+```
+7093ae0: Create MediaTemplateActivityInterceptorForSuspension (Vaibhav Goyal <vagoyal@google.com>)
+179edaa: Pass activity launches to ScaleProvider (Eric Chiang <eschiang@google.com>)
+b6abc33: Support SYSTEM user activities on any root task (Gaurav Bhola <gauravbhola@google.com>)
+fc72d97: Apply needs safe region bounds if activity needs display compat (jainrachit <jainrachit@google.com>)
+f5db7e3: Update root task information in CarServiceHelperService (Rachit Jain <jainrachit@google.com>)
+eccd91f: Refactor tellDumpFinished in CarWatchdogDaemonHelper to take a list of P... (Samuel Johnson <samueldjohnson@google.com>)
+6c2d080: Add API for setting if safe region bounds are needed (jainrachit <jainrachit@google.com>)
+08288ea: Marked failing test Flaky temporarily (Mayank Garg <gargmayank@google.com>)
+674c009: Update usage of WindowChangeListener (Yeabkal Wubshit <yeabkal@google.com>)
+ee1ee4c: Fix null meta data attached to activities in PackageInfo (Jainam Shah <jainams@google.com>)
+fae41d2: Remove outdated smoke test for IME (Antonio Kantek <kanant@google.com>)
+27cf0a4: Fix builtInServices/proto jarjar rules (Samuel Johnson <samueldjohnson@google.com>)
+2592b56: Report ANR kill metrics in CarServiceHelperService (Samuel Johnson <samueldjohnson@google.com>)
+2a53aca: Exclude dump info methods from code coverage (Antonio Kantek <kanant@google.com>)
+d7a5455: Apply WM test support to car services tests. (Eric Lin <ericth@google.com>)
+561336f: Fix CTS scaling values (Eric Chiang <eschiang@google.com>)
+1c027c2: Implement API to check display compat pkg per user (Jainam Shah <jainams@google.com>)
+38b1b74: Update test_suites to point to automotive-general-tests instead of autom... (Filip Zakrzewski <fzakrzewski@google.com>)
+```
+

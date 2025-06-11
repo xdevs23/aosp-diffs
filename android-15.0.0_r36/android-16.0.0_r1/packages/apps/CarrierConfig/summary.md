@@ -1,0 +1,23 @@
+```
+c28d344: Allow pbundle_as_map in carrier config. (Xin Li <delphij@google.com>)
+e751afd: Adding CarrierConfig for IDC (id2447,carrier25915) (Vitaly Lozinskiy <v.lozinsky@admin.idknet.com>)
+bccf9b3: Configure PCI timer (Ling Ma <linggm@google.com>)
+a1c4550: Config changes for carrier OXIO (Patrick O'Reilly <poreilly@oxio.io>)
+b868f41: Update Almadar Carrier ID 2006 to enable VoLTE, SMSoIP and VoWIFI (Mohamed Ghuneim <m.ghuneim@almadar.ly>)
+c16c649: [TMO US] Add Data services part of supported satellite services (Nagendra Prasad Nagarle Basavaraju <nagendranb@g...)
+2075ffa: The Hash key of com.kt.watchcfmanager is invalid, The hash key of com.kt... (Kyungchan Cha <kyungchan.cha@kt.corp-partner.goo...)
+1639964: Added base carrier settings file for mobi (Jesus Rojas <jesus@mobi.com>)
+2475dba: Add VoLTE Settings for Be Aliv Bahamas (carrier id 2130) (Jeff Dyer <jeff.dyer@bealiv.com>)
+1b86784: Carrier Privilege updates to Xfinity Carrier Config  based on request fr... (Kwame Asafo-Adjei <kasafoadjei@google.com>)
+493a24a: Adding carrier privileges for Telefonica ES (Fabricio Ferracioli <fferracioli@google.com>)
+491add2: Adding carrier privileges for Telefonica UK (Fabricio Ferracioli <fferracioli@google.com>)
+25f0e32: Adding additional signatures for com.xfinity.mobile.spamfilter to Xfinit... (Kwame Asafo-Adjei <kasafoadjei@google.com>)
+3160893: Updating carrier config based on carrier requirements (Fabricio Ferracioli <fferracioli@google.com>)
+4dbe172: Change to address and MVNO Operator displayed name issue.  Allowing the ... (Mark McLaughlin <mark.3.mclaughlin@bt.com>)
+be97738: carrierConfig: update Carrier Config ID 492 for Pivotel (Steve Chan <steve.chan@pivotel.com.au>)
+7a723a9: [TMO US] Ignore data roaming off for satellite internet (Karthick M J <karthickmj@google.com>)
+7b1bfea: Change satellite display name for verizon (sangyun <sangyun@google.com>)
+5d1e2c1: [CarrierId] Removed duplicate CarrierId and merged carrier_config into o... (Sungcheol Ahn <donaldahn@google.com>)
+ef45354: Add CarrierConfig for NetGenuity. (Chris Awad <chris.awad@netgenuity.com>)
+```
+

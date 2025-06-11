@@ -1,0 +1,21 @@
+```
+1900c6f: opencsd: Update version and README for v1.5.6 (Mike Leach <mike.leach@linaro.org>)
+46c70e9: docs: Update trc_pkt_lister docs (Mike Leach <mike.leach@linaro.org>)
+da59a26: tests: Fix ete snapshot test script (Mike Leach <mike.leach@linaro.org>)
+03aa6c8: docs: Update perf related docs (Mike Leach <mike.leach@linaro.org>)
+f726a80: build: Fix issue with make -f <path> failing (Mike Leach <mike.leach@linaro.org>)
+66672f8: docs: Update auto-fdo docs (Mike Leach <mike.leach@linaro.org>)
+eca614b: opencsd: etmv4: Update include for LLVM build (Mike Leach <mike.leach@linaro.org>)
+ffd4863: Add janitors to the OWNERS file (Sadaf Ebrahimi <sadafebrahimi@google.com>)
+742d60e: opencsd: Update version info and README for 1.5.5 (Mike Leach <mike.leach@linaro.org>)
+7ca491c: build: Update docs for MacOS support (Rhys Griffiths <rhys.griffiths@arm.com>)
+cac83e5: build: Add MacOS development makefile (Rhys Griffiths <rhys.griffiths@arm.com>)
+e56eff2: build: Use .dylib shared library suffix for MacOS (Rhys Griffiths <rhys.griffiths@arm.com>)
+35f957d: build: Create initial MacOS makefile (Rhys Griffiths <rhys.griffiths@arm.com>)
+44dff5b: build: Restore Linux build support (Rhys Griffiths <rhys.griffiths@arm.com>)
+a0e1301: build: Rename build folders as 'unix_common' for upcoming MacOS support (Rhys Griffiths <rhys.griffiths@arm.com>)
+ecdde9f: tests: Add option to suppress elapsed processing time in test program. (Mike Leach <mike.leach@linaro.org>)
+821632b: tests: update mem_buff_demo test to add options. (Mike Leach <mike.leach@linaro.org>)
+70e472c: opencsd: Memacc object cleanup fix (Mike Leach <mike.leach@linaro.org>)
+```
+

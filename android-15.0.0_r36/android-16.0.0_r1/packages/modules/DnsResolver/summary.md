@@ -1,0 +1,21 @@
+```
+7d2476b5: Introduce IDnsResolver#setAllowBypassPrivateDnsOnNetwork (Xiao Ma <xiaom@google.com>)
+6aabebe0: DnsResolver apex - add a NetBpfLoad-S.flag for bpf_existence_test (Maciej Żenczykowski <maze@google.com>)
+b0030460: DnsProxyListener: init (but ignore failure) on S/Sv2 (Maciej Żenczykowski <maze@google.com>)
+e60aa532: Stop sending to FF02::FB or 224.0.0.251 based on query type (Stefano Duo <stefanoduo@google.com>)
+1d45ec6f: Send mDNS queries onto every interface associated to target network (Stefano Duo <stefanoduo@google.com>)
+69686277: getaddrinfo: propagate ResState via res_target (Stefano Duo <stefanoduo@google.com>)
+a1f5fa39: getaddrinfo: always populate resources for network (Stefano Duo <stefanoduo@google.com>)
+2cbdc705: Make ResState::ndots a constant (Stefano Duo <stefanoduo@google.com>)
+581e2969: Disable caching for mDNS (Stefano Duo <stefanoduo@google.com>)
+4b6a9f37: Replace libstatslog_rust with libstatslog_dns_resolver_rust (Shintaro Kawamura <kawasin@google.com>)
+5a39dd94: Always add "lo" as an interface to network TEST_NETID (Stefano Duo <stefanoduo@google.com>)
+ffd82999: Correctly support AI_ADDRCONFIG for mDNS queries via getaddrinfo (Stefano Duo <stefanoduo@google.com>)
+88584581: Document DNS setup for multinetwork tests with TUN forwarder (Stefano Duo <stefanoduo@google.com>)
+e7fa08ae: Refactor dns_getaddrinfo to support more than two queries (Stefano Duo <stefanoduo@google.com>)
+430272da: Update code for Rust 1.83.0 (Chris Wailes <chriswailes@google.com>)
+73f635f4: Remove Q-only code in DnsResolver (Ningyuan Wang <ningyuan@google.com>)
+83fdbab3: Do not retry queries when socket remote hung up (Remi NGUYEN VAN <reminv@google.com>)
+c741abbe: Set libdoh_frontend_ffi to link libstd statically (Ivan Lozano <ivanlozano@google.com>)
+```
+

@@ -1,0 +1,20 @@
+```
+9a09500: hals_for_release.py print the AIDL version (Devin Moore <devinmoore@google.com>)
+e042a95: Make error message for kernel level a bit more explicit (Devin Moore <devinmoore@google.com>)
+c2de8e5: Remove 'optional' functionality from libvintf (Devin Moore <devinmoore@google.com>)
+265c5ff: Change android V vintf level from 9 to 202404 (Devin Moore <devinmoore@google.com>)
+5230085: Add placeholder for V VINTF Level (Steven Moreland <smoreland@google.com>)
+87213ae: Add checks directly to vintffm for mandatory framework HALs (Devin Moore <devinmoore@google.com>)
+eeebbf7: Remove logHalsFromNewFcms (Devin Moore <devinmoore@google.com>)
+4ddbd3f: Differentiate between error and info/warning in libvintf output (Devin Moore <devinmoore@google.com>)
+6d76c9c: Deprecate HALs regardless of instance name (Devin Moore <devinmoore@google.com>)
+ba6cfcb: Print AIDL interface versions without SIZE_MAX (Devin Moore <devinmoore@google.com>)
+3231670: Log the files we looked at when failing to find an FCM (Devin Moore <devinmoore@google.com>)
+a4320f6: Add missing #includes. (Elliott Hughes <enh@google.com>)
+57b67ec: Load vintf manifests from /vendor and /odm separately (Jooyung Han <jooyung@google.com>)
+9e96209: Prepare for next year's development (Devin Moore <devinmoore@google.com>)
+648a4af: Replace fmt::format with std::format (Henri Chataing <henrichataing@google.com>)
+1d2dc45: libvintf: Level::W -> Level::B (Devin Moore <devinmoore@google.com>)
+ea94eae: Treat all unknown attribute values as an error (Devin Moore <devinmoore@google.com>)
+```
+
