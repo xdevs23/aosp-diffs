@@ -1,6 +1,6 @@
 ```diff
 diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml
-index a4fba896..0d42378e 100644
+index a4fba89..0d42378 100644
 --- a/.github/workflows/build.yml
 +++ b/.github/workflows/build.yml
 @@ -30,7 +30,7 @@ jobs:
@@ -84,7 +84,7 @@ index a4fba896..0d42378e 100644
            ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_NEXUS_PASSWORD }}
 diff --git a/.github/workflows/release.yaml b/.github/workflows/release.yaml
 new file mode 100644
-index 00000000..7c1560b6
+index 0000000..7c1560b
 --- /dev/null
 +++ b/.github/workflows/release.yaml
 @@ -0,0 +1,26 @@
@@ -115,7 +115,7 @@ index 00000000..7c1560b6
 +          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_NEXUS_PASSWORD }}
 +          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ARTIFACT_SIGNING_PRIVATE_KEY }}
 diff --git a/.gitignore b/.gitignore
-index 977efb87..49cdaadf 100644
+index 977efb8..49cdaad 100644
 --- a/.gitignore
 +++ b/.gitignore
 @@ -1,5 +1,6 @@
@@ -126,7 +126,7 @@ index 977efb87..49cdaadf 100644
  .settings
  eclipsebin
 diff --git a/Android.bp b/Android.bp
-index 47a4d56e..08e69edb 100644
+index 47a4d56..08e69ed 100644
 --- a/Android.bp
 +++ b/Android.bp
 @@ -23,12 +23,15 @@ java_library {
@@ -154,7 +154,7 @@ index 47a4d56e..08e69edb 100644
      sdk_version: "core_current",
      min_sdk_version: "30",
 diff --git a/CHANGELOG.md b/CHANGELOG.md
-index ad2eaaa3..637ef5a7 100644
+index ad2eaaa..637ef5a 100644
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
 @@ -1,6 +1,64 @@
@@ -223,7 +223,7 @@ index ad2eaaa3..637ef5a7 100644
  
  _2023-12-16_
 diff --git a/METADATA b/METADATA
-index c45ecd35..dbe01278 100644
+index c45ecd3..dbe0127 100644
 --- a/METADATA
 +++ b/METADATA
 @@ -1,20 +1,20 @@
@@ -262,7 +262,7 @@ index c45ecd35..dbe01278 100644
 -  license_type: NOTICE
  }
 diff --git a/OWNERS b/OWNERS
-index f8765892..c7c38067 100644
+index f876589..c7c3806 100644
 --- a/OWNERS
 +++ b/OWNERS
 @@ -1,3 +1,4 @@
@@ -271,7 +271,7 @@ index f8765892..c7c38067 100644
  olegsh@google.com
 +include platform/system/core:/janitors/OWNERS #{LAST_RESORT_SUGGESTION}
 diff --git a/android-test/build.gradle.kts b/android-test/build.gradle.kts
-index 5f9957ba..a0a971a4 100644
+index 5f9957b..a0a971a 100644
 --- a/android-test/build.gradle.kts
 +++ b/android-test/build.gradle.kts
 @@ -1,3 +1,6 @@
@@ -303,7 +303,7 @@ index 5f9957ba..a0a971a4 100644
    coreLibraryDesugaring(libs.android.desugar.jdk.libs)
    androidTestImplementation(libs.androidx.test.ext.junit)
 diff --git a/android-test/src/main/AndroidManifest.xml b/android-test/src/main/AndroidManifest.xml
-index fe95031b..584e1d2f 100644
+index fe95031..584e1d2 100644
 --- a/android-test/src/main/AndroidManifest.xml
 +++ b/android-test/src/main/AndroidManifest.xml
 @@ -1,7 +1,7 @@
@@ -316,7 +316,7 @@ index fe95031b..584e1d2f 100644
    <uses-permission android:name="android.permission.INTERNET" />
  
 diff --git a/build-support/build.gradle.kts b/build-support/build.gradle.kts
-index cd0c3df4..ea79bc78 100644
+index cd0c3df..ea79bc7 100644
 --- a/build-support/build.gradle.kts
 +++ b/build-support/build.gradle.kts
 @@ -22,5 +22,5 @@ gradlePlugin {
@@ -327,7 +327,7 @@ index cd0c3df4..ea79bc78 100644
 +  implementation(libs.kotlin.gradle.plugin)
  }
 diff --git a/build-support/settings.gradle.kts b/build-support/settings.gradle.kts
-index 2fcdac38..215a5d58 100644
+index 2fcdac3..215a5d5 100644
 --- a/build-support/settings.gradle.kts
 +++ b/build-support/settings.gradle.kts
 @@ -1 +1,7 @@
@@ -340,7 +340,7 @@ index 2fcdac38..215a5d58 100644
 +  }
 +}
 diff --git a/build-support/src/main/kotlin/platforms.kt b/build-support/src/main/kotlin/platforms.kt
-index 4cfb5ae5..002c49e5 100644
+index 4cfb5ae..002c49e 100644
 --- a/build-support/src/main/kotlin/platforms.kt
 +++ b/build-support/src/main/kotlin/platforms.kt
 @@ -125,7 +125,6 @@ fun KotlinMultiplatformExtension.configureOrCreateJsPlatforms() {
@@ -352,7 +352,7 @@ index 4cfb5ae5..002c49e5 100644
      }
      nodejs {
 diff --git a/build.gradle.kts b/build.gradle.kts
-index f564d88a..de613c28 100644
+index f564d88..de613c2 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -1,4 +1,4 @@
@@ -412,7 +412,7 @@ index f564d88a..de613c28 100644
 +  }
 +}
 diff --git a/docs/index.md b/docs/index.md
-index 4fb96f5e..44549698 100644
+index 4fb96f5..4454969 100644
 --- a/docs/index.md
 +++ b/docs/index.md
 @@ -77,7 +77,7 @@ works and how Okio does it.
@@ -448,7 +448,7 @@ index 4fb96f5e..44549698 100644
  ```
  
 diff --git a/docs/recipes.md b/docs/recipes.md
-index acc5dcc7..572dade6 100644
+index acc5dcc..572dade 100644
 --- a/docs/recipes.md
 +++ b/docs/recipes.md
 @@ -935,7 +935,7 @@ parameters should both be 16 bytes long.
@@ -461,7 +461,7 @@ index acc5dcc7..572dade6 100644
  [SocksProxyServer]: https://github.com/square/okio/blob/master/samples/src/jvmMain/java/okio/samples/SocksProxyServer.java
  [WriteFile]: https://github.com/square/okio/blob/master/samples/src/jvmMain/java/okio/samples/WriteFile.java
 diff --git a/gradle.properties b/gradle.properties
-index ed1f6d9a..35b5fd53 100644
+index ed1f6d9..35b5fd5 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -8,8 +8,8 @@ android.defaults.buildfeatures.renderscript=false
@@ -476,7 +476,7 @@ index ed1f6d9a..35b5fd53 100644
 -kotlin.mpp.commonizerLogLevel=info
 +VERSION_NAME=3.10.2
 diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
-index ba610822..2b1acf03 100644
+index ba61082..2b1acf0 100644
 --- a/gradle/libs.versions.toml
 +++ b/gradle/libs.versions.toml
 @@ -1,24 +1,27 @@
@@ -523,10 +523,10 @@ index ba610822..2b1acf03 100644
 +test-junit = { module = "junit:junit", version = "4.13.2" }
 +vanniktech-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version = "0.30.0" }
 diff --git a/gradle/wrapper/gradle-wrapper.jar b/gradle/wrapper/gradle-wrapper.jar
-index 7f93135c..a4b76b95 100644
+index 7f93135..a4b76b9 100644
 Binary files a/gradle/wrapper/gradle-wrapper.jar and b/gradle/wrapper/gradle-wrapper.jar differ
 diff --git a/gradle/wrapper/gradle-wrapper.properties b/gradle/wrapper/gradle-wrapper.properties
-index 3fa8f862..cea7a793 100644
+index 3fa8f86..cea7a79 100644
 --- a/gradle/wrapper/gradle-wrapper.properties
 +++ b/gradle/wrapper/gradle-wrapper.properties
 @@ -1,6 +1,6 @@
@@ -538,7 +538,7 @@ index 3fa8f862..cea7a793 100644
  validateDistributionUrl=true
  zipStoreBase=GRADLE_USER_HOME
 diff --git a/gradlew b/gradlew
-index 1aa94a42..f3b75f3b 100755
+index 1aa94a4..f3b75f3 100755
 --- a/gradlew
 +++ b/gradlew
 @@ -15,6 +15,8 @@
@@ -569,7 +569,7 @@ index 1aa94a42..f3b75f3b 100755
  # Use the maximum available, or set MAX_FD != -1 to use that value.
  MAX_FD=maximum
 diff --git a/gradlew.bat b/gradlew.bat
-index 93e3f59f..9d21a218 100644
+index 93e3f59..9d21a21 100644
 --- a/gradlew.bat
 +++ b/gradlew.bat
 @@ -13,6 +13,8 @@
@@ -616,7 +616,7 @@ index 93e3f59f..9d21a218 100644
  goto fail
  
 diff --git a/kotlin-js-store/yarn.lock b/kotlin-js-store/yarn.lock
-index c9f26541..207deee9 100644
+index c9f2654..207deee 100644
 --- a/kotlin-js-store/yarn.lock
 +++ b/kotlin-js-store/yarn.lock
 @@ -26,6 +26,11 @@
@@ -1713,7 +1713,7 @@ index c9f26541..207deee9 100644
    resolved "https://registry.yarnpkg.com/yargs/-/yargs-16.2.0.tgz#1c82bf0f6b6a66eafce7ef30e376f49a12477f66"
    integrity sha512-D1mvvtDG0L5ft/jGWkLpG1+m0eQxOfaBvTNELraWj22wSVUMWxZUvYgJYcKh6jGGIkJFhH4IZPQhR4TKpc8mBw==
 diff --git a/okio-fakefilesystem/api/okio-fakefilesystem.api b/okio-fakefilesystem/api/okio-fakefilesystem.api
-index 1d319e43..f921a157 100644
+index 1d319e4..f921a15 100644
 --- a/okio-fakefilesystem/api/okio-fakefilesystem.api
 +++ b/okio-fakefilesystem/api/okio-fakefilesystem.api
 @@ -8,6 +8,7 @@ public final class okio/fakefilesystem/FakeFileSystem : okio/FileSystem {
@@ -1725,7 +1725,7 @@ index 1d319e43..f921a157 100644
  	public fun createSymlink (Lokio/Path;Lokio/Path;)V
  	public fun delete (Lokio/Path;Z)V
 diff --git a/okio-fakefilesystem/build.gradle.kts b/okio-fakefilesystem/build.gradle.kts
-index afebff16..c5eadf06 100644
+index afebff1..c5eadf0 100644
 --- a/okio-fakefilesystem/build.gradle.kts
 +++ b/okio-fakefilesystem/build.gradle.kts
 @@ -19,7 +19,6 @@ kotlin {
@@ -1758,7 +1758,7 @@ index afebff16..c5eadf06 100644
    }
  }
 diff --git a/okio-fakefilesystem/src/commonMain/kotlin/okio/fakefilesystem/FakeFileSystem.kt b/okio-fakefilesystem/src/commonMain/kotlin/okio/fakefilesystem/FakeFileSystem.kt
-index fb2bd655..be9961ba 100644
+index fb2bd65..be9961b 100644
 --- a/okio-fakefilesystem/src/commonMain/kotlin/okio/fakefilesystem/FakeFileSystem.kt
 +++ b/okio-fakefilesystem/src/commonMain/kotlin/okio/fakefilesystem/FakeFileSystem.kt
 @@ -59,6 +59,12 @@ import okio.fakefilesystem.FakeFileSystem.Operation.WRITE
@@ -1814,7 +1814,7 @@ index fb2bd655..be9961ba 100644
    override fun toString() = "FakeFileSystem"
  }
 diff --git a/okio-nodefilesystem/build.gradle.kts b/okio-nodefilesystem/build.gradle.kts
-index 0509e4e5..b69ff328 100644
+index 0509e4e..b69ff32 100644
 --- a/okio-nodefilesystem/build.gradle.kts
 +++ b/okio-nodefilesystem/build.gradle.kts
 @@ -1,9 +1,9 @@
@@ -1874,7 +1874,7 @@ diff --git a/okio-nodefilesystem/src/main/kotlin/okio/FsJs.kt b/okio-nodefilesys
 similarity index 99%
 rename from okio-nodefilesystem/src/main/kotlin/okio/FsJs.kt
 rename to okio-nodefilesystem/src/commonMain/kotlin/okio/FsJs.kt
-index 2a308f06..223485a6 100644
+index 2a308f0..223485a 100644
 --- a/okio-nodefilesystem/src/main/kotlin/okio/FsJs.kt
 +++ b/okio-nodefilesystem/src/commonMain/kotlin/okio/FsJs.kt
 @@ -50,7 +50,7 @@
@@ -1898,7 +1898,7 @@ diff --git a/okio-nodefilesystem/src/test/kotlin/okio/NodeJsFileSystemTest.kt b/
 similarity index 95%
 rename from okio-nodefilesystem/src/test/kotlin/okio/NodeJsFileSystemTest.kt
 rename to okio-nodefilesystem/src/commonTest/kotlin/okio/NodeJsFileSystemTest.kt
-index 3afc3ed6..27664481 100644
+index 3afc3ed..2766448 100644
 --- a/okio-nodefilesystem/src/test/kotlin/okio/NodeJsFileSystemTest.kt
 +++ b/okio-nodefilesystem/src/commonTest/kotlin/okio/NodeJsFileSystemTest.kt
 @@ -24,4 +24,5 @@ class NodeJsFileSystemTest : AbstractFileSystemTest(
@@ -1908,7 +1908,7 @@ index 3afc3ed6..27664481 100644
 +  closeBehavior = CloseBehavior.DoesNothing,
  )
 diff --git a/okio-testing-support/build.gradle.kts b/okio-testing-support/build.gradle.kts
-index bdf3506f..874bdf82 100644
+index bdf3506..874bdf8 100644
 --- a/okio-testing-support/build.gradle.kts
 +++ b/okio-testing-support/build.gradle.kts
 @@ -28,6 +28,10 @@ kotlin {
@@ -1939,7 +1939,7 @@ index bdf3506f..874bdf82 100644
      }
  
 diff --git a/okio-testing-support/src/commonMain/kotlin/okio/AbstractFileSystemTest.kt b/okio-testing-support/src/commonMain/kotlin/okio/AbstractFileSystemTest.kt
-index 31ec6cba..26a34661 100644
+index 31ec6cb..26a3466 100644
 --- a/okio-testing-support/src/commonMain/kotlin/okio/AbstractFileSystemTest.kt
 +++ b/okio-testing-support/src/commonMain/kotlin/okio/AbstractFileSystemTest.kt
 @@ -40,6 +40,7 @@ abstract class AbstractFileSystemTest(
@@ -2063,7 +2063,7 @@ index 31ec6cba..26a34661 100644
      if (windowsLimitations) return false
 diff --git a/okio-testing-support/src/commonMain/kotlin/okio/CloseBehavior.kt b/okio-testing-support/src/commonMain/kotlin/okio/CloseBehavior.kt
 new file mode 100644
-index 00000000..e0ada5e3
+index 0000000..e0ada5e
 --- /dev/null
 +++ b/okio-testing-support/src/commonMain/kotlin/okio/CloseBehavior.kt
 @@ -0,0 +1,22 @@
@@ -2090,7 +2090,7 @@ index 00000000..e0ada5e3
 +  Unsupported,
 +}
 diff --git a/okio-testing-support/src/commonMain/kotlin/okio/TestingCommon.kt b/okio-testing-support/src/commonMain/kotlin/okio/TestingCommon.kt
-index d84642ff..d8a5c25e 100644
+index d84642f..d8a5c25 100644
 --- a/okio-testing-support/src/commonMain/kotlin/okio/TestingCommon.kt
 +++ b/okio-testing-support/src/commonMain/kotlin/okio/TestingCommon.kt
 @@ -19,6 +19,7 @@ import kotlin.random.Random
@@ -2133,7 +2133,7 @@ index d84642ff..d8a5c25e 100644
 +}
 diff --git a/okio-testing-support/src/commonMain/resources/go/NOTICE b/okio-testing-support/src/commonMain/resources/go/NOTICE
 new file mode 100644
-index 00000000..7b0c14ac
+index 0000000..7b0c14a
 --- /dev/null
 +++ b/okio-testing-support/src/commonMain/resources/go/NOTICE
 @@ -0,0 +1,5 @@
@@ -2144,98 +2144,98 @@ index 00000000..7b0c14ac
 +https://github.com/golang/go/blob/master/LICENSE
 diff --git a/okio-testing-support/src/commonMain/resources/go/src/archive/zip/testdata/time-winzip.zip b/okio-testing-support/src/commonMain/resources/go/src/archive/zip/testdata/time-winzip.zip
 new file mode 100644
-index 00000000..f6e8f8ba
+index 0000000..f6e8f8b
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/go/src/archive/zip/testdata/time-winzip.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithEncryption.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithEncryption.zip
 new file mode 100644
-index 00000000..b12fa404
+index 0000000..b12fa40
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithEncryption.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithSpanning.z01 b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithSpanning.z01
 new file mode 100644
-index 00000000..494be846
+index 0000000..494be84
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithSpanning.z01 differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithSpanning.z02 b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithSpanning.z02
 new file mode 100644
-index 00000000..a0c36ecf
+index 0000000..a0c36ec
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithSpanning.z02 differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithSpanning.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithSpanning.zip
 new file mode 100644
-index 00000000..6401cbb0
+index 0000000..6401cbb
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/cannotReadZipWithSpanning.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/canonicalizationInvalidThrows.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/canonicalizationInvalidThrows.zip
 new file mode 100644
-index 00000000..60da0105
+index 0000000..60da010
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/canonicalizationInvalidThrows.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/canonicalizationValid.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/canonicalizationValid.zip
 new file mode 100644
-index 00000000..60da0105
+index 0000000..60da010
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/canonicalizationValid.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/emptyZip.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/emptyZip.zip
 new file mode 100644
-index 00000000..15cb0ecb
+index 0000000..15cb0ec
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/emptyZip.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/emptyZipWithPrependedData.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/emptyZipWithPrependedData.zip
 new file mode 100644
-index 00000000..a2ab2628
+index 0000000..a2ab262
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/emptyZipWithPrependedData.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/filesOverlap.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/filesOverlap.zip
 new file mode 100644
-index 00000000..600d2038
+index 0000000..600d203
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/filesOverlap.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zip64.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zip64.zip
 new file mode 100644
-index 00000000..8e7631b2
+index 0000000..8e7631b
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zip64.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipTooShort.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipTooShort.zip
 new file mode 100644
-index 00000000..f91c69dc
+index 0000000..f91c69d
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipTooShort.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithArchiveComment.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithArchiveComment.zip
 new file mode 100644
-index 00000000..d18b5009
+index 0000000..d18b500
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithArchiveComment.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithDeflate.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithDeflate.zip
 new file mode 100644
-index 00000000..72ba9f57
+index 0000000..72ba9f5
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithDeflate.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithDirectoryModifiedDate.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithDirectoryModifiedDate.zip
 new file mode 100644
-index 00000000..8546739b
+index 0000000..8546739
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithDirectoryModifiedDate.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithEmptyDirectory.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithEmptyDirectory.zip
 new file mode 100644
-index 00000000..4432ce4f
+index 0000000..4432ce4
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithEmptyDirectory.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFileComments.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFileComments.zip
 new file mode 100644
-index 00000000..56a93d21
+index 0000000..56a93d2
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFileComments.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFileModifiedDate.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFileModifiedDate.zip
 new file mode 100644
-index 00000000..d8cb568f
+index 0000000..d8cb568
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFileModifiedDate.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFileOutOfBoundsModifiedDate.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFileOutOfBoundsModifiedDate.zip
 new file mode 100644
-index 00000000..af89d183
+index 0000000..af89d18
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFileOutOfBoundsModifiedDate.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFiles.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFiles.zip
 new file mode 100644
-index 00000000..609d062d
+index 0000000..609d062
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithFiles.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithModifiedDate.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithModifiedDate.zip
 new file mode 100644
-index 00000000..4f242017
+index 0000000..4f24201
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithModifiedDate.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithStore.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithStore.zip
 new file mode 100644
-index 00000000..0390eca2
+index 0000000..0390eca
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithStore.zip differ
 diff --git a/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithSyntheticDirectory.zip b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithSyntheticDirectory.zip
 new file mode 100644
-index 00000000..729c922b
+index 0000000..729c922
 Binary files /dev/null and b/okio-testing-support/src/commonMain/resources/okio/zipfilesystem/zipWithSyntheticDirectory.zip differ
 diff --git a/okio-testing-support/src/jsMain/kotlin/okio/TestingJs.kt b/okio-testing-support/src/jsMain/kotlin/okio/TestingJs.kt
-index 21442a5c..82d7067d 100644
+index 21442a5..82d7067 100644
 --- a/okio-testing-support/src/jsMain/kotlin/okio/TestingJs.kt
 +++ b/okio-testing-support/src/jsMain/kotlin/okio/TestingJs.kt
 @@ -20,3 +20,6 @@ actual fun isBrowser(): Boolean {
@@ -2246,7 +2246,7 @@ index 21442a5c..82d7067d 100644
 +actual fun getEnv(name: String): String? =
 +  js("globalThis.process.env[name]") as String?
 diff --git a/okio-testing-support/src/jvmMain/kotlin/okio/TestingJvm.kt b/okio-testing-support/src/jvmMain/kotlin/okio/TestingJvm.kt
-index d6e274db..9ad333a2 100644
+index d6e274d..9ad333a 100644
 --- a/okio-testing-support/src/jvmMain/kotlin/okio/TestingJvm.kt
 +++ b/okio-testing-support/src/jvmMain/kotlin/okio/TestingJvm.kt
 @@ -18,3 +18,5 @@ package okio
@@ -2256,7 +2256,7 @@ index d6e274db..9ad333a2 100644
 +
 +actual fun getEnv(name: String): String? = System.getenv(name)
 diff --git a/okio-testing-support/src/nativeMain/kotlin/okio/TestingNative.kt b/okio-testing-support/src/nativeMain/kotlin/okio/TestingNative.kt
-index d6e274db..47de8766 100644
+index d6e274d..47de876 100644
 --- a/okio-testing-support/src/nativeMain/kotlin/okio/TestingNative.kt
 +++ b/okio-testing-support/src/nativeMain/kotlin/okio/TestingNative.kt
 @@ -15,6 +15,13 @@
@@ -2274,7 +2274,7 @@ index d6e274db..47de8766 100644
 +@OptIn(ExperimentalForeignApi::class)
 +actual fun getEnv(name: String): String? = getenv(name)?.toKString()
 diff --git a/okio-testing-support/src/wasmMain/kotlin/okio/TestingWasm.kt b/okio-testing-support/src/wasmMain/kotlin/okio/TestingWasm.kt
-index cb841783..1720c779 100644
+index cb84178..1720c77 100644
 --- a/okio-testing-support/src/wasmMain/kotlin/okio/TestingWasm.kt
 +++ b/okio-testing-support/src/wasmMain/kotlin/okio/TestingWasm.kt
 @@ -37,7 +37,7 @@ actual class Instant(
@@ -2293,7 +2293,7 @@ index cb841783..1720c779 100644
 +
 +actual fun getEnv(name: String): String? = error("unexpected call")
 diff --git a/okio-wasifilesystem/build.gradle.kts b/okio-wasifilesystem/build.gradle.kts
-index aaf43faa..5a363c1c 100644
+index aaf43fa..5a363c1 100644
 --- a/okio-wasifilesystem/build.gradle.kts
 +++ b/okio-wasifilesystem/build.gradle.kts
 @@ -79,29 +79,41 @@ val injectWasiInit by tasks.creating {
@@ -2350,7 +2350,7 @@ index aaf43faa..5a363c1c 100644
      )
    }
 diff --git a/okio-wasifilesystem/src/wasmWasiTest/kotlin/okio/WasiFileSystemTest.kt b/okio-wasifilesystem/src/wasmWasiTest/kotlin/okio/WasiFileSystemTest.kt
-index b6846b45..a3236117 100644
+index b6846b4..a323611 100644
 --- a/okio-wasifilesystem/src/wasmWasiTest/kotlin/okio/WasiFileSystemTest.kt
 +++ b/okio-wasifilesystem/src/wasmWasiTest/kotlin/okio/WasiFileSystemTest.kt
 @@ -24,4 +24,5 @@ class WasiFileSystemTest : AbstractFileSystemTest(
@@ -2360,7 +2360,7 @@ index b6846b45..a3236117 100644
 +  closeBehavior = CloseBehavior.DoesNothing,
  )
 diff --git a/okio/api/okio.api b/okio/api/okio.api
-index b85e1870..e23255ed 100644
+index b85e187..e23255e 100644
 --- a/okio/api/okio.api
 +++ b/okio/api/okio.api
 @@ -141,6 +141,7 @@ public final class okio/Buffer : java/lang/Cloneable, java/nio/channels/ByteChan
@@ -2435,7 +2435,7 @@ index b85e1870..e23255ed 100644
  	public static final fun size (Ljava/lang/String;)J
  	public static final fun size (Ljava/lang/String;I)J
 diff --git a/okio/build.gradle.kts b/okio/build.gradle.kts
-index cac4a345..88a590a7 100644
+index cac4a34..88a590a 100644
 --- a/okio/build.gradle.kts
 +++ b/okio/build.gradle.kts
 @@ -1,4 +1,4 @@
@@ -2548,7 +2548,7 @@ index cac4a345..88a590a7 100644
    }
  }
 diff --git a/okio/src/commonMain/kotlin/okio/Base64.kt b/okio/src/commonMain/kotlin/okio/Base64.kt
-index 150793cc..b513656f 100644
+index 150793c..b513656 100644
 --- a/okio/src/commonMain/kotlin/okio/Base64.kt
 +++ b/okio/src/commonMain/kotlin/okio/Base64.kt
 @@ -19,16 +19,13 @@
@@ -2569,7 +2569,7 @@ index 150793cc..b513656f 100644
    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".encodeUtf8().data
  
 diff --git a/okio/src/commonMain/kotlin/okio/Buffer.kt b/okio/src/commonMain/kotlin/okio/Buffer.kt
-index 009ed233..f186d2aa 100644
+index 009ed23..f186d2a 100644
 --- a/okio/src/commonMain/kotlin/okio/Buffer.kt
 +++ b/okio/src/commonMain/kotlin/okio/Buffer.kt
 @@ -15,8 +15,6 @@
@@ -2805,7 +2805,7 @@ index 009ed233..f186d2aa 100644
      /**
       * Seeks to the next range of bytes, advancing the offset by `end - start`. Returns the size of
 diff --git a/okio/src/commonMain/kotlin/okio/BufferedSink.kt b/okio/src/commonMain/kotlin/okio/BufferedSink.kt
-index 03c8230a..4f6927ab 100644
+index 03c8230..4f6927a 100644
 --- a/okio/src/commonMain/kotlin/okio/BufferedSink.kt
 +++ b/okio/src/commonMain/kotlin/okio/BufferedSink.kt
 @@ -44,7 +44,8 @@ expect sealed interface BufferedSink : Sink {
@@ -2939,7 +2939,7 @@ index 03c8230a..4f6927ab 100644
     * BufferedSink b1 = Okio.buffer(b0);
     * BufferedSink b2 = Okio.buffer(b1);
 diff --git a/okio/src/commonMain/kotlin/okio/BufferedSource.kt b/okio/src/commonMain/kotlin/okio/BufferedSource.kt
-index 86b4803a..eaddb265 100644
+index 86b4803..eaddb26 100644
 --- a/okio/src/commonMain/kotlin/okio/BufferedSource.kt
 +++ b/okio/src/commonMain/kotlin/okio/BufferedSource.kt
 @@ -47,7 +47,8 @@ expect sealed interface BufferedSource : Source {
@@ -3168,7 +3168,7 @@ index 86b4803a..eaddb265 100644
     * buffer.writeUtf8("abcdefghi")
     *
 diff --git a/okio/src/commonMain/kotlin/okio/ByteString.kt b/okio/src/commonMain/kotlin/okio/ByteString.kt
-index 3f4fb82f..d482ad9a 100644
+index 3f4fb82..d482ad9 100644
 --- a/okio/src/commonMain/kotlin/okio/ByteString.kt
 +++ b/okio/src/commonMain/kotlin/okio/ByteString.kt
 @@ -16,7 +16,6 @@
@@ -3188,7 +3188,7 @@ index 3f4fb82f..d482ad9a 100644
  
      /** Returns a new byte string containing a clone of the bytes of `data`. */
 diff --git a/okio/src/commonMain/kotlin/okio/FileSystem.kt b/okio/src/commonMain/kotlin/okio/FileSystem.kt
-index 9535880b..5797e17b 100644
+index 9535880..5797e17 100644
 --- a/okio/src/commonMain/kotlin/okio/FileSystem.kt
 +++ b/okio/src/commonMain/kotlin/okio/FileSystem.kt
 @@ -79,8 +79,20 @@ package okio
@@ -3224,7 +3224,7 @@ index 9535880b..5797e17b 100644
      /**
       * Returns a writable temporary directory on [SYSTEM].
 diff --git a/okio/src/commonMain/kotlin/okio/ForwardingFileSystem.kt b/okio/src/commonMain/kotlin/okio/ForwardingFileSystem.kt
-index 3548b52b..cdacb80b 100644
+index 3548b52..cdacb80 100644
 --- a/okio/src/commonMain/kotlin/okio/ForwardingFileSystem.kt
 +++ b/okio/src/commonMain/kotlin/okio/ForwardingFileSystem.kt
 @@ -26,7 +26,7 @@ import kotlin.jvm.JvmName
@@ -3286,7 +3286,7 @@ index 3548b52b..cdacb80b 100644
    override fun toString() = "${this::class.simpleName}($delegate)"
  }
 diff --git a/okio/src/commonMain/kotlin/okio/HashingSink.kt b/okio/src/commonMain/kotlin/okio/HashingSink.kt
-index d5b8f8db..19431698 100644
+index d5b8f8d..1943169 100644
 --- a/okio/src/commonMain/kotlin/okio/HashingSink.kt
 +++ b/okio/src/commonMain/kotlin/okio/HashingSink.kt
 @@ -22,7 +22,8 @@ package okio
@@ -3312,7 +3312,7 @@ index d5b8f8db..19431698 100644
      /**
       * Returns a sink that uses the obsolete MD5 hash algorithm to produce 128-bit hashes.
 diff --git a/okio/src/commonMain/kotlin/okio/HashingSource.kt b/okio/src/commonMain/kotlin/okio/HashingSource.kt
-index 52905ea7..95bfe91a 100644
+index 52905ea..95bfe91 100644
 --- a/okio/src/commonMain/kotlin/okio/HashingSource.kt
 +++ b/okio/src/commonMain/kotlin/okio/HashingSource.kt
 @@ -23,7 +23,8 @@ package okio
@@ -3337,7 +3337,7 @@ index 52905ea7..95bfe91a 100644
      /**
       * Returns a source that uses the obsolete MD5 hash algorithm to produce 128-bit hashes.
 diff --git a/okio/src/commonMain/kotlin/okio/Okio.kt b/okio/src/commonMain/kotlin/okio/Okio.kt
-index 861d5112..a0a420bb 100644
+index 861d511..a0a420b 100644
 --- a/okio/src/commonMain/kotlin/okio/Okio.kt
 +++ b/okio/src/commonMain/kotlin/okio/Okio.kt
 @@ -49,13 +49,13 @@ private class BlackholeSink : Sink {
@@ -3366,7 +3366,7 @@ index 861d5112..a0a420bb 100644
 +  return result as R
  }
 diff --git a/okio/src/commonMain/kotlin/okio/Options.kt b/okio/src/commonMain/kotlin/okio/Options.kt
-index e8dae6e1..8e8b4c4a 100644
+index e8dae6e..8e8b4c4 100644
 --- a/okio/src/commonMain/kotlin/okio/Options.kt
 +++ b/okio/src/commonMain/kotlin/okio/Options.kt
 @@ -17,7 +17,11 @@ package okio
@@ -3405,7 +3405,7 @@ index e8dae6e1..8e8b4c4a 100644
  
        return Options(byteStrings.copyOf() /* Defensive copy. */, trie)
 diff --git a/okio/src/commonMain/kotlin/okio/RealBufferedSink.kt b/okio/src/commonMain/kotlin/okio/RealBufferedSink.kt
-index 81032153..65554cbc 100644
+index 8103215..65554cb 100644
 --- a/okio/src/commonMain/kotlin/okio/RealBufferedSink.kt
 +++ b/okio/src/commonMain/kotlin/okio/RealBufferedSink.kt
 @@ -21,4 +21,30 @@ internal expect class RealBufferedSink(
@@ -3440,7 +3440,7 @@ index 81032153..65554cbc 100644
 +  override fun writeUtf8CodePoint(codePoint: Int): BufferedSink
  }
 diff --git a/okio/src/commonMain/kotlin/okio/RealBufferedSource.kt b/okio/src/commonMain/kotlin/okio/RealBufferedSource.kt
-index b6f7322e..a2e58291 100644
+index b6f7322..a2e5829 100644
 --- a/okio/src/commonMain/kotlin/okio/RealBufferedSource.kt
 +++ b/okio/src/commonMain/kotlin/okio/RealBufferedSource.kt
 @@ -21,4 +21,49 @@ internal expect class RealBufferedSource(
@@ -3495,7 +3495,7 @@ index b6f7322e..a2e58291 100644
  }
 diff --git a/okio/src/commonMain/kotlin/okio/TypedOptions.kt b/okio/src/commonMain/kotlin/okio/TypedOptions.kt
 new file mode 100644
-index 00000000..98a26313
+index 0000000..98a2631
 --- /dev/null
 +++ b/okio/src/commonMain/kotlin/okio/TypedOptions.kt
 @@ -0,0 +1,51 @@
@@ -3551,7 +3551,7 @@ index 00000000..98a26313
 +  }
 +}
 diff --git a/okio/src/commonMain/kotlin/okio/Util.kt b/okio/src/commonMain/kotlin/okio/Util.kt
-index bfd8fec1..9e6e9c50 100644
+index bfd8fec..9e6e9c5 100644
 --- a/okio/src/commonMain/kotlin/okio/Util.kt
 +++ b/okio/src/commonMain/kotlin/okio/Util.kt
 @@ -18,7 +18,6 @@
@@ -3571,7 +3571,7 @@ index bfd8fec1..9e6e9c50 100644
  internal fun resolveDefaultParameter(unsafeCursor: Buffer.UnsafeCursor): Buffer.UnsafeCursor {
    if (unsafeCursor === DEFAULT__new_UnsafeCursor) return Buffer.UnsafeCursor()
 diff --git a/okio/src/commonMain/kotlin/okio/internal/Buffer.kt b/okio/src/commonMain/kotlin/okio/internal/Buffer.kt
-index 2270fc1d..36315c17 100644
+index 2270fc1..36315c1 100644
 --- a/okio/src/commonMain/kotlin/okio/internal/Buffer.kt
 +++ b/okio/src/commonMain/kotlin/okio/internal/Buffer.kt
 @@ -21,7 +21,6 @@
@@ -3692,7 +3692,7 @@ index 2270fc1d..36315c17 100644
    if (v == 0L) {
 diff --git a/okio/src/commonMain/kotlin/okio/internal/BufferedSource.kt b/okio/src/commonMain/kotlin/okio/internal/BufferedSource.kt
 new file mode 100644
-index 00000000..82ef82b7
+index 0000000..82ef82b
 --- /dev/null
 +++ b/okio/src/commonMain/kotlin/okio/internal/BufferedSource.kt
 @@ -0,0 +1,30 @@
@@ -3727,7 +3727,7 @@ index 00000000..82ef82b7
 +  }
 +}
 diff --git a/okio/src/commonMain/kotlin/okio/internal/ByteString.kt b/okio/src/commonMain/kotlin/okio/internal/ByteString.kt
-index 311c17e5..d8899acd 100644
+index 311c17e..d8899ac 100644
 --- a/okio/src/commonMain/kotlin/okio/internal/ByteString.kt
 +++ b/okio/src/commonMain/kotlin/okio/internal/ByteString.kt
 @@ -18,7 +18,6 @@
@@ -3747,7 +3747,7 @@ index 311c17e5..d8899acd 100644
    charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
  
 diff --git a/okio/src/commonMain/kotlin/okio/internal/Path.kt b/okio/src/commonMain/kotlin/okio/internal/Path.kt
-index 6910e30b..c5aeb7a7 100644
+index 6910e30..c5aeb7a 100644
 --- a/okio/src/commonMain/kotlin/okio/internal/Path.kt
 +++ b/okio/src/commonMain/kotlin/okio/internal/Path.kt
 @@ -18,26 +18,20 @@
@@ -3790,7 +3790,7 @@ index 6910e30b..c5aeb7a7 100644
    val slash = other.slash ?: slash ?: Path.DIRECTORY_SEPARATOR.toSlash()
    for (i in firstNewSegmentIndex until otherSegments.size) {
 diff --git a/okio/src/commonMain/kotlin/okio/internal/RealBufferedSource.kt b/okio/src/commonMain/kotlin/okio/internal/RealBufferedSource.kt
-index 5b0d55b2..6a919e5f 100644
+index 5b0d55b..6a919e5 100644
 --- a/okio/src/commonMain/kotlin/okio/internal/RealBufferedSource.kt
 +++ b/okio/src/commonMain/kotlin/okio/internal/RealBufferedSource.kt
 @@ -39,6 +39,7 @@ internal inline fun RealBufferedSource.commonRead(sink: Buffer, byteCount: Long)
@@ -3810,7 +3810,7 @@ index 5b0d55b2..6a919e5f 100644
      if (read == -1L) return -1
    }
 diff --git a/okio/src/commonTest/kotlin/okio/BufferedSinkFactory.kt b/okio/src/commonTest/kotlin/okio/BufferedSinkFactory.kt
-index 8f4f29ae..6793ec0c 100644
+index 8f4f29a..6793ec0 100644
 --- a/okio/src/commonTest/kotlin/okio/BufferedSinkFactory.kt
 +++ b/okio/src/commonTest/kotlin/okio/BufferedSinkFactory.kt
 @@ -16,21 +16,19 @@
@@ -3848,7 +3848,7 @@ index 8f4f29ae..6793ec0c 100644
 +  abstract fun create(data: Buffer): BufferedSink
  }
 diff --git a/okio/src/commonTest/kotlin/okio/BufferedSourceFactory.kt b/okio/src/commonTest/kotlin/okio/BufferedSourceFactory.kt
-index 173bb841..a6425ffb 100644
+index 173bb84..a6425ff 100644
 --- a/okio/src/commonTest/kotlin/okio/BufferedSourceFactory.kt
 +++ b/okio/src/commonTest/kotlin/okio/BufferedSourceFactory.kt
 @@ -16,135 +16,115 @@
@@ -4089,7 +4089,7 @@ index 173bb841..a6425ffb 100644
 +  )
  }
 diff --git a/okio/src/commonTest/kotlin/okio/ByteStringFactory.kt b/okio/src/commonTest/kotlin/okio/ByteStringFactory.kt
-index bbf6cc6d..92ee5c44 100644
+index bbf6cc6..92ee5c4 100644
 --- a/okio/src/commonTest/kotlin/okio/ByteStringFactory.kt
 +++ b/okio/src/commonTest/kotlin/okio/ByteStringFactory.kt
 @@ -20,34 +20,32 @@ import okio.ByteString.Companion.decodeHex
@@ -4156,7 +4156,7 @@ index bbf6cc6d..92ee5c44 100644
 +  abstract fun encodeUtf8(s: String): ByteString
  }
 diff --git a/okio/src/commonTest/kotlin/okio/ByteStringTest.kt b/okio/src/commonTest/kotlin/okio/ByteStringTest.kt
-index 9866e14b..da1a8988 100644
+index 9866e14..da1a898 100644
 --- a/okio/src/commonTest/kotlin/okio/ByteStringTest.kt
 +++ b/okio/src/commonTest/kotlin/okio/ByteStringTest.kt
 @@ -16,6 +16,7 @@
@@ -4195,7 +4195,7 @@ diff --git a/okio/src/commonTest/kotlin/okio/AbstractBufferedSinkTest.kt b/okio/
 similarity index 81%
 rename from okio/src/commonTest/kotlin/okio/AbstractBufferedSinkTest.kt
 rename to okio/src/commonTest/kotlin/okio/CommonBufferedSinkTest.kt
-index e922d5f2..e48274c9 100644
+index e922d5f..e48274c 100644
 --- a/okio/src/commonTest/kotlin/okio/AbstractBufferedSinkTest.kt
 +++ b/okio/src/commonTest/kotlin/okio/CommonBufferedSinkTest.kt
 @@ -16,16 +16,15 @@
@@ -4265,7 +4265,7 @@ diff --git a/okio/src/commonTest/kotlin/okio/AbstractBufferedSourceTest.kt b/oki
 similarity index 97%
 rename from okio/src/commonTest/kotlin/okio/AbstractBufferedSourceTest.kt
 rename to okio/src/commonTest/kotlin/okio/CommonBufferedSourceTest.kt
-index 70d76cb6..fb8bdf24 100644
+index 70d76cb..fb8bdf2 100644
 --- a/okio/src/commonTest/kotlin/okio/AbstractBufferedSourceTest.kt
 +++ b/okio/src/commonTest/kotlin/okio/CommonBufferedSourceTest.kt
 @@ -16,6 +16,7 @@
@@ -4322,7 +4322,7 @@ index 70d76cb6..fb8bdf24 100644
      sink.writeUtf8("A man, a plan, a canal. Panama.")
      sink.emit()
 diff --git a/okio/src/commonTest/kotlin/okio/CommonRealBufferedSourceTest.kt b/okio/src/commonTest/kotlin/okio/CommonRealBufferedSourceTest.kt
-index 6756c5a5..6cdc1faf 100644
+index 6756c5a..6cdc1fa 100644
 --- a/okio/src/commonTest/kotlin/okio/CommonRealBufferedSourceTest.kt
 +++ b/okio/src/commonTest/kotlin/okio/CommonRealBufferedSourceTest.kt
 @@ -153,4 +153,31 @@ class CommonRealBufferedSourceTest {
@@ -4358,7 +4358,7 @@ index 6756c5a5..6cdc1faf 100644
 +  }
  }
 diff --git a/okio/src/commonTest/kotlin/okio/HashingTest.kt b/okio/src/commonTest/kotlin/okio/HashingTest.kt
-index d290dc0c..edadf1e0 100644
+index d290dc0..edadf1e 100644
 --- a/okio/src/commonTest/kotlin/okio/HashingTest.kt
 +++ b/okio/src/commonTest/kotlin/okio/HashingTest.kt
 @@ -86,11 +86,11 @@ class HashingTest {
@@ -4390,7 +4390,7 @@ index d290dc0c..edadf1e0 100644
        "24391790e7131050b05b606f2079a8983313894a1642a5ed97d094e7cabd00cfaa857d92c1f320ca3b6aaabb84c7155d6f1b10940dc133ded1b40baee8900be6".decodeHex()
      val r32k = randomBytes(32768)
 diff --git a/okio/src/commonTest/kotlin/okio/OkioTesting.kt b/okio/src/commonTest/kotlin/okio/OkioTesting.kt
-index 8dbdd2a1..62ac1ce5 100644
+index 8dbdd2a..62ac1ce 100644
 --- a/okio/src/commonTest/kotlin/okio/OkioTesting.kt
 +++ b/okio/src/commonTest/kotlin/okio/OkioTesting.kt
 @@ -16,6 +16,11 @@
@@ -4412,7 +4412,7 @@ index 8dbdd2a1..62ac1ce5 100644
 +
 +expect fun <T> withUtc(block: () -> T): T
 diff --git a/okio/src/commonTest/kotlin/okio/PathTest.kt b/okio/src/commonTest/kotlin/okio/PathTest.kt
-index cb2920d7..78309538 100644
+index cb2920d..7830953 100644
 --- a/okio/src/commonTest/kotlin/okio/PathTest.kt
 +++ b/okio/src/commonTest/kotlin/okio/PathTest.kt
 @@ -551,6 +551,24 @@ class PathTest {
@@ -4442,7 +4442,7 @@ index cb2920d7..78309538 100644
    fun relativeToUnnormalizedPath() {
 diff --git a/okio/src/commonTest/kotlin/okio/TypedOptionsTest.kt b/okio/src/commonTest/kotlin/okio/TypedOptionsTest.kt
 new file mode 100644
-index 00000000..524bf4f8
+index 0000000..524bf4f
 --- /dev/null
 +++ b/okio/src/commonTest/kotlin/okio/TypedOptionsTest.kt
 @@ -0,0 +1,90 @@
@@ -4537,7 +4537,7 @@ index 00000000..524bf4f8
 +  }
 +}
 diff --git a/okio/src/jsMain/kotlin/okio/FileSystem.kt b/okio/src/jsMain/kotlin/okio/FileSystem.kt
-index ea1bb4bf..51c16534 100644
+index ea1bb4b..51c1653 100644
 --- a/okio/src/jsMain/kotlin/okio/FileSystem.kt
 +++ b/okio/src/jsMain/kotlin/okio/FileSystem.kt
 @@ -23,7 +23,7 @@ import okio.internal.commonExists
@@ -4560,7 +4560,7 @@ index ea1bb4bf..51c16534 100644
      actual val SYSTEM_TEMPORARY_DIRECTORY: Path = tmpdir.toPath()
    }
 diff --git a/okio/src/jvmMain/kotlin/okio/-JvmPlatform.kt b/okio/src/jvmMain/kotlin/okio/-JvmPlatform.kt
-index cf263c45..9c750086 100644
+index cf263c4..9c75008 100644
 --- a/okio/src/jvmMain/kotlin/okio/-JvmPlatform.kt
 +++ b/okio/src/jvmMain/kotlin/okio/-JvmPlatform.kt
 @@ -41,3 +41,7 @@ actual typealias EOFException = java.io.EOFException
@@ -4572,7 +4572,7 @@ index cf263c45..9c750086 100644
 +
 +actual typealias Inflater = java.util.zip.Inflater
 diff --git a/okio/src/jvmMain/kotlin/okio/Buffer.kt b/okio/src/jvmMain/kotlin/okio/Buffer.kt
-index 88dfaba7..bc4bd1bf 100644
+index 88dfaba..bc4bd1b 100644
 --- a/okio/src/jvmMain/kotlin/okio/Buffer.kt
 +++ b/okio/src/jvmMain/kotlin/okio/Buffer.kt
 @@ -106,16 +106,16 @@ actual class Buffer : BufferedSource, BufferedSink, Cloneable, ByteChannel {
@@ -4779,7 +4779,7 @@ index 88dfaba7..bc4bd1bf 100644
    /**
     * Returns the 128-bit MD5 hash of this buffer.
 diff --git a/okio/src/jvmMain/kotlin/okio/BufferedSource.kt b/okio/src/jvmMain/kotlin/okio/BufferedSource.kt
-index ca6b94bf..45e6688a 100644
+index ca6b94b..45e6688 100644
 --- a/okio/src/jvmMain/kotlin/okio/BufferedSource.kt
 +++ b/okio/src/jvmMain/kotlin/okio/BufferedSource.kt
 @@ -79,6 +79,9 @@ actual sealed interface BufferedSource : Source, ReadableByteChannel {
@@ -4793,7 +4793,7 @@ index ca6b94bf..45e6688a 100644
    actual fun readByteArray(): ByteArray
  
 diff --git a/okio/src/jvmMain/kotlin/okio/DeflaterSink.kt b/okio/src/jvmMain/kotlin/okio/DeflaterSink.kt
-index 6fcf7d83..2114e1ea 100644
+index 6fcf7d8..2114e1e 100644
 --- a/okio/src/jvmMain/kotlin/okio/DeflaterSink.kt
 +++ b/okio/src/jvmMain/kotlin/okio/DeflaterSink.kt
 @@ -13,42 +13,22 @@
@@ -4886,7 +4886,7 @@ index 6fcf7d83..2114e1ea 100644
 -  DeflaterSink(this, deflater)
 diff --git a/okio/src/jvmMain/kotlin/okio/FileSystem.System.kt b/okio/src/jvmMain/kotlin/okio/FileSystem.System.kt
 new file mode 100644
-index 00000000..2958eea2
+index 0000000..2958eea
 --- /dev/null
 +++ b/okio/src/jvmMain/kotlin/okio/FileSystem.System.kt
 @@ -0,0 +1,13 @@
@@ -4904,7 +4904,7 @@ index 00000000..2958eea2
 +  @JvmSynthetic
 +  get() = SYSTEM
 diff --git a/okio/src/jvmMain/kotlin/okio/FileSystem.kt b/okio/src/jvmMain/kotlin/okio/FileSystem.kt
-index 7a552cc5..eb97ca0b 100644
+index 7a552cc..eb97ca0 100644
 --- a/okio/src/jvmMain/kotlin/okio/FileSystem.kt
 +++ b/okio/src/jvmMain/kotlin/okio/FileSystem.kt
 @@ -25,7 +25,7 @@ import okio.internal.commonExists
@@ -4950,7 +4950,7 @@ index 7a552cc5..eb97ca0b 100644
      @JvmStatic
      fun JavaNioFileSystem.asOkioFileSystem(): FileSystem = NioFileSystemWrappingFileSystem(this)
 diff --git a/okio/src/jvmMain/kotlin/okio/HashingSink.kt b/okio/src/jvmMain/kotlin/okio/HashingSink.kt
-index 0c097d20..8b178677 100644
+index 0c097d2..8b17867 100644
 --- a/okio/src/jvmMain/kotlin/okio/HashingSink.kt
 +++ b/okio/src/jvmMain/kotlin/okio/HashingSink.kt
 @@ -28,7 +28,8 @@ import javax.crypto.spec.SecretKeySpec
@@ -4973,7 +4973,7 @@ index 0c097d20..8b178677 100644
  
      // Hash byteCount bytes from the prefix of source.
 diff --git a/okio/src/jvmMain/kotlin/okio/HashingSource.kt b/okio/src/jvmMain/kotlin/okio/HashingSource.kt
-index e3d9191b..4d335589 100644
+index e3d9191..4d33558 100644
 --- a/okio/src/jvmMain/kotlin/okio/HashingSource.kt
 +++ b/okio/src/jvmMain/kotlin/okio/HashingSource.kt
 @@ -29,7 +29,8 @@ import javax.crypto.spec.SecretKeySpec
@@ -4996,7 +4996,7 @@ index e3d9191b..4d335589 100644
  
      if (result != -1L) {
 diff --git a/okio/src/jvmMain/kotlin/okio/InflaterSource.kt b/okio/src/jvmMain/kotlin/okio/InflaterSource.kt
-index 1d72d9d4..a07873d1 100644
+index 1d72d9d..a07873d 100644
 --- a/okio/src/jvmMain/kotlin/okio/InflaterSource.kt
 +++ b/okio/src/jvmMain/kotlin/okio/InflaterSource.kt
 @@ -14,7 +14,6 @@
@@ -5066,7 +5066,7 @@ index 1d72d9d4..a07873d1 100644
 -inline fun Source.inflate(inflater: Inflater = Inflater()): InflaterSource =
 -  InflaterSource(this, inflater)
 diff --git a/okio/src/jvmMain/kotlin/okio/JvmOkio.kt b/okio/src/jvmMain/kotlin/okio/JvmOkio.kt
-index 614c48b9..44a046f2 100644
+index 614c48b..44a046f 100644
 --- a/okio/src/jvmMain/kotlin/okio/JvmOkio.kt
 +++ b/okio/src/jvmMain/kotlin/okio/JvmOkio.kt
 @@ -224,9 +224,6 @@ fun Sink.hashingSink(digest: MessageDigest): HashingSink = HashingSink(this, dig
@@ -5080,7 +5080,7 @@ index 614c48b9..44a046f2 100644
  
  /**
 diff --git a/okio/src/jvmMain/kotlin/okio/NioFileSystemWrappingFileSystem.kt b/okio/src/jvmMain/kotlin/okio/NioFileSystemWrappingFileSystem.kt
-index ddf11d81..c1a3c337 100644
+index ddf11d8..c1a3c33 100644
 --- a/okio/src/jvmMain/kotlin/okio/NioFileSystemWrappingFileSystem.kt
 +++ b/okio/src/jvmMain/kotlin/okio/NioFileSystemWrappingFileSystem.kt
 @@ -187,5 +187,9 @@ internal class NioFileSystemWrappingFileSystem(private val nioFileSystem: NioFil
@@ -5094,7 +5094,7 @@ index ddf11d81..c1a3c337 100644
    override fun toString() = nioFileSystem::class.simpleName!!
  }
 diff --git a/okio/src/jvmMain/kotlin/okio/Pipe.kt b/okio/src/jvmMain/kotlin/okio/Pipe.kt
-index 0fae4e03..25d9e1c3 100644
+index 0fae4e0..25d9e1c 100644
 --- a/okio/src/jvmMain/kotlin/okio/Pipe.kt
 +++ b/okio/src/jvmMain/kotlin/okio/Pipe.kt
 @@ -172,6 +172,7 @@ class Pipe(internal val maxBufferSize: Long) {
@@ -5144,7 +5144,7 @@ index 0fae4e03..25d9e1c3 100644
        } finally {
          if (!success) {
 diff --git a/okio/src/jvmMain/kotlin/okio/RealBufferedSink.kt b/okio/src/jvmMain/kotlin/okio/RealBufferedSink.kt
-index dece38d6..d1665ca7 100644
+index dece38d..d1665ca 100644
 --- a/okio/src/jvmMain/kotlin/okio/RealBufferedSink.kt
 +++ b/okio/src/jvmMain/kotlin/okio/RealBufferedSink.kt
 @@ -47,20 +47,20 @@ internal actual class RealBufferedSink actual constructor(
@@ -5235,7 +5235,7 @@ index dece38d6..d1665ca7 100644
    override fun toString() = commonToString()
  }
 diff --git a/okio/src/jvmMain/kotlin/okio/RealBufferedSource.kt b/okio/src/jvmMain/kotlin/okio/RealBufferedSource.kt
-index 35f6c353..4b754b0a 100644
+index 35f6c35..4b754b0 100644
 --- a/okio/src/jvmMain/kotlin/okio/RealBufferedSource.kt
 +++ b/okio/src/jvmMain/kotlin/okio/RealBufferedSource.kt
 @@ -17,6 +17,7 @@ package okio
@@ -5404,7 +5404,7 @@ index 35f6c353..4b754b0a 100644
    override fun toString(): String = commonToString()
  }
 diff --git a/okio/src/jvmMain/kotlin/okio/Timeout.kt b/okio/src/jvmMain/kotlin/okio/Timeout.kt
-index b5f5f359..962bdbdb 100644
+index b5f5f35..962bdbd 100644
 --- a/okio/src/jvmMain/kotlin/okio/Timeout.kt
 +++ b/okio/src/jvmMain/kotlin/okio/Timeout.kt
 @@ -135,7 +135,8 @@ actual open class Timeout {
@@ -5429,7 +5429,7 @@ index b5f5f359..962bdbdb 100644
     *   int latestTotal;
 diff --git a/okio/src/jvmMain/kotlin/okio/internal/-ZlibJvm.kt b/okio/src/jvmMain/kotlin/okio/internal/-ZlibJvm.kt
 new file mode 100644
-index 00000000..d0e8d23c
+index 0000000..d0e8d23
 --- /dev/null
 +++ b/okio/src/jvmMain/kotlin/okio/internal/-ZlibJvm.kt
 @@ -0,0 +1,38 @@
@@ -5472,7 +5472,7 @@ index 00000000..d0e8d23c
 +  return calendar.time.time
 +}
 diff --git a/okio/src/jvmMain/kotlin/okio/internal/ResourceFileSystem.kt b/okio/src/jvmMain/kotlin/okio/internal/ResourceFileSystem.kt
-index efe76801..9223be01 100644
+index efe7680..9223be0 100644
 --- a/okio/src/jvmMain/kotlin/okio/internal/ResourceFileSystem.kt
 +++ b/okio/src/jvmMain/kotlin/okio/internal/ResourceFileSystem.kt
 @@ -17,6 +17,7 @@ package okio.internal
@@ -5500,7 +5500,7 @@ index efe76801..9223be01 100644
    override fun sink(file: Path, mustCreate: Boolean): Sink {
 diff --git a/okio/src/jvmMain/kotlin/okio/internal/ZipEntry.kt b/okio/src/jvmMain/kotlin/okio/internal/ZipEntry.kt
 deleted file mode 100644
-index a370aca8..00000000
+index a370aca..0000000
 --- a/okio/src/jvmMain/kotlin/okio/internal/ZipEntry.kt
 +++ /dev/null
 @@ -1,51 +0,0 @@
@@ -5557,14 +5557,14 @@ index a370aca8..00000000
 -}
 diff --git a/okio/src/jvmTest/hashFunctions b/okio/src/jvmTest/hashFunctions
 deleted file mode 120000
-index 1634c79e..00000000
+index 1634c79..0000000
 --- a/okio/src/jvmTest/hashFunctions
 +++ /dev/null
 @@ -1 +0,0 @@
 -../hashFunctions/kotlin
 \ No newline at end of file
 diff --git a/okio/src/jvmTest/kotlin/okio/AwaitSignalTest.kt b/okio/src/jvmTest/kotlin/okio/AwaitSignalTest.kt
-index a04e8cfe..4607b600 100644
+index a04e8cf..4607b60 100644
 --- a/okio/src/jvmTest/kotlin/okio/AwaitSignalTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/AwaitSignalTest.kt
 @@ -15,6 +15,7 @@
@@ -5600,7 +5600,7 @@ index a04e8cfe..4607b600 100644
 -  }
  }
 diff --git a/okio/src/jvmTest/kotlin/okio/BufferCursorKotlinTest.kt b/okio/src/jvmTest/kotlin/okio/BufferCursorKotlinTest.kt
-index 0b50b005..758469ee 100644
+index 0b50b00..758469e 100644
 --- a/okio/src/jvmTest/kotlin/okio/BufferCursorKotlinTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/BufferCursorKotlinTest.kt
 @@ -15,6 +15,7 @@
@@ -5640,7 +5640,7 @@ index 0b50b005..758469ee 100644
      val buffer = deepCopy(bufferFactory.newBuffer())
      assumeTrue(buffer.size > 0L)
 diff --git a/okio/src/jvmTest/kotlin/okio/BufferCursorTest.kt b/okio/src/jvmTest/kotlin/okio/BufferCursorTest.kt
-index 54873286..466552c9 100644
+index 5487328..466552c 100644
 --- a/okio/src/jvmTest/kotlin/okio/BufferCursorTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/BufferCursorTest.kt
 @@ -15,6 +15,7 @@
@@ -5691,7 +5691,7 @@ index 54873286..466552c9 100644
 -  }
  }
 diff --git a/okio/src/jvmTest/kotlin/okio/BufferFactory.kt b/okio/src/jvmTest/kotlin/okio/BufferFactory.kt
-index 0e6ce906..4c82a0b4 100644
+index 0e6ce90..4c82a0b 100644
 --- a/okio/src/jvmTest/kotlin/okio/BufferFactory.kt
 +++ b/okio/src/jvmTest/kotlin/okio/BufferFactory.kt
 @@ -20,26 +20,26 @@ import okio.TestUtil.bufferWithRandomSegmentLayout
@@ -5735,7 +5735,7 @@ index 0e6ce906..4c82a0b4 100644
      override fun newBuffer(): Buffer {
        val dice = Random(0)
 diff --git a/okio/src/jvmTest/kotlin/okio/BufferTest.kt b/okio/src/jvmTest/kotlin/okio/BufferTest.kt
-index 6f3501bd..36e2689f 100644
+index 6f3501b..36e2689 100644
 --- a/okio/src/jvmTest/kotlin/okio/BufferTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/BufferTest.kt
 @@ -25,7 +25,6 @@ import kotlin.text.Charsets.UTF_8
@@ -5747,7 +5747,7 @@ index 6f3501bd..36e2689f 100644
  import okio.TestUtil.segmentPoolByteCount
  import okio.TestUtil.segmentSizes
 diff --git a/okio/src/jvmTest/kotlin/okio/BufferedSinkTest.kt b/okio/src/jvmTest/kotlin/okio/BufferedSinkTest.kt
-index c9b3d187..c3e731dc 100644
+index c9b3d18..c3e731d 100644
 --- a/okio/src/jvmTest/kotlin/okio/BufferedSinkTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/BufferedSinkTest.kt
 @@ -15,6 +15,7 @@
@@ -5811,7 +5811,7 @@ index c9b3d187..c3e731dc 100644
 -  }
  }
 diff --git a/okio/src/jvmTest/kotlin/okio/BufferedSourceTest.kt b/okio/src/jvmTest/kotlin/okio/BufferedSourceTest.kt
-index b30944b7..9b42fe1f 100644
+index b30944b..9b42fe1 100644
 --- a/okio/src/jvmTest/kotlin/okio/BufferedSourceTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/BufferedSourceTest.kt
 @@ -15,6 +15,12 @@
@@ -6111,7 +6111,7 @@ index b30944b7..9b42fe1f 100644
 -  }
  }
 diff --git a/okio/src/jvmTest/kotlin/okio/ByteStringJavaTest.kt b/okio/src/jvmTest/kotlin/okio/ByteStringJavaTest.kt
-index 490eb425..b5f31fef 100644
+index 490eb42..b5f31fe 100644
 --- a/okio/src/jvmTest/kotlin/okio/ByteStringJavaTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/ByteStringJavaTest.kt
 @@ -15,6 +15,7 @@
@@ -6231,7 +6231,7 @@ index 490eb425..b5f31fef 100644
    }
  }
 diff --git a/okio/src/jvmTest/kotlin/okio/CipherAlgorithm.kt b/okio/src/jvmTest/kotlin/okio/CipherAlgorithm.kt
-index 69415241..ecef16f5 100644
+index 6941524..ecef16f 100644
 --- a/okio/src/jvmTest/kotlin/okio/CipherAlgorithm.kt
 +++ b/okio/src/jvmTest/kotlin/okio/CipherAlgorithm.kt
 @@ -19,12 +19,26 @@ import javax.crypto.spec.IvParameterSpec
@@ -6288,7 +6288,7 @@ index 69415241..ecef16f5 100644
 -  }
  }
 diff --git a/okio/src/jvmTest/kotlin/okio/CipherSinkTest.kt b/okio/src/jvmTest/kotlin/okio/CipherSinkTest.kt
-index 84d27d06..35d93b77 100644
+index 84d27d0..35d93b7 100644
 --- a/okio/src/jvmTest/kotlin/okio/CipherSinkTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/CipherSinkTest.kt
 @@ -15,20 +15,14 @@
@@ -6318,7 +6318,7 @@ index 84d27d06..35d93b77 100644
    fun encrypt() {
      val random = Random(8912860393601532863)
 diff --git a/okio/src/jvmTest/kotlin/okio/CipherSourceTest.kt b/okio/src/jvmTest/kotlin/okio/CipherSourceTest.kt
-index 16775350..a41cee49 100644
+index 1677535..a41cee4 100644
 --- a/okio/src/jvmTest/kotlin/okio/CipherSourceTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/CipherSourceTest.kt
 @@ -15,20 +15,14 @@
@@ -6348,7 +6348,7 @@ index 16775350..a41cee49 100644
    fun encrypt() {
      val random = Random(787679144228763091)
 diff --git a/okio/src/jvmTest/kotlin/okio/FileHandleFileSystemTest.kt b/okio/src/jvmTest/kotlin/okio/FileHandleFileSystemTest.kt
-index 021ffb4c..14f3f911 100644
+index 021ffb4..14f3f91 100644
 --- a/okio/src/jvmTest/kotlin/okio/FileHandleFileSystemTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/FileHandleFileSystemTest.kt
 @@ -33,6 +33,7 @@ class FileHandleFileSystemTest : AbstractFileSystemTest(
@@ -6374,7 +6374,7 @@ index 021ffb4c..14f3f911 100644
 +  closeBehavior = CloseBehavior.Unsupported,
  )
 diff --git a/okio/src/jvmTest/kotlin/okio/FileLeakTest.kt b/okio/src/jvmTest/kotlin/okio/FileLeakTest.kt
-index 5fd18a6b..79d2662f 100644
+index 5fd18a6..79d2662 100644
 --- a/okio/src/jvmTest/kotlin/okio/FileLeakTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/FileLeakTest.kt
 @@ -15,17 +15,30 @@
@@ -6463,7 +6463,7 @@ index 5fd18a6b..79d2662f 100644
 +  }
 +}
 diff --git a/okio/src/jvmTest/kotlin/okio/InflaterSourceTest.kt b/okio/src/jvmTest/kotlin/okio/InflaterSourceTest.kt
-index 53273776..8f2212ce 100644
+index 5327377..8f2212c 100644
 --- a/okio/src/jvmTest/kotlin/okio/InflaterSourceTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/InflaterSourceTest.kt
 @@ -15,10 +15,10 @@
@@ -6507,7 +6507,7 @@ index 53273776..8f2212ce 100644
 -  }
  }
 diff --git a/okio/src/jvmTest/kotlin/okio/JvmSystemFileSystemTest.kt b/okio/src/jvmTest/kotlin/okio/JvmSystemFileSystemTest.kt
-index fc4b7c09..ff06ec2f 100644
+index fc4b7c0..ff06ec2 100644
 --- a/okio/src/jvmTest/kotlin/okio/JvmSystemFileSystemTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/JvmSystemFileSystemTest.kt
 @@ -37,6 +37,7 @@ class NioSystemFileSystemTest : AbstractFileSystemTest(
@@ -6541,7 +6541,7 @@ index fc4b7c09..ff06ec2f 100644
 +  closeBehavior = CloseBehavior.Unsupported,
  )
 diff --git a/okio/src/jvmTest/kotlin/okio/JvmTesting.kt b/okio/src/jvmTest/kotlin/okio/JvmTesting.kt
-index e6b091d7..c135095f 100644
+index e6b091d..c135095 100644
 --- a/okio/src/jvmTest/kotlin/okio/JvmTesting.kt
 +++ b/okio/src/jvmTest/kotlin/okio/JvmTesting.kt
 @@ -15,6 +15,7 @@
@@ -6567,7 +6567,7 @@ index e6b091d7..c135095f 100644
 +  }
 +}
 diff --git a/okio/src/jvmTest/kotlin/okio/OkioTest.kt b/okio/src/jvmTest/kotlin/okio/OkioTest.kt
-index 9514ddd2..5a4cee4b 100644
+index 9514ddd..5a4cee4 100644
 --- a/okio/src/jvmTest/kotlin/okio/OkioTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/OkioTest.kt
 @@ -20,7 +20,6 @@ import java.io.ByteArrayOutputStream
@@ -6579,7 +6579,7 @@ index 9514ddd2..5a4cee4b 100644
  import org.junit.Assert.assertTrue
  import org.junit.Assert.fail
 diff --git a/okio/src/jvmTest/kotlin/okio/PipeKotlinTest.kt b/okio/src/jvmTest/kotlin/okio/PipeKotlinTest.kt
-index ac50f3a0..d4e0bdc5 100644
+index ac50f3a..d4e0bdc 100644
 --- a/okio/src/jvmTest/kotlin/okio/PipeKotlinTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/PipeKotlinTest.kt
 @@ -18,6 +18,7 @@ package okio
@@ -6638,7 +6638,7 @@ index ac50f3a0..d4e0bdc5 100644
      val pipe = Pipe(4)
      val underlying = TimeoutWritingSink()
 diff --git a/okio/src/jvmTest/kotlin/okio/ReadUtf8LineTest.kt b/okio/src/jvmTest/kotlin/okio/ReadUtf8LineTest.kt
-index 6f64355b..af3dc230 100644
+index 6f64355..af3dc23 100644
 --- a/okio/src/jvmTest/kotlin/okio/ReadUtf8LineTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/ReadUtf8LineTest.kt
 @@ -15,36 +15,45 @@
@@ -6748,7 +6748,7 @@ index 6f64355b..af3dc230 100644
 -  }
  }
 diff --git a/okio/src/jvmTest/kotlin/okio/TestUtil.kt b/okio/src/jvmTest/kotlin/okio/TestUtil.kt
-index 703986e7..3e5e9547 100644
+index 703986e..3e5e954 100644
 --- a/okio/src/jvmTest/kotlin/okio/TestUtil.kt
 +++ b/okio/src/jvmTest/kotlin/okio/TestUtil.kt
 @@ -38,11 +38,6 @@ object TestUtil {
@@ -6764,7 +6764,7 @@ index 703986e7..3e5e9547 100644
    fun assertByteArraysEquals(a: ByteArray, b: ByteArray) {
      assertEquals(a.contentToString(), b.contentToString())
 diff --git a/okio/src/jvmTest/kotlin/okio/TimeoutFactory.kt b/okio/src/jvmTest/kotlin/okio/TimeoutFactory.kt
-index 3a9cac7c..7ab0479f 100644
+index 3a9cac7..7ab0479 100644
 --- a/okio/src/jvmTest/kotlin/okio/TimeoutFactory.kt
 +++ b/okio/src/jvmTest/kotlin/okio/TimeoutFactory.kt
 @@ -16,15 +16,15 @@
@@ -6788,7 +6788,7 @@ index 3a9cac7c..7ab0479f 100644
    },
    ;
 diff --git a/okio/src/jvmTest/kotlin/okio/WaitUntilNotifiedTest.kt b/okio/src/jvmTest/kotlin/okio/WaitUntilNotifiedTest.kt
-index 44c6bbfd..41440751 100644
+index 44c6bbf..4144075 100644
 --- a/okio/src/jvmTest/kotlin/okio/WaitUntilNotifiedTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/WaitUntilNotifiedTest.kt
 @@ -15,6 +15,7 @@
@@ -6824,7 +6824,7 @@ index 44c6bbfd..41440751 100644
 -  }
  }
 diff --git a/okio/src/jvmTest/kotlin/okio/internal/HmacTest.kt b/okio/src/jvmTest/kotlin/okio/internal/HmacTest.kt
-index 01666d17..8c31517d 100644
+index 01666d1..8c31517 100644
 --- a/okio/src/jvmTest/kotlin/okio/internal/HmacTest.kt
 +++ b/okio/src/jvmTest/kotlin/okio/internal/HmacTest.kt
 @@ -15,57 +15,28 @@
@@ -6939,7 +6939,7 @@ index 01666d17..8c31517d 100644
  
  private fun hmac(algorithm: String, key: ByteArray, bytes: ByteArray) =
 diff --git a/okio/src/nativeMain/kotlin/okio/Cinterop.kt b/okio/src/nativeMain/kotlin/okio/Cinterop.kt
-index a9f3e74f..c5b93c9a 100644
+index a9f3e74..c5b93c9 100644
 --- a/okio/src/nativeMain/kotlin/okio/Cinterop.kt
 +++ b/okio/src/nativeMain/kotlin/okio/Cinterop.kt
 @@ -16,12 +16,20 @@
@@ -6965,7 +6965,7 @@ index a9f3e74f..c5b93c9a 100644
    while (true) {
 diff --git a/okio/src/nativeMain/kotlin/okio/DataProcessor.kt b/okio/src/nativeMain/kotlin/okio/DataProcessor.kt
 new file mode 100644
-index 00000000..c19e3a19
+index 0000000..c19e3a1
 --- /dev/null
 +++ b/okio/src/nativeMain/kotlin/okio/DataProcessor.kt
 @@ -0,0 +1,242 @@
@@ -7213,7 +7213,7 @@ index 00000000..c19e3a19
 +}
 diff --git a/okio/src/nativeMain/kotlin/okio/Deflater.kt b/okio/src/nativeMain/kotlin/okio/Deflater.kt
 new file mode 100644
-index 00000000..f762d932
+index 0000000..f762d93
 --- /dev/null
 +++ b/okio/src/nativeMain/kotlin/okio/Deflater.kt
 @@ -0,0 +1,130 @@
@@ -7349,7 +7349,7 @@ index 00000000..f762d932
 +}
 diff --git a/okio/src/nativeMain/kotlin/okio/DeflaterSink.kt b/okio/src/nativeMain/kotlin/okio/DeflaterSink.kt
 new file mode 100644
-index 00000000..496854d2
+index 0000000..496854d
 --- /dev/null
 +++ b/okio/src/nativeMain/kotlin/okio/DeflaterSink.kt
 @@ -0,0 +1,93 @@
@@ -7447,7 +7447,7 @@ index 00000000..496854d2
 +  }
 +}
 diff --git a/okio/src/nativeMain/kotlin/okio/FileSystem.kt b/okio/src/nativeMain/kotlin/okio/FileSystem.kt
-index eb1e1653..d575a62a 100644
+index eb1e165..d575a62 100644
 --- a/okio/src/nativeMain/kotlin/okio/FileSystem.kt
 +++ b/okio/src/nativeMain/kotlin/okio/FileSystem.kt
 @@ -22,7 +22,7 @@ import okio.internal.commonExists
@@ -7485,7 +7485,7 @@ index eb1e1653..d575a62a 100644
 +  get() = SYSTEM
 diff --git a/okio/src/nativeMain/kotlin/okio/Inflater.kt b/okio/src/nativeMain/kotlin/okio/Inflater.kt
 new file mode 100644
-index 00000000..82e63ee8
+index 0000000..82e63ee
 --- /dev/null
 +++ b/okio/src/nativeMain/kotlin/okio/Inflater.kt
 @@ -0,0 +1,121 @@
@@ -7612,7 +7612,7 @@ index 00000000..82e63ee8
 +}
 diff --git a/okio/src/nativeMain/kotlin/okio/InflaterSource.kt b/okio/src/nativeMain/kotlin/okio/InflaterSource.kt
 new file mode 100644
-index 00000000..04351b96
+index 0000000..04351b9
 --- /dev/null
 +++ b/okio/src/nativeMain/kotlin/okio/InflaterSource.kt
 @@ -0,0 +1,49 @@
@@ -7667,7 +7667,7 @@ index 00000000..04351b96
 +}
 diff --git a/okio/src/nativeMain/kotlin/okio/internal/-ZlibNative.kt b/okio/src/nativeMain/kotlin/okio/internal/-ZlibNative.kt
 new file mode 100644
-index 00000000..ac853399
+index 0000000..ac85339
 --- /dev/null
 +++ b/okio/src/nativeMain/kotlin/okio/internal/-ZlibNative.kt
 @@ -0,0 +1,78 @@
@@ -7751,7 +7751,7 @@ index 00000000..ac853399
 +}
 diff --git a/okio/src/nativeMain/kotlin/okio/internal/CRC32.kt b/okio/src/nativeMain/kotlin/okio/internal/CRC32.kt
 new file mode 100644
-index 00000000..4abe0723
+index 0000000..4abe072
 --- /dev/null
 +++ b/okio/src/nativeMain/kotlin/okio/internal/CRC32.kt
 @@ -0,0 +1,46 @@
@@ -7803,7 +7803,7 @@ index 00000000..4abe0723
 +}
 diff --git a/okio/src/nativeTest/kotlin/okio/ByteStringCinteropTest.kt b/okio/src/nativeTest/kotlin/okio/ByteStringCinteropTest.kt
 new file mode 100644
-index 00000000..7c1832c6
+index 0000000..7c1832c
 --- /dev/null
 +++ b/okio/src/nativeTest/kotlin/okio/ByteStringCinteropTest.kt
 @@ -0,0 +1,45 @@
@@ -7854,7 +7854,7 @@ index 00000000..7c1832c6
 +}
 diff --git a/okio/src/nativeTest/kotlin/okio/DeflaterSinkTest.kt b/okio/src/nativeTest/kotlin/okio/DeflaterSinkTest.kt
 new file mode 100644
-index 00000000..58855c57
+index 0000000..58855c5
 --- /dev/null
 +++ b/okio/src/nativeTest/kotlin/okio/DeflaterSinkTest.kt
 @@ -0,0 +1,113 @@
@@ -7973,7 +7973,7 @@ index 00000000..58855c57
 +}
 diff --git a/okio/src/nativeTest/kotlin/okio/DeflaterTest.kt b/okio/src/nativeTest/kotlin/okio/DeflaterTest.kt
 new file mode 100644
-index 00000000..2173bd64
+index 0000000..2173bd6
 --- /dev/null
 +++ b/okio/src/nativeTest/kotlin/okio/DeflaterTest.kt
 @@ -0,0 +1,259 @@
@@ -8238,7 +8238,7 @@ index 00000000..2173bd64
 +}
 diff --git a/okio/src/nativeTest/kotlin/okio/InflateDeflateTest.kt b/okio/src/nativeTest/kotlin/okio/InflateDeflateTest.kt
 new file mode 100644
-index 00000000..b7998153
+index 0000000..b799815
 --- /dev/null
 +++ b/okio/src/nativeTest/kotlin/okio/InflateDeflateTest.kt
 @@ -0,0 +1,96 @@
@@ -8340,7 +8340,7 @@ index 00000000..b7998153
 +}
 diff --git a/okio/src/nativeTest/kotlin/okio/InflaterSourceTest.kt b/okio/src/nativeTest/kotlin/okio/InflaterSourceTest.kt
 new file mode 100644
-index 00000000..d28db137
+index 0000000..d28db13
 --- /dev/null
 +++ b/okio/src/nativeTest/kotlin/okio/InflaterSourceTest.kt
 @@ -0,0 +1,180 @@
@@ -8526,7 +8526,7 @@ index 00000000..d28db137
 +}
 diff --git a/okio/src/nativeTest/kotlin/okio/InflaterTest.kt b/okio/src/nativeTest/kotlin/okio/InflaterTest.kt
 new file mode 100644
-index 00000000..4ff488d8
+index 0000000..4ff488d
 --- /dev/null
 +++ b/okio/src/nativeTest/kotlin/okio/InflaterTest.kt
 @@ -0,0 +1,270 @@
@@ -8801,7 +8801,7 @@ index 00000000..4ff488d8
 +  }
 +}
 diff --git a/okio/src/nativeTest/kotlin/okio/NativeSystemFileSystemTest.kt b/okio/src/nativeTest/kotlin/okio/NativeSystemFileSystemTest.kt
-index e4db5eff..68bd596b 100644
+index e4db5ef..68bd596 100644
 --- a/okio/src/nativeTest/kotlin/okio/NativeSystemFileSystemTest.kt
 +++ b/okio/src/nativeTest/kotlin/okio/NativeSystemFileSystemTest.kt
 @@ -24,4 +24,5 @@ class NativeSystemFileSystemTest : AbstractFileSystemTest(
@@ -8811,7 +8811,7 @@ index e4db5eff..68bd596b 100644
 +  closeBehavior = CloseBehavior.DoesNothing,
  )
 diff --git a/okio/src/nonJvmMain/kotlin/okio/Buffer.kt b/okio/src/nonJvmMain/kotlin/okio/Buffer.kt
-index 8dfb5622..4a3f6d4d 100644
+index 8dfb562..4a3f6d4 100644
 --- a/okio/src/nonJvmMain/kotlin/okio/Buffer.kt
 +++ b/okio/src/nonJvmMain/kotlin/okio/Buffer.kt
 @@ -80,15 +80,15 @@ actual class Buffer : BufferedSource, BufferedSink {
@@ -8983,7 +8983,7 @@ index 8dfb5622..4a3f6d4d 100644
    override fun equals(other: Any?): Boolean = commonEquals(other)
  
 diff --git a/okio/src/nonJvmMain/kotlin/okio/BufferedSource.kt b/okio/src/nonJvmMain/kotlin/okio/BufferedSource.kt
-index 369a3e63..44622233 100644
+index 369a3e6..4462223 100644
 --- a/okio/src/nonJvmMain/kotlin/okio/BufferedSource.kt
 +++ b/okio/src/nonJvmMain/kotlin/okio/BufferedSource.kt
 @@ -50,6 +50,8 @@ actual sealed interface BufferedSource : Source {
@@ -8996,7 +8996,7 @@ index 369a3e63..44622233 100644
  
    actual fun readByteArray(byteCount: Long): ByteArray
 diff --git a/okio/src/nonJvmMain/kotlin/okio/HashingSink.kt b/okio/src/nonJvmMain/kotlin/okio/HashingSink.kt
-index fd86acf9..15e4b9ae 100644
+index fd86acf..15e4b9a 100644
 --- a/okio/src/nonJvmMain/kotlin/okio/HashingSink.kt
 +++ b/okio/src/nonJvmMain/kotlin/okio/HashingSink.kt
 @@ -27,7 +27,7 @@ actual class HashingSink internal constructor(
@@ -9024,7 +9024,7 @@ index fd86acf9..15e4b9ae 100644
    /**
     * Returns the hash of the bytes accepted thus far and resets the internal state of this sink.
 diff --git a/okio/src/nonJvmMain/kotlin/okio/HashingSource.kt b/okio/src/nonJvmMain/kotlin/okio/HashingSource.kt
-index 40e4a628..dae96c6b 100644
+index 40e4a62..dae96c6 100644
 --- a/okio/src/nonJvmMain/kotlin/okio/HashingSource.kt
 +++ b/okio/src/nonJvmMain/kotlin/okio/HashingSource.kt
 @@ -27,7 +27,7 @@ actual class HashingSource internal constructor(
@@ -9050,7 +9050,7 @@ index 40e4a628..dae96c6b 100644
  
    actual val hash: ByteString
 diff --git a/okio/src/nonJvmMain/kotlin/okio/RealBufferedSink.kt b/okio/src/nonJvmMain/kotlin/okio/RealBufferedSink.kt
-index 8b09c7f4..f41cd6eb 100644
+index 8b09c7f..f41cd6e 100644
 --- a/okio/src/nonJvmMain/kotlin/okio/RealBufferedSink.kt
 +++ b/okio/src/nonJvmMain/kotlin/okio/RealBufferedSink.kt
 @@ -40,36 +40,36 @@ internal actual class RealBufferedSink actual constructor(
@@ -9116,7 +9116,7 @@ index 8b09c7f4..f41cd6eb 100644
    override fun toString() = commonToString()
  }
 diff --git a/okio/src/nonJvmMain/kotlin/okio/RealBufferedSource.kt b/okio/src/nonJvmMain/kotlin/okio/RealBufferedSource.kt
-index 93ad10f0..5bb7ced7 100644
+index 93ad10f..5bb7ced 100644
 --- a/okio/src/nonJvmMain/kotlin/okio/RealBufferedSource.kt
 +++ b/okio/src/nonJvmMain/kotlin/okio/RealBufferedSource.kt
 @@ -50,67 +50,71 @@ internal actual class RealBufferedSource actual constructor(
@@ -9235,7 +9235,7 @@ index 93ad10f0..5bb7ced7 100644
    override fun toString(): String = commonToString()
  }
 diff --git a/okio/src/nonJvmTest/kotlin/okio/NonJvmTesting.kt b/okio/src/nonJvmTest/kotlin/okio/NonJvmTesting.kt
-index a5e9a780..0483999b 100644
+index a5e9a78..0483999 100644
 --- a/okio/src/nonJvmTest/kotlin/okio/NonJvmTesting.kt
 +++ b/okio/src/nonJvmTest/kotlin/okio/NonJvmTesting.kt
 @@ -36,3 +36,7 @@ actual fun assertRelativeToFails(
@@ -9247,7 +9247,7 @@ index a5e9a780..0483999b 100644
 +  return block()
 +}
 diff --git a/okio/src/nonWasmTest/kotlin/okio/FakeFileSystemTest.kt b/okio/src/nonWasmTest/kotlin/okio/FakeFileSystemTest.kt
-index 07dfad8d..6a86b0a4 100644
+index 07dfad8..6a86b0a 100644
 --- a/okio/src/nonWasmTest/kotlin/okio/FakeFileSystemTest.kt
 +++ b/okio/src/nonWasmTest/kotlin/okio/FakeFileSystemTest.kt
 @@ -51,6 +51,7 @@ abstract class FakeFileSystemTest internal constructor(
@@ -9259,7 +9259,7 @@ index 07dfad8d..6a86b0a4 100644
    private val fakeClock: FakeClock = fakeFileSystem.clock as FakeClock
  
 diff --git a/okio/src/nonWasmTest/kotlin/okio/ForwardingFileSystemTest.kt b/okio/src/nonWasmTest/kotlin/okio/ForwardingFileSystemTest.kt
-index 6b7e089b..6b2fb526 100644
+index 6b7e089..6b2fb52 100644
 --- a/okio/src/nonWasmTest/kotlin/okio/ForwardingFileSystemTest.kt
 +++ b/okio/src/nonWasmTest/kotlin/okio/ForwardingFileSystemTest.kt
 @@ -30,6 +30,7 @@ class ForwardingFileSystemTest : AbstractFileSystemTest(
@@ -9291,7 +9291,7 @@ index 6b7e089b..6b2fb526 100644
 +  }
  }
 diff --git a/okio/src/nonWasmTest/kotlin/okio/UseTest.kt b/okio/src/nonWasmTest/kotlin/okio/UseTest.kt
-index a36cf068..3cf713b3 100644
+index a36cf06..3cf713b 100644
 --- a/okio/src/nonWasmTest/kotlin/okio/UseTest.kt
 +++ b/okio/src/nonWasmTest/kotlin/okio/UseTest.kt
 @@ -1,6 +1,7 @@
@@ -9318,7 +9318,7 @@ index a36cf068..3cf713b3 100644
  }
 diff --git a/okio/src/systemFileSystemMain/kotlin/okio/FileSystem.System.kt b/okio/src/systemFileSystemMain/kotlin/okio/FileSystem.System.kt
 new file mode 100644
-index 00000000..0bc7e4da
+index 0000000..0bc7e4d
 --- /dev/null
 +++ b/okio/src/systemFileSystemMain/kotlin/okio/FileSystem.System.kt
 @@ -0,0 +1,7 @@
@@ -9330,7 +9330,7 @@ index 00000000..0bc7e4da
 + */
 +expect val FileSystem.Companion.SYSTEM: FileSystem
 diff --git a/okio/src/wasmMain/kotlin/okio/FileSystem.kt b/okio/src/wasmMain/kotlin/okio/FileSystem.kt
-index 2152a91b..190bba8b 100644
+index 2152a91..190bba8 100644
 --- a/okio/src/wasmMain/kotlin/okio/FileSystem.kt
 +++ b/okio/src/wasmMain/kotlin/okio/FileSystem.kt
 @@ -23,7 +23,7 @@ import okio.internal.commonExists
@@ -9354,7 +9354,7 @@ index 2152a91b..190bba8b 100644
    }
 diff --git a/okio/src/zlibMain/kotlin/okio/Deflater.kt b/okio/src/zlibMain/kotlin/okio/Deflater.kt
 new file mode 100644
-index 00000000..e561f041
+index 0000000..e561f04
 --- /dev/null
 +++ b/okio/src/zlibMain/kotlin/okio/Deflater.kt
 @@ -0,0 +1,31 @@
@@ -9391,7 +9391,7 @@ index 00000000..e561f041
 +}
 diff --git a/okio/src/zlibMain/kotlin/okio/DeflaterSink.kt b/okio/src/zlibMain/kotlin/okio/DeflaterSink.kt
 new file mode 100644
-index 00000000..b81e7dd0
+index 0000000..b81e7dd
 --- /dev/null
 +++ b/okio/src/zlibMain/kotlin/okio/DeflaterSink.kt
 @@ -0,0 +1,63 @@
@@ -9462,7 +9462,7 @@ diff --git a/okio/src/jvmMain/kotlin/okio/GzipSink.kt b/okio/src/zlibMain/kotlin
 similarity index 93%
 rename from okio/src/jvmMain/kotlin/okio/GzipSink.kt
 rename to okio/src/zlibMain/kotlin/okio/GzipSink.kt
-index 1b5cbc63..fa3cf162 100644
+index 1b5cbc6..fa3cf16 100644
 --- a/okio/src/jvmMain/kotlin/okio/GzipSink.kt
 +++ b/okio/src/zlibMain/kotlin/okio/GzipSink.kt
 @@ -19,10 +19,9 @@
@@ -9494,7 +9494,7 @@ diff --git a/okio/src/jvmMain/kotlin/okio/GzipSource.kt b/okio/src/zlibMain/kotl
 similarity index 93%
 rename from okio/src/jvmMain/kotlin/okio/GzipSource.kt
 rename to okio/src/zlibMain/kotlin/okio/GzipSource.kt
-index 1cc4172a..27b65d40 100644
+index 1cc4172..27b65d4 100644
 --- a/okio/src/jvmMain/kotlin/okio/GzipSource.kt
 +++ b/okio/src/zlibMain/kotlin/okio/GzipSource.kt
 @@ -19,10 +19,8 @@
@@ -9545,7 +9545,7 @@ index 1cc4172a..27b65d40 100644
  }
 diff --git a/okio/src/zlibMain/kotlin/okio/Inflater.kt b/okio/src/zlibMain/kotlin/okio/Inflater.kt
 new file mode 100644
-index 00000000..600804a7
+index 0000000..600804a
 --- /dev/null
 +++ b/okio/src/zlibMain/kotlin/okio/Inflater.kt
 @@ -0,0 +1,30 @@
@@ -9581,7 +9581,7 @@ index 00000000..600804a7
 +}
 diff --git a/okio/src/zlibMain/kotlin/okio/InflaterSource.kt b/okio/src/zlibMain/kotlin/okio/InflaterSource.kt
 new file mode 100644
-index 00000000..01bfc8ef
+index 0000000..01bfc8e
 --- /dev/null
 +++ b/okio/src/zlibMain/kotlin/okio/InflaterSource.kt
 @@ -0,0 +1,48 @@
@@ -9637,7 +9637,7 @@ diff --git a/okio/src/jvmMain/kotlin/okio/ZipFileSystem.kt b/okio/src/zlibMain/k
 similarity index 62%
 rename from okio/src/jvmMain/kotlin/okio/ZipFileSystem.kt
 rename to okio/src/zlibMain/kotlin/okio/ZipFileSystem.kt
-index 2c8d9ea5..88972fb2 100644
+index 2c8d9ea..88972fb 100644
 --- a/okio/src/jvmMain/kotlin/okio/ZipFileSystem.kt
 +++ b/okio/src/zlibMain/kotlin/okio/ZipFileSystem.kt
 @@ -16,8 +16,6 @@
@@ -9743,7 +9743,7 @@ index 2c8d9ea5..88972fb2 100644
    override fun openReadOnly(file: Path): FileHandle {
 diff --git a/okio/src/zlibMain/kotlin/okio/ZlibOkio.kt b/okio/src/zlibMain/kotlin/okio/ZlibOkio.kt
 new file mode 100644
-index 00000000..827e001d
+index 0000000..827e001
 --- /dev/null
 +++ b/okio/src/zlibMain/kotlin/okio/ZlibOkio.kt
 @@ -0,0 +1,35 @@
@@ -9784,7 +9784,7 @@ index 00000000..827e001d
 +fun FileSystem.openZip(zipPath: Path): FileSystem = okio.internal.openZip(zipPath, this)
 diff --git a/okio/src/zlibMain/kotlin/okio/internal/-Zlib.kt b/okio/src/zlibMain/kotlin/okio/internal/-Zlib.kt
 new file mode 100644
-index 00000000..b31c9e15
+index 0000000..b31c9e1
 --- /dev/null
 +++ b/okio/src/zlibMain/kotlin/okio/internal/-Zlib.kt
 @@ -0,0 +1,38 @@
@@ -9828,7 +9828,7 @@ index 00000000..b31c9e15
 +): Long
 diff --git a/okio/src/zlibMain/kotlin/okio/internal/CRC32.kt b/okio/src/zlibMain/kotlin/okio/internal/CRC32.kt
 new file mode 100644
-index 00000000..a987fda1
+index 0000000..a987fda
 --- /dev/null
 +++ b/okio/src/zlibMain/kotlin/okio/internal/CRC32.kt
 @@ -0,0 +1,23 @@
@@ -9861,7 +9861,7 @@ rename from okio/src/jvmMain/kotlin/okio/internal/FixedLengthSource.kt
 rename to okio/src/zlibMain/kotlin/okio/internal/FixedLengthSource.kt
 diff --git a/okio/src/zlibMain/kotlin/okio/internal/ZipEntry.kt b/okio/src/zlibMain/kotlin/okio/internal/ZipEntry.kt
 new file mode 100644
-index 00000000..4050b918
+index 0000000..4050b91
 --- /dev/null
 +++ b/okio/src/zlibMain/kotlin/okio/internal/ZipEntry.kt
 @@ -0,0 +1,137 @@
@@ -10006,7 +10006,7 @@ diff --git a/okio/src/jvmMain/kotlin/okio/internal/ZipFiles.kt b/okio/src/zlibMa
 similarity index 79%
 rename from okio/src/jvmMain/kotlin/okio/internal/ZipFiles.kt
 rename to okio/src/zlibMain/kotlin/okio/internal/ZipFiles.kt
-index 02b6a848..5b1348f2 100644
+index 02b6a84..5b1348f 100644
 --- a/okio/src/jvmMain/kotlin/okio/internal/ZipFiles.kt
 +++ b/okio/src/zlibMain/kotlin/okio/internal/ZipFiles.kt
 @@ -16,16 +16,14 @@
@@ -10251,7 +10251,7 @@ diff --git a/okio/src/jvmTest/kotlin/okio/GzipKotlinTest.kt b/okio/src/zlibTest/
 similarity index 98%
 rename from okio/src/jvmTest/kotlin/okio/GzipKotlinTest.kt
 rename to okio/src/zlibTest/kotlin/okio/GzipKotlinTest.kt
-index dfe7182a..e1624142 100644
+index dfe7182..e162414 100644
 --- a/okio/src/jvmTest/kotlin/okio/GzipKotlinTest.kt
 +++ b/okio/src/zlibTest/kotlin/okio/GzipKotlinTest.kt
 @@ -16,9 +16,9 @@
@@ -10269,7 +10269,7 @@ diff --git a/okio/src/jvmTest/kotlin/okio/GzipSinkTest.kt b/okio/src/zlibTest/ko
 similarity index 87%
 rename from okio/src/jvmTest/kotlin/okio/GzipSinkTest.kt
 rename to okio/src/zlibTest/kotlin/okio/GzipSinkTest.kt
-index b3fe171a..5f045b38 100644
+index b3fe171..5f045b3 100644
 --- a/okio/src/jvmTest/kotlin/okio/GzipSinkTest.kt
 +++ b/okio/src/zlibTest/kotlin/okio/GzipSinkTest.kt
 @@ -15,11 +15,9 @@
@@ -10300,7 +10300,7 @@ diff --git a/okio/src/jvmTest/kotlin/okio/GzipSourceTest.kt b/okio/src/zlibTest/
 similarity index 90%
 rename from okio/src/jvmTest/kotlin/okio/GzipSourceTest.kt
 rename to okio/src/zlibTest/kotlin/okio/GzipSourceTest.kt
-index 812aab14..95aa9d35 100644
+index 812aab1..95aa9d3 100644
 --- a/okio/src/jvmTest/kotlin/okio/GzipSourceTest.kt
 +++ b/okio/src/zlibTest/kotlin/okio/GzipSourceTest.kt
 @@ -15,17 +15,15 @@
@@ -10380,7 +10380,7 @@ index 812aab14..95aa9d35 100644
      gzipped.write(gzipTrailer)
 diff --git a/okio/src/zlibTest/kotlin/okio/ZipFileSystemGoTest.kt b/okio/src/zlibTest/kotlin/okio/ZipFileSystemGoTest.kt
 new file mode 100644
-index 00000000..07943c4b
+index 0000000..07943c4
 --- /dev/null
 +++ b/okio/src/zlibTest/kotlin/okio/ZipFileSystemGoTest.kt
 @@ -0,0 +1,50 @@
@@ -10438,7 +10438,7 @@ diff --git a/okio/src/jvmTest/kotlin/okio/ZipFileSystemTest.kt b/okio/src/zlibTe
 similarity index 66%
 rename from okio/src/jvmTest/kotlin/okio/ZipFileSystemTest.kt
 rename to okio/src/zlibTest/kotlin/okio/ZipFileSystemTest.kt
-index fd7aa46b..6919988e 100644
+index fd7aa46..6919988 100644
 --- a/okio/src/jvmTest/kotlin/okio/ZipFileSystemTest.kt
 +++ b/okio/src/zlibTest/kotlin/okio/ZipFileSystemTest.kt
 @@ -15,55 +15,55 @@
@@ -11053,7 +11053,7 @@ index fd7aa46b..6919988e 100644
      assertFailsWith<FileNotFoundException> {
 diff --git a/okio/src/zlibTest/kotlin/okio/internal/CRC32Test.kt b/okio/src/zlibTest/kotlin/okio/internal/CRC32Test.kt
 new file mode 100644
-index 00000000..b8b9a544
+index 0000000..b8b9a54
 --- /dev/null
 +++ b/okio/src/zlibTest/kotlin/okio/internal/CRC32Test.kt
 @@ -0,0 +1,56 @@
@@ -11115,7 +11115,7 @@ index 00000000..b8b9a544
 +}
 diff --git a/okio/src/zlibTest/kotlin/okio/internal/DatePartsToEpochMillisTest.kt b/okio/src/zlibTest/kotlin/okio/internal/DatePartsToEpochMillisTest.kt
 new file mode 100644
-index 00000000..20340498
+index 0000000..2034049
 --- /dev/null
 +++ b/okio/src/zlibTest/kotlin/okio/internal/DatePartsToEpochMillisTest.kt
 @@ -0,0 +1,261 @@
@@ -11381,7 +11381,7 @@ index 00000000..20340498
 +  }
 +}
 diff --git a/renovate.json b/renovate.json
-index 1a2efbb4..a0972cbf 100644
+index 1a2efbb..a0972cb 100644
 --- a/renovate.json
 +++ b/renovate.json
 @@ -1,7 +1,7 @@
@@ -11395,7 +11395,7 @@ index 1a2efbb4..a0972cbf 100644
  }
 diff --git a/samples/src/jvmMain/kotlin/okio/samples/TeeSink.kt b/samples/src/jvmMain/kotlin/okio/samples/TeeSink.kt
 new file mode 100644
-index 00000000..0ddffbf9
+index 0000000..0ddffbf
 --- /dev/null
 +++ b/samples/src/jvmMain/kotlin/okio/samples/TeeSink.kt
 @@ -0,0 +1,80 @@
@@ -11480,7 +11480,7 @@ index 00000000..0ddffbf9
 +  }
 +}
 diff --git a/settings.gradle.kts b/settings.gradle.kts
-index b07a4b81..1ff0a5ad 100644
+index b07a4b8..1ff0a5a 100644
 --- a/settings.gradle.kts
 +++ b/settings.gradle.kts
 @@ -18,7 +18,7 @@ include(":samples")

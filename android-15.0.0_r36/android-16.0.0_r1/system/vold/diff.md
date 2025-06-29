@@ -1,6 +1,6 @@
 ```diff
 diff --git a/Android.bp b/Android.bp
-index ba3267ca..bef64710 100644
+index ba3267c..bef6471 100644
 --- a/Android.bp
 +++ b/Android.bp
 @@ -43,6 +43,7 @@ cc_defaults {
@@ -75,7 +75,7 @@ index ba3267ca..bef64710 100644
 +}
 \ No newline at end of file
 diff --git a/Checkpoint.cpp b/Checkpoint.cpp
-index 598a87bc..195a1372 100644
+index 598a87b..195a137 100644
 --- a/Checkpoint.cpp
 +++ b/Checkpoint.cpp
 @@ -136,13 +136,16 @@ Status cp_startCheckpoint(int retry) {
@@ -176,7 +176,7 @@ index 598a87bc..195a1372 100644
  }  // namespace vold
  }  // namespace android
 diff --git a/Checkpoint.h b/Checkpoint.h
-index 6f3acacf..76253106 100644
+index 6f3acac..7625310 100644
 --- a/Checkpoint.h
 +++ b/Checkpoint.h
 @@ -17,6 +17,7 @@
@@ -198,7 +198,7 @@ index 6f3acacf..76253106 100644
  }  // namespace android
  
 diff --git a/OWNERS b/OWNERS
-index 6d8d89fa..81da3291 100644
+index 6d8d89f..81da329 100644
 --- a/OWNERS
 +++ b/OWNERS
 @@ -1,4 +1,3 @@
@@ -207,7 +207,7 @@ index 6d8d89fa..81da3291 100644
  ebiggers@google.com
  jeffv@google.com
 diff --git a/PREUPLOAD.cfg b/PREUPLOAD.cfg
-index dcf92be1..c8dbf77f 100644
+index dcf92be..c8dbf77 100644
 --- a/PREUPLOAD.cfg
 +++ b/PREUPLOAD.cfg
 @@ -3,6 +3,3 @@ clang_format = true
@@ -218,7 +218,7 @@ index dcf92be1..c8dbf77f 100644
 -[Hook Scripts]
 -aosp_hook = ${REPO_ROOT}/frameworks/base/tools/aosp/aosp_sha.sh ${PREUPLOAD_COMMIT} "."
 diff --git a/Process.cpp b/Process.cpp
-index 426a4252..0115fb16 100644
+index 426a425..0115fb1 100644
 --- a/Process.cpp
 +++ b/Process.cpp
 @@ -46,7 +46,7 @@ using android::base::StringPrintf;
@@ -313,7 +313,7 @@ index 426a4252..0115fb16 100644
  }  // namespace vold
  }  // namespace android
 diff --git a/Process.h b/Process.h
-index f3728b5d..8a20d1c2 100644
+index f3728b5..8a20d1c 100644
 --- a/Process.h
 +++ b/Process.h
 @@ -20,6 +20,8 @@
@@ -326,7 +326,7 @@ index f3728b5d..8a20d1c2 100644
  int KillProcessesWithTmpfsMounts(const std::string& path, int signal);
  
 diff --git a/TEST_MAPPING b/TEST_MAPPING
-index 93938b6d..50bd3dad 100644
+index 93938b6..50bd3da 100644
 --- a/TEST_MAPPING
 +++ b/TEST_MAPPING
 @@ -17,9 +17,6 @@
@@ -350,7 +350,7 @@ index 93938b6d..50bd3dad 100644
    ]
  }
 diff --git a/Utils.cpp b/Utils.cpp
-index c4070d13..9ad828ca 100644
+index c4070d1..9ad828c 100644
 --- a/Utils.cpp
 +++ b/Utils.cpp
 @@ -1724,6 +1724,139 @@ status_t UnmountUserFuse(userid_t user_id, const std::string& absolute_lower_pat
@@ -494,7 +494,7 @@ index c4070d13..9ad828ca 100644
      std::string androidDir = volumeRoot + kAndroidDir;
      std::string androidDataDir = volumeRoot + kAppDataDir;
 diff --git a/Utils.h b/Utils.h
-index 0eca9020..8296ef85 100644
+index 0eca902..8296ef8 100644
 --- a/Utils.h
 +++ b/Utils.h
 @@ -205,6 +205,10 @@ status_t MountUserFuse(userid_t user_id, const std::string& absolute_lower_path,
@@ -510,7 +510,7 @@ index 0eca9020..8296ef85 100644
  
 diff --git a/VendorVoldNativeService.cpp b/VendorVoldNativeService.cpp
 new file mode 100644
-index 00000000..6d13a140
+index 0000000..6d13a14
 --- /dev/null
 +++ b/VendorVoldNativeService.cpp
 @@ -0,0 +1,67 @@
@@ -583,7 +583,7 @@ index 00000000..6d13a140
 +}  // namespace android::vold
 diff --git a/VendorVoldNativeService.h b/VendorVoldNativeService.h
 new file mode 100644
-index 00000000..884ccb0e
+index 0000000..884ccb0
 --- /dev/null
 +++ b/VendorVoldNativeService.h
 @@ -0,0 +1,38 @@
@@ -627,7 +627,7 @@ index 00000000..884ccb0e
 +#endif  // _VENDOR_VOLD_NATIVE_SERVICE_H_
 \ No newline at end of file
 diff --git a/VoldNativeService.cpp b/VoldNativeService.cpp
-index 3784487f..aa9d842d 100644
+index 3784487..aa9d842 100644
 --- a/VoldNativeService.cpp
 +++ b/VoldNativeService.cpp
 @@ -40,6 +40,7 @@
@@ -685,7 +685,7 @@ index 3784487f..aa9d842d 100644
                                                    int32_t minSegmentThreshold,
                                                    float dirtyReclaimRate, float reclaimWeight,
 diff --git a/VoldNativeService.h b/VoldNativeService.h
-index a5253c0c..2d0613c0 100644
+index a5253c0..2d0613c 100644
 --- a/VoldNativeService.h
 +++ b/VoldNativeService.h
 @@ -165,6 +165,12 @@ class VoldNativeService : public BinderService<VoldNativeService>, public os::Bn
@@ -702,7 +702,7 @@ index a5253c0c..2d0613c0 100644
  
  }  // namespace vold
 diff --git a/VoldUtil.cpp b/VoldUtil.cpp
-index 082f7434..c87b41d7 100644
+index 082f743..c87b41d 100644
 --- a/VoldUtil.cpp
 +++ b/VoldUtil.cpp
 @@ -15,5 +15,73 @@
@@ -780,7 +780,7 @@ index 082f7434..c87b41d7 100644
 +    return ufshc_sysfs_path;
 +}
 diff --git a/VoldUtil.h b/VoldUtil.h
-index ce6b411f..9fb9e966 100644
+index ce6b411..9fb9e96 100644
 --- a/VoldUtil.h
 +++ b/VoldUtil.h
 @@ -21,3 +21,5 @@
@@ -790,7 +790,7 @@ index ce6b411f..9fb9e966 100644
 +
 +std::string GetUfsHostControllerSysfsPath();
 diff --git a/VolumeManager.cpp b/VolumeManager.cpp
-index d932ec88..49a8b2b8 100644
+index d932ec8..49a8b2b 100644
 --- a/VolumeManager.cpp
 +++ b/VolumeManager.cpp
 @@ -452,36 +452,41 @@ int VolumeManager::onUserStarted(userid_t userId) {
@@ -1007,7 +1007,7 @@ index d932ec88..49a8b2b8 100644
          }
 diff --git a/WriteBooster.cpp b/WriteBooster.cpp
 new file mode 100644
-index 00000000..1d5c1bc1
+index 0000000..1d5c1bc
 --- /dev/null
 +++ b/WriteBooster.cpp
 @@ -0,0 +1,214 @@
@@ -1227,7 +1227,7 @@ index 00000000..1d5c1bc1
 +}  // namespace android
 diff --git a/WriteBooster.h b/WriteBooster.h
 new file mode 100644
-index 00000000..6aa97998
+index 0000000..6aa9799
 --- /dev/null
 +++ b/WriteBooster.h
 @@ -0,0 +1,34 @@
@@ -1267,7 +1267,7 @@ index 00000000..6aa97998
 +#endif
 diff --git a/aconfig/flags.aconfig b/aconfig/flags.aconfig
 new file mode 100644
-index 00000000..d9c8fe2e
+index 0000000..d9c8fe2
 --- /dev/null
 +++ b/aconfig/flags.aconfig
 @@ -0,0 +1,10 @@
@@ -1283,7 +1283,7 @@ index 00000000..d9c8fe2e
 +}
 diff --git a/android.system.vold-service.xml b/android.system.vold-service.xml
 new file mode 100644
-index 00000000..ea084b79
+index 0000000..ea084b7
 --- /dev/null
 +++ b/android.system.vold-service.xml
 @@ -0,0 +1,10 @@
@@ -1299,7 +1299,7 @@ index 00000000..ea084b79
 +</manifest>
 \ No newline at end of file
 diff --git a/binder/android/os/IVold.aidl b/binder/android/os/IVold.aidl
-index 810fdadb..15213ea9 100644
+index 810fdad..15213ea 100644
 --- a/binder/android/os/IVold.aidl
 +++ b/binder/android/os/IVold.aidl
 @@ -143,6 +143,12 @@ interface IVold {
@@ -1316,7 +1316,7 @@ index 810fdadb..15213ea9 100644
  
      const int MOUNT_FLAG_PRIMARY = 1;
 diff --git a/main.cpp b/main.cpp
-index 078ee14b..bdce76ed 100644
+index 078ee14..bdce76e 100644
 --- a/main.cpp
 +++ b/main.cpp
 @@ -19,6 +19,7 @@
@@ -1346,7 +1346,7 @@ index 078ee14b..bdce76ed 100644
      if (nm->start()) {
          PLOG(ERROR) << "Unable to start NetlinkManager";
 diff --git a/model/EmulatedVolume.cpp b/model/EmulatedVolume.cpp
-index 270dcd48..2df35cb3 100644
+index 270dcd4..2df35cb 100644
 --- a/model/EmulatedVolume.cpp
 +++ b/model/EmulatedVolume.cpp
 @@ -36,8 +36,11 @@
@@ -1568,7 +1568,7 @@ index 270dcd48..2df35cb3 100644
  
      return unmountSdcardFs();
 diff --git a/model/EmulatedVolume.h b/model/EmulatedVolume.h
-index 0389ea7f..322dd385 100644
+index 0389ea7..322dd38 100644
 --- a/model/EmulatedVolume.h
 +++ b/model/EmulatedVolume.h
 @@ -51,6 +51,7 @@ class EmulatedVolume : public VolumeBase {
@@ -1580,7 +1580,7 @@ index 0389ea7f..322dd385 100644
      status_t bindMountVolume(const EmulatedVolume& vol, std::list<std::string>& pathsToUnmount);
  
 diff --git a/model/PublicVolume.cpp b/model/PublicVolume.cpp
-index 91b1ca23..5a30fca8 100644
+index 91b1ca2..5a30fca 100644
 --- a/model/PublicVolume.cpp
 +++ b/model/PublicVolume.cpp
 @@ -36,9 +36,11 @@
@@ -1709,7 +1709,7 @@ index 91b1ca23..5a30fca8 100644
      }
  
 diff --git a/model/PublicVolume.h b/model/PublicVolume.h
-index ca553b06..5eff35e4 100644
+index ca553b0..5eff35e 100644
 --- a/model/PublicVolume.h
 +++ b/model/PublicVolume.h
 @@ -43,6 +43,7 @@ class PublicVolume : public VolumeBase {
@@ -1721,7 +1721,7 @@ index ca553b06..5eff35e4 100644
    protected:
      status_t doCreate() override;
 diff --git a/tests/VoldFuzzer.cpp b/tests/VoldFuzzer.cpp
-index 630a785e..173c7654 100644
+index 630a785..173c765 100644
 --- a/tests/VoldFuzzer.cpp
 +++ b/tests/VoldFuzzer.cpp
 @@ -17,6 +17,7 @@

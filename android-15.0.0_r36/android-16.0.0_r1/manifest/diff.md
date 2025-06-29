@@ -1,6 +1,6 @@
 ```diff
 diff --git a/default.xml b/default.xml
-index a7c482a23..da4b29897 100644
+index a7c482a..da4b298 100644
 --- a/default.xml
 +++ b/default.xml
 @@ -4,12 +4,13 @@
