@@ -1,0 +1,23 @@
+```
+2528e2e0: camera: Fix ZOOM_METHOD doc (Jayant Chowdhary <jchowdhary@google.com>)
+18f1350b: [owners] Remove philburk@google.com from audio_utils/spdif/OWNERS (Owner Cleanup Bot <swarming-tasks@owners-cleanup...)
+50a3f28f: [owners] Remove philburk@google.com from OWNERS (Owner Cleanup Bot <swarming-tasks@owners-cleanup...)
+796af40e: Camera: Update docs to allow HAL to adjust postRaw ISO for priority mode (Ravneet Dhanjal <rdhanjal@google.com>)
+a78220a4: Camera: Remove monkey-patch for bs4 (Ravneet Dhanjal <rdhanjal@google.com>)
+0b903061: audio_utils: Add atomic_min/max, update float add/sub (Andy Hung <hunga@google.com>)
+f2aad6c1: audio_utils: Fix logcat tag regression (Andy Hung <hunga@google.com>)
+ca202f86: Fix build with clang-r563880 (Yi Kong <yikong@google.com>)
+fe93f4d9: Fix C++23 build: add missing #includes. (Elliott Hughes <enh@google.com>)
+c0228347: audio_utils: atomic with declared memory_order (Andy Hung <hunga@google.com>)
+eccb434c: audio_utils: split atomic include from mutex (Andy Hung <hunga@google.com>)
+99aff28c: audio_utils: atomic add should wrap (Andy Hung <hunga@google.com>)
+26a64678: Camera metadata: Relax exposure value ordering checks (Emilian Peev <epeev@google.com>)
+07c43583: audio_utils: Reduce unnecessary wakes for fair_mutex (Andy Hung <hunga@google.com>)
+f8f04ad4: audio_utils: add fair_mutex (lijunhui <lijunhui@xiaomi.corp-partner.google.co...)
+d15359f1: Add audio Eraser Effect UUID (Shunkai Yao <yaoshunkai@google.com>)
+a950bac3: Deprecate AEC_MOBILE parameter. (Lionel Koenig Gélas <lionelk@google.com>)
+8ab4aec6: Audio: add OPUS high resolution audio format (Eric Laurent <elaurent@google.com>)
+c4c22618: Fix build for clang-r563880 (Yi Kong <yikong@google.com>)
+75fb8a8c: Camera: Improve flash capture documentation (Shuzhen Wang <shuzhenwang@google.com>)
+```
+

@@ -1,0 +1,20 @@
+```
+1260853: Remove deprecated BT MTS test bluetooth-test-audio-hal-interface (Henri Chataing <henrichataing@google.com>)
+03bd21d: Remove A2DP from mts-bt-pts-bot test list (Henri Chataing <henrichataing@google.com>)
+64bf4f2: BT: Add Navi MTS config (Josh Wu <joshwu@google.com>)
+8c5ba81: Rename mts-telephony to mts-telephony2 according to apex name (Hyein Yu <hyeinyu@google.com>)
+6f3ad34: [telephony2] Define MTS tests (Hyein Yu <hyeinyu@google.com>)
+ffd0718: [telephony2] Add module MTS tag (Hyein Yu <hyeinyu@google.com>)
+721c9be: Remove tests for legacy data screen (Mohamed Magdi <magdi@google.com>)
+6d14a5c: Add libnetworkstats tests to MTS (Ryan Zuklie <rzuklie@google.com>)
+df254a8: Revert "Add more ODP test cases to MTS." (Qiao Li <qiaoli@google.com>)
+a54dbb6: Remove OnDevicePersonalizationSystemServiceApiTests from MTS (Karthik Mahesh <karthikmahesh@google.com>)
+32ea869: Remove ODP module rollback tests from MTS. (Karthik Mahesh <karthikmahesh@google.com>)
+880bd4f: Add more ODP test cases to MTS. (Karthik Mahesh <karthikmahesh@google.com>)
+092e83f: Re-enable some ART gtests in MTS that were disabled due to use of LD_LIB... (Martin Stjernholm <mast@google.com>)
+eadb734: Add OnDevicePersonalizationEndToEndTests to MTS config. (Karthik Mahesh <karthikmahesh@google.com>)
+aca038c: Run mediaprovider mts against primary primary-abi-only (Tyler Saunders <tylersaunders@google.com>)
+0f40681: Add libnativebridge-tests to ART MTS. (Martin Stjernholm <mast@google.com>)
+86b0567: perfetto cts: split ART's MTS test cases out of CtsPerfettoTestCases, in... (Ryan Savitski <rsavitski@google.com>)
+```
+

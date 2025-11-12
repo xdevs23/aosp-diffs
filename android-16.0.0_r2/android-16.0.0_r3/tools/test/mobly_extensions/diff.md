@@ -1,0 +1,1986 @@
+```diff
+diff --git a/tools/results_uploader/CHANGELOG.md b/tools/results_uploader/CHANGELOG.md
+deleted file mode 100644
+index 562e6a0..0000000
+--- a/tools/results_uploader/CHANGELOG.md
++++ /dev/null
+@@ -1,113 +0,0 @@
+-# Mobly Results Uploader release history
+-
+-## 0.7.2 (2024-12-13)
+-
+-### New
+-* Enable the option to directly upload results already in the Resultstore format,
+-  skipping the conversion step.
+-
+-### Fixes
+-* Stream verbose debug logs to a dedicated file.
+-
+-
+-## 0.7.1 (2024-12-06)
+-
+-### Fixes
+-* If a target contains any flaky test nodes, but not failing ones, set the target
+-  status to FLAKY instead of FAILED.
+-  * FLAKY targets will appear with a yellow banner in the BTX page.
+-
+-
+-## 0.7 (2024-10-29)
+-
+-### New
+-* Automatically prompt the user for GCP login if missing stored credentials.
+-  * The user is no longer required to separately run login commands before using
+-    the uploader for the first time.
+-
+-
+-## 0.6.1 (2024-08-21)
+-
+-### Fixes
+-* The Resultstore service now requires API keys for its Upload API. This must
+-  be provided by the client.
+-  * Automatically fetch and use the `resultstore` API key from the user's Google
+-    Cloud project, if it exists.
+-  * Otherwise, the tool will show an error message for the missing key.
+-
+-
+-## 0.6 (2024-07-19)
+-
+-### New
+-* Display newly uploaded results in the BTX invocation search page
+-  (https://btx.cloud.google.com/invocations).
+-* Support tagging uploaded results with `--label`.
+-  * Labels will be visible in the invocation search page.
+-  * Filters can be applied in the search page (`label:...`) to search
+-    for results with matching labels.
+-* Support specifying multilevel paths in `--gcs_dir`.
+-* Remove support for empty string `--gcs_dir`. Uploads to the root directory
+-  of a GCS bucket are no longer allowed.
+-* Add the uploader tool version to the result metadata.
+-
+-### Fixes
+-* Mobly log files are no longer locally copied to a second temp location prior
+-  to upload.
+-* Remove manual GCS upload fallback (introduced in v0.3).
+-
+-
+-## 0.5.1 (2024-06-28)
+-
+-### Fixes
+-* Extend the default timeout for GCS uploads and support custom timeout values.
+-* Enable automatic retry of GCS uploads following connection errors.
+-
+-
+-## 0.5 (2024-06-25)
+-
+-### New
+-* Use `pathlib` for all file operations.
+-  * Support specifying relative paths.
+-  * Support specifying paths with backslash separators in Windows.
+-
+-
+-## 0.4 (2024-05-16)
+-
+-### New
+-* Simplified CLI.
+-  * Upload directly using `results_uploader /path/to/mobly_dir`.
+-  * The storage bucket name defaults to the GCP project name.
+-* Automatically display the suite name in the header if specified by the suite.
+-
+-### Fixes
+-* Open certain text-format files without the `.txt` extension directly
+-  in-browser, instead of opening a download prompt.
+-* The generated link now points directly to the "Tests" dashboard.
+-* Additionally show passing/flaky test cases by default, instead of only
+-  failed/errored ones.
+-
+-
+-## 0.3 (2024-04-10)
+-
+-### Fixes
+-* Fall back to manual GCS upload (via web page) if the automated upload fails.
+-* Clean up console output.
+-
+-
+-## 0.2 (2024-03-28)
+-
+-### Fixes
+-* Properly URL-encode the target resource name.
+-* Report targets with all skipped test cases as `skipped`.
+-* Update Resultstore UI link from source.cloud to BTX.
+-* Suppress warnings from imported modules.
+-
+-
+-## 0.1 (2024-01-05)
+-
+-### New
+-* Add the `results_uploader` tool for uploading Mobly test results to the
+-  Resultstore service.
+-  * Uploads local test logs to a user-provided Google Cloud Storage location.
+-  * Creates a new test invocation record via Resultstore API.
+-  * Generates a web link to visualize results.
+diff --git a/tools/results_uploader/MANIFEST.in b/tools/results_uploader/MANIFEST.in
+deleted file mode 100644
+index 744268b..0000000
+--- a/tools/results_uploader/MANIFEST.in
++++ /dev/null
+@@ -1 +0,0 @@
+-include src/data/mime.types
+diff --git a/tools/results_uploader/README.md b/tools/results_uploader/README.md
+deleted file mode 100644
+index bba1f51..0000000
+--- a/tools/results_uploader/README.md
++++ /dev/null
+@@ -1,79 +0,0 @@
+-# Mobly Results Uploader
+-
+-The Results Uploader is a tool for generating shareable UI links for automated
+-test results.
+-
+-It uploads test-generated files to Google Cloud Storage, and presents the
+-results in an organized way on a dedicated web UI. The result URL can then be
+-shared to anyone who is given access (including both Google and non-Google
+-accounts), allowing for easy tracking and debugging.
+-
+-## First-time setup
+-
+-### Requirements
+-* Python 3.11 or above
+-
+-### Instructions
+-
+-To start using the Results Uploader, you need to be able to access the shared
+-Google Cloud Storage bucket:
+-1. Confirm/request access to the shared GCP project with your Google contact.
+-   The Googler will give you a project name to use.
+-2. Install the gcloud CLI from https://cloud.google.com/sdk/docs/install
+-    * If installation fails with the above method, try the alternative linked
+-      [here](https://cloud.google.com/sdk/docs/downloads-versioned-archives#installation_instructions).
+-3. Run the following commands in the terminal:
+-    ```bash
+-    gcloud auth login
+-    gcloud auth application-default login
+-    gcloud config set project <gcp_project>
+-    gcloud auth application-default set-quota-project <gcp_project>
+-    ```
+-    * When prompted to log in on your browser, follow the instruction to log in
+-      to Cloud SDK. Use the same account for which you requested access in
+-      step 1.
+-4. Download the provided `results_uploader-{version}.tar.gz`.
+-
+-## How to upload results
+-1. Create a new terminal and run the following installation commands (first-time
+-   only).
+-
+-    ```bash
+-    # on Linux
+-
+-    python3 -m venv venv
+-    source venv/bin/activate
+-    python3 -m pip install results_uploader-{version}.tar.gz
+-    ```
+-    ```cmd
+-    :: on Windows
+-
+-    python -m venv venv
+-    venv\Scripts\activate
+-    python -m pip install results_uploader-{version}.tar.gz
+-    ```
+-
+-2. At the end of a completed test run, you'll see the final lines on the console
+-   output as follows. Record the folder path in the line starting with
+-   "Artifacts are saved in".
+-
+-    ```
+-    Total time elapsed 961.7551812920001s
+-    Artifacts are saved in "/tmp/logs/mobly/Local5GTestbed/10-23-2023_10-30-50-685"
+-    Test summary saved in "/tmp/logs/mobly/Local5GTestbed/10-23-2023_10-30-50-685/test_summary.yaml"
+-    Test results: Error 0, Executed 1, Failed 0, Passed 1, Requested 0, Skipped 0
+-    ```
+-
+-3. Run the uploader command, setting the `artifacts_folder` as the path recorded
+-   in the previous step.
+-    ```bash
+-    results_uploader <artifacts_folder>
+-    ```
+-
+-4. If successful, at the end of the upload process you will get a link beginning
+-   with http://btx.cloud.google.com. Simply share this link to others who
+-   wish to view your test results.
+-
+-## Additional reference
+-
+-To see a list of supported options, please consult `results_uploader --help`.
+diff --git a/tools/results_uploader/pyproject.toml b/tools/results_uploader/pyproject.toml
+deleted file mode 100644
+index 15c2d47..0000000
+--- a/tools/results_uploader/pyproject.toml
++++ /dev/null
+@@ -1,25 +0,0 @@
+-[build-system]
+-requires = ["setuptools"]
+-build-backend = "setuptools.build_meta"
+-
+-[project]
+-name = "results_uploader"
+-version = "0.7.2"
+-description = "Tool for uploading Mobly test results to Resultstore web UI."
+-readme = "README.md"
+-requires-python = ">=3.11"
+-dependencies = [
+-  "google-api-python-client",
+-  "google-auth",
+-  "google-auth-httplib2",
+-  "google-cloud",
+-  "google-cloud-api-keys",
+-  "google-cloud-resource-manager",
+-  "google-cloud-storage",
+-  "httplib2",
+-  "mobly",
+-  "pyyaml",
+-]
+-
+-[project.scripts]
+-results_uploader = "results_uploader:main"
+diff --git a/tools/results_uploader/src/__init__.py b/tools/results_uploader/src/__init__.py
+deleted file mode 100644
+index eccc7ff..0000000
+--- a/tools/results_uploader/src/__init__.py
++++ /dev/null
+@@ -1,15 +0,0 @@
+-#!/usr/bin/env python3
+-
+-#  Copyright (C) 2024 The Android Open Source Project
+-#
+-#  Licensed under the Apache License, Version 2.0 (the "License");
+-#  you may not use this file except in compliance with the License.
+-#  You may obtain a copy of the License at
+-#
+-#       http://www.apache.org/licenses/LICENSE-2.0
+-#
+-#  Unless required by applicable law or agreed to in writing, software
+-#  distributed under the License is distributed on an "AS IS" BASIS,
+-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-#  See the License for the specific language governing permissions and
+-#  limitations under the License.
+diff --git a/tools/results_uploader/src/data/mime.types b/tools/results_uploader/src/data/mime.types
+deleted file mode 100644
+index fd027d8..0000000
+--- a/tools/results_uploader/src/data/mime.types
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# Configure the desired MIME types for Mobly log files in GCS
+-text/plain      info debug log
+-text/x-yaml     yaml yml
+diff --git a/tools/results_uploader/src/mobly_result_converter.py b/tools/results_uploader/src/mobly_result_converter.py
+deleted file mode 100644
+index fab584b..0000000
+--- a/tools/results_uploader/src/mobly_result_converter.py
++++ /dev/null
+@@ -1,765 +0,0 @@
+-#!/usr/bin/env python3
+-
+-#  Copyright (C) 2024 The Android Open Source Project
+-#
+-#  Licensed under the Apache License, Version 2.0 (the "License");
+-#  you may not use this file except in compliance with the License.
+-#  You may obtain a copy of the License at
+-#
+-#       http://www.apache.org/licenses/LICENSE-2.0
+-#
+-#  Unless required by applicable law or agreed to in writing, software
+-#  distributed under the License is distributed on an "AS IS" BASIS,
+-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-#  See the License for the specific language governing permissions and
+-#  limitations under the License.
+-
+-"""A converter for Mobly result schema to Resultstore schema.
+-
+-Each Mobly test class maps to a Resultstore testsuite and each Mobly test method
+-maps to a Resultstore testcase. For example:
+-
+-  Mobly schema:
+-
+-  Test Class: HelloWorldTest
+-  Test Name: test_hello
+-  Type: Record
+-  Result: PASS
+-
+-  Resultstore schema:
+-
+-  <testsuite name="HelloWorldTest" tests=1>
+-    <testcase name="test_hello"/>
+-  </testsuite>
+-"""
+-
+-import dataclasses
+-import datetime
+-import enum
+-import logging
+-import pathlib
+-import re
+-from typing import Any, Dict, Iterator, List, Mapping, Optional
+-from xml.etree import ElementTree
+-
+-from mobly import records
+-import yaml
+-
+-_MOBLY_RECORD_TYPE_KEY = 'Type'
+-
+-_MOBLY_TEST_SUITE_NAME = 'MoblyTest'
+-
+-_TEST_INTERRUPTED_MESSAGE = 'Details: Test was interrupted manually.'
+-
+-_ILLEGAL_XML_CHARS = re.compile(
+-    '[\x00-\x08\x0b\x0c\x0e-\x1F\uD800-\uDFFF\uFFFE\uFFFF]'
+-)
+-
+-_ILLEGAL_YAML_CHARS = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]')
+-
+-
+-class MoblyResultstoreProperties(enum.Enum):
+-    """Resultstore properties defined specifically for all Mobly tests.
+-
+-    All these properties apply to the testcase level. TEST_CLASS and
+-    TEST_TYPE apply to both the testcase and testsuite level.
+-    """
+-
+-    BEGIN_TIME = 'mobly_begin_time'
+-    END_TIME = 'mobly_end_time'
+-    TEST_CLASS = 'mobly_test_class'
+-    TEST_TYPE = 'test_type'
+-    UID = 'mobly_uid'
+-    TEST_OUTPUT = 'test_output'
+-    TEST_SIGNATURE = 'mobly_signature'
+-    SKIP_REASON = 'skip_reason'
+-    ERROR_MESSAGE = 'mobly_error_message'
+-    ERROR_TYPE = 'mobly_error_type'
+-    STACK_TRACE = 'mobly_stack_trace'
+-
+-
+-_MOBLY_PROPERTY_VALUES = frozenset(e.value for e in MoblyResultstoreProperties)
+-
+-
+-class ResultstoreTreeTags(enum.Enum):
+-    """Common tags for Resultstore tree nodes."""
+-
+-    TESTSUITES = 'testsuites'
+-    TESTSUITE = 'testsuite'
+-    TESTCASE = 'testcase'
+-    PROPERTIES = 'properties'
+-    PROPERTY = 'property'
+-    FAILURE = 'failure'
+-    ERROR = 'error'
+-
+-
+-class ResultstoreTreeAttributes(enum.Enum):
+-    """Common attributes for Resultstore tree nodes."""
+-
+-    ERRORS = 'errors'
+-    FAILURES = 'failures'
+-    TESTS = 'tests'
+-    CLASS_NAME = 'classname'
+-    RESULT = 'result'
+-    STATUS = 'status'
+-    TIME = 'time'
+-    TIMESTAMP = 'timestamp'
+-    NAME = 'name'
+-    VALUE = 'value'
+-    MESSAGE = 'message'
+-    RETRY_NUMBER = 'retrynumber'
+-    REPEAT_NUMBER = 'repeatnumber'
+-    ERROR_TYPE = 'type'
+-    RERAN_TEST_NAME = 'rerantestname'
+-
+-
+-@dataclasses.dataclass
+-class TestSuiteSummary:
+-    num_tests: int
+-    num_errors: int
+-    num_failures: int
+-
+-
+-@dataclasses.dataclass
+-class ReranNode:
+-    reran_test_name: str
+-    original_test_name: str
+-    index: int
+-    node_type: records.TestParentType
+-
+-
+-def _find_all_elements(
+-        mobly_root: ElementTree.Element,
+-        class_name: Optional[str],
+-        test_name: Optional[str],
+-) -> Iterator[ElementTree.Element]:
+-    """Finds all elements in the Resultstore tree with class name and/or
+-    test_name.
+-
+-    If class name is absent, it will find all elements with the test name
+-    across all test classes. If test name is absent it will find all elements
+-    with class name. If both are absent, it will just return the Mobly root
+-    tree.
+-
+-    Args:
+-      mobly_root: Root element of the Mobly test Resultstore tree.
+-      class_name: Mobly test class name to get the elements for.
+-      test_name: Mobly test names to get the elements for.
+-
+-    Yields:
+-      Iterator of elements satisfying the class_name and test_name search
+-      criteria.
+-    """
+-    if class_name is None and test_name is None:
+-        yield mobly_root
+-        return
+-
+-    xpath = f'./{ResultstoreTreeTags.TESTSUITE.value}'
+-    if class_name is not None:
+-        xpath += f'[@{ResultstoreTreeAttributes.NAME.value}="{class_name}"]'
+-    if test_name is not None:
+-        xpath += (
+-            f'/{ResultstoreTreeTags.TESTCASE.value}'
+-            f'[@{ResultstoreTreeAttributes.NAME.value}="{test_name}"]'
+-        )
+-
+-    yield from mobly_root.iterfind(xpath)
+-
+-
+-def _create_or_return_properties_element(
+-        element: ElementTree.Element,
+-) -> ElementTree.Element:
+-    properties_element = element.find(
+-        f'./{ResultstoreTreeTags.PROPERTIES.value}')
+-    if properties_element is not None:
+-        return properties_element
+-    return ElementTree.SubElement(element, ResultstoreTreeTags.PROPERTIES.value)
+-
+-
+-def _add_or_update_property_element(
+-        properties_element: ElementTree.Element, name: str, value: str
+-):
+-    """Adds a property element or update the property value."""
+-    name = _ILLEGAL_XML_CHARS.sub('', name)
+-    value = _ILLEGAL_XML_CHARS.sub('', value)
+-    property_element = properties_element.find(
+-        f'./{ResultstoreTreeTags.PROPERTY.value}'
+-        f'[@{ResultstoreTreeAttributes.NAME.value}="{name}"]'
+-    )
+-    if property_element is None:
+-        property_element = ElementTree.SubElement(
+-            properties_element, ResultstoreTreeTags.PROPERTY.value
+-        )
+-        property_element.set(ResultstoreTreeAttributes.NAME.value, name)
+-    property_element.set(ResultstoreTreeAttributes.VALUE.value, value)
+-
+-
+-def _add_file_annotations(
+-        entry: Mapping[str, Any],
+-        properties_element: ElementTree.Element,
+-        mobly_base_directory: Optional[pathlib.Path],
+-) -> None:
+-    """Adds file annotations for a Mobly test case files.
+-
+-    The mobly_base_directory is used to find the files belonging to a test case.
+-    The files under "mobly_base_directory/test_class/test_method" belong to the
+-    test_class#test_method Resultstore node. Additionally, it is used to
+-    determine the relative path of the files for Resultstore undeclared outputs.
+-    The file annotation must be written for the relative path.
+-
+-    Args:
+-      entry: Mobly summary entry for the test case.
+-      properties_element: Test case properties element.
+-      mobly_base_directory: Base directory of the Mobly test.
+-    """
+-    # If mobly_base_directory is not provided, the converter will not add the
+-    # annotations to associate the files with the test cases.
+-    if (
+-            mobly_base_directory is None
+-            or entry.get(records.TestResultEnums.RECORD_SIGNATURE, None) is None
+-    ):
+-        return
+-
+-    test_class = entry[records.TestResultEnums.RECORD_CLASS]
+-    test_case_directory = mobly_base_directory.joinpath(
+-        test_class,
+-        entry[records.TestResultEnums.RECORD_SIGNATURE]
+-    )
+-
+-    test_case_files = test_case_directory.rglob('*')
+-    file_counter = 0
+-    for file_path in test_case_files:
+-        if not file_path.is_file():
+-            continue
+-        relative_path = file_path.relative_to(mobly_base_directory)
+-        _add_or_update_property_element(
+-            properties_element,
+-            f'test_output{file_counter}',
+-            str(relative_path.as_posix()),
+-        )
+-        file_counter += 1
+-
+-
+-def _create_mobly_root_element(
+-        summary_record: Mapping[str, Any]
+-) -> ElementTree.Element:
+-    """Creates a Resultstore XML testsuite node for a Mobly test summary."""
+-    full_summary = TestSuiteSummary(
+-        num_tests=summary_record['Requested'],
+-        num_errors=summary_record['Error'],
+-        num_failures=summary_record['Failed'],
+-    )
+-    # Create the root Resultstore node to wrap the Mobly test.
+-    main_wrapper = ElementTree.Element(ResultstoreTreeTags.TESTSUITES.value)
+-    main_wrapper.set(ResultstoreTreeAttributes.NAME.value, '__main__')
+-    main_wrapper.set(ResultstoreTreeAttributes.TIME.value, '0')
+-    main_wrapper.set(
+-        ResultstoreTreeAttributes.ERRORS.value, str(full_summary.num_errors)
+-    )
+-    main_wrapper.set(
+-        ResultstoreTreeAttributes.FAILURES.value, str(full_summary.num_failures)
+-    )
+-    main_wrapper.set(
+-        ResultstoreTreeAttributes.TESTS.value, str(full_summary.num_tests)
+-    )
+-
+-    mobly_test_root = ElementTree.SubElement(
+-        main_wrapper, ResultstoreTreeTags.TESTSUITE.value
+-    )
+-    mobly_test_root.set(
+-        ResultstoreTreeAttributes.NAME.value, _MOBLY_TEST_SUITE_NAME
+-    )
+-    mobly_test_root.set(ResultstoreTreeAttributes.TIME.value, '0')
+-    mobly_test_root.set(
+-        ResultstoreTreeAttributes.ERRORS.value, str(full_summary.num_errors)
+-    )
+-    mobly_test_root.set(
+-        ResultstoreTreeAttributes.FAILURES.value, str(full_summary.num_failures)
+-    )
+-    mobly_test_root.set(
+-        ResultstoreTreeAttributes.TESTS.value, str(full_summary.num_tests)
+-    )
+-
+-    return main_wrapper
+-
+-
+-def _create_class_element(
+-        class_name: str, class_summary: TestSuiteSummary
+-) -> ElementTree.Element:
+-    """Creates a Resultstore XML testsuite node for a Mobly test class summary.
+-
+-    Args:
+-      class_name: Mobly test class name.
+-      class_summary: Mobly test class summary.
+-
+-    Returns:
+-      A Resultstore testsuite node representing one Mobly test class.
+-    """
+-    class_element = ElementTree.Element(ResultstoreTreeTags.TESTSUITE.value)
+-    class_element.set(ResultstoreTreeAttributes.NAME.value, class_name)
+-    class_element.set(ResultstoreTreeAttributes.TIME.value, '0')
+-    class_element.set(
+-        ResultstoreTreeAttributes.TESTS.value, str(class_summary.num_tests)
+-    )
+-    class_element.set(
+-        ResultstoreTreeAttributes.ERRORS.value, str(class_summary.num_errors)
+-    )
+-    class_element.set(
+-        ResultstoreTreeAttributes.FAILURES.value,
+-        str(class_summary.num_failures)
+-    )
+-
+-    properties_element = _create_or_return_properties_element(class_element)
+-    _add_or_update_property_element(
+-        properties_element,
+-        MoblyResultstoreProperties.TEST_CLASS.value,
+-        class_name,
+-    )
+-    _add_or_update_property_element(
+-        properties_element,
+-        MoblyResultstoreProperties.TEST_TYPE.value,
+-        'mobly_class',
+-    )
+-
+-    return class_element
+-
+-
+-def _set_rerun_node(
+-        signature: str,
+-        child_parent_map: Mapping[str, str],
+-        parent_type_map: Mapping[str, records.TestParentType],
+-        signature_test_name_map: Mapping[str, str],
+-        rerun_node_map: Dict[str, ReranNode],
+-) -> None:
+-    """Sets the rerun node in the rerun node map for the current test signature.
+-
+-    This function traverses the child parent map recursively until it finds the
+-    root test run for the rerun chain. Then it uses the original test name from
+-    there and builds the indices.
+-
+-    Args:
+-      signature: Current test signature.
+-      child_parent_map: Map of test signature to the parent test signature.
+-      parent_type_map: Map of parent test signature to the parent type.
+-      signature_test_name_map: Map of test signature to test name.
+-      rerun_node_map: Map of test signature to rerun information.
+-    """
+-    if signature in rerun_node_map:
+-        return
+-
+-    # If there is no parent, then this is the root test in the retry chain.
+-    if signature not in child_parent_map:
+-        if parent_type_map[signature] == records.TestParentType.REPEAT:
+-            # If repeat, remove the '_#' suffix to get the original test name.
+-            original_test_name = \
+-              signature_test_name_map[signature].rsplit('_', 1)[0]
+-        else:
+-            original_test_name = signature_test_name_map[signature]
+-        rerun_node_map[signature] = ReranNode(
+-            signature_test_name_map[signature],
+-            original_test_name,
+-            0,
+-            parent_type_map[signature],
+-        )
+-        return
+-
+-    parent_signature = child_parent_map[signature]
+-    _set_rerun_node(
+-        parent_signature,
+-        child_parent_map,
+-        parent_type_map,
+-        signature_test_name_map,
+-        rerun_node_map,
+-    )
+-
+-    parent_node = rerun_node_map[parent_signature]
+-    rerun_node_map[signature] = ReranNode(
+-        signature_test_name_map[signature],
+-        parent_node.original_test_name,
+-        parent_node.index + 1,
+-        parent_node.node_type,
+-    )
+-
+-
+-def _get_reran_nodes(
+-        entries: List[Mapping[str, Any]]
+-) -> Mapping[str, ReranNode]:
+-    """Gets the nodes for any test case reruns.
+-
+-    Args:
+-      entries: Summary entries for the Mobly test runs.
+-
+-    Returns:
+-      A map of test signature to node information.
+-    """
+-    child_parent_map = {}
+-    parent_type_map = {}
+-    signature_test_name_map = {}
+-    for entry in entries:
+-        if records.TestResultEnums.RECORD_SIGNATURE not in entry:
+-            continue
+-        current_signature = entry[records.TestResultEnums.RECORD_SIGNATURE]
+-        signature_test_name_map[current_signature] = entry[
+-            records.TestResultEnums.RECORD_NAME
+-        ]
+-        # This is a dictionary with parent and type.
+-        rerun_parent = entry.get(records.TestResultEnums.RECORD_PARENT, None)
+-        if rerun_parent is not None:
+-            parent_signature = rerun_parent['parent']
+-            parent_type = (
+-                records.TestParentType.RETRY
+-                if rerun_parent['type'] == 'retry'
+-                else records.TestParentType.REPEAT
+-            )
+-            child_parent_map[current_signature] = parent_signature
+-            parent_type_map[parent_signature] = parent_type
+-
+-    rerun_node_map = {}
+-    for signature in child_parent_map:
+-        # Populates the rerun node map.
+-        _set_rerun_node(
+-            signature,
+-            child_parent_map,
+-            parent_type_map,
+-            signature_test_name_map,
+-            rerun_node_map,
+-        )
+-
+-    return rerun_node_map
+-
+-
+-def _process_record(
+-        entry: Mapping[str, Any],
+-        reran_node: Optional[ReranNode],
+-        mobly_base_directory: Optional[pathlib.Path],
+-) -> ElementTree.Element:
+-    """Processes a single Mobly test record entry to a Resultstore test case
+-    node.
+-
+-    Args:
+-      entry: Summary of a single Mobly test case.
+-      reran_node: Rerun information if this test case is a rerun. Only present
+-        if this test is part of a rerun chain.
+-      mobly_base_directory: Base directory for the Mobly test. Artifacts from
+-        the Mobly test will be saved here.
+-
+-    Returns:
+-      A Resultstore XML node representing a single test case.
+-    """
+-    begin_time = entry[records.TestResultEnums.RECORD_BEGIN_TIME]
+-    end_time = entry[records.TestResultEnums.RECORD_END_TIME]
+-    testcase_element = ElementTree.Element(ResultstoreTreeTags.TESTCASE.value)
+-    result = entry[records.TestResultEnums.RECORD_RESULT]
+-
+-    if reran_node is not None:
+-        if reran_node.node_type == records.TestParentType.RETRY:
+-            testcase_element.set(
+-                ResultstoreTreeAttributes.RETRY_NUMBER.value,
+-                str(reran_node.index)
+-            )
+-        elif reran_node.node_type == records.TestParentType.REPEAT:
+-            testcase_element.set(
+-                ResultstoreTreeAttributes.REPEAT_NUMBER.value,
+-                str(reran_node.index)
+-            )
+-        testcase_element.set(
+-            ResultstoreTreeAttributes.NAME.value, reran_node.original_test_name
+-        )
+-        testcase_element.set(
+-            ResultstoreTreeAttributes.RERAN_TEST_NAME.value,
+-            reran_node.reran_test_name,
+-        )
+-    else:
+-        testcase_element.set(
+-            ResultstoreTreeAttributes.NAME.value,
+-            entry[records.TestResultEnums.RECORD_NAME],
+-        )
+-        testcase_element.set(
+-            ResultstoreTreeAttributes.RERAN_TEST_NAME.value,
+-            entry[records.TestResultEnums.RECORD_NAME],
+-        )
+-    testcase_element.set(
+-        ResultstoreTreeAttributes.CLASS_NAME.value,
+-        entry[records.TestResultEnums.RECORD_CLASS],
+-    )
+-    if result == records.TestResultEnums.TEST_RESULT_SKIP:
+-        testcase_element.set(ResultstoreTreeAttributes.RESULT.value, 'skipped')
+-        testcase_element.set(ResultstoreTreeAttributes.STATUS.value, 'notrun')
+-        testcase_element.set(ResultstoreTreeAttributes.TIME.value, '0')
+-    elif result is None:
+-        testcase_element.set(ResultstoreTreeAttributes.RESULT.value,
+-                             'completed')
+-        testcase_element.set(ResultstoreTreeAttributes.STATUS.value, 'run')
+-        testcase_element.set(ResultstoreTreeAttributes.TIME.value, '0')
+-        testcase_element.set(
+-            ResultstoreTreeAttributes.TIMESTAMP.value,
+-            datetime.datetime.fromtimestamp(
+-                begin_time / 1000, tz=datetime.timezone.utc
+-            ).strftime('%Y-%m-%dT%H:%M:%SZ'),
+-        )
+-    else:
+-        testcase_element.set(ResultstoreTreeAttributes.RESULT.value,
+-                             'completed')
+-        testcase_element.set(ResultstoreTreeAttributes.STATUS.value, 'run')
+-        testcase_element.set(
+-            ResultstoreTreeAttributes.TIME.value, str(end_time - begin_time)
+-        )
+-        testcase_element.set(
+-            ResultstoreTreeAttributes.TIMESTAMP.value,
+-            datetime.datetime.fromtimestamp(
+-                begin_time / 1000, tz=datetime.timezone.utc
+-            ).strftime('%Y-%m-%dT%H:%M:%SZ'),
+-        )
+-
+-    # Add Mobly specific test case properties.
+-    properties_element = _create_or_return_properties_element(testcase_element)
+-    if result == records.TestResultEnums.TEST_RESULT_SKIP:
+-        _add_or_update_property_element(
+-            properties_element,
+-            MoblyResultstoreProperties.SKIP_REASON.value,
+-            f'Details: {entry[records.TestResultEnums.RECORD_DETAILS]}',
+-        )
+-    elif result is None:
+-        _add_or_update_property_element(
+-            properties_element,
+-            MoblyResultstoreProperties.BEGIN_TIME.value,
+-            str(begin_time),
+-        )
+-    else:
+-        _add_or_update_property_element(
+-            properties_element,
+-            MoblyResultstoreProperties.BEGIN_TIME.value,
+-            str(begin_time),
+-        )
+-        _add_or_update_property_element(
+-            properties_element,
+-            MoblyResultstoreProperties.END_TIME.value,
+-            str(end_time),
+-        )
+-    _add_or_update_property_element(
+-        properties_element,
+-        MoblyResultstoreProperties.TEST_CLASS.value,
+-        entry[records.TestResultEnums.RECORD_CLASS],
+-    )
+-    _add_or_update_property_element(
+-        properties_element,
+-        MoblyResultstoreProperties.TEST_TYPE.value,
+-        'mobly_test',
+-    )
+-
+-    if entry.get(records.TestResultEnums.RECORD_SIGNATURE, None) is not None:
+-        _add_or_update_property_element(
+-            properties_element,
+-            MoblyResultstoreProperties.TEST_SIGNATURE.value,
+-            entry[records.TestResultEnums.RECORD_SIGNATURE],
+-        )
+-
+-    _add_file_annotations(
+-        entry,
+-        properties_element,
+-        mobly_base_directory,
+-    )
+-
+-    if entry[records.TestResultEnums.RECORD_UID] is not None:
+-        _add_or_update_property_element(
+-            properties_element,
+-            MoblyResultstoreProperties.UID.value,
+-            entry[records.TestResultEnums.RECORD_UID],
+-        )
+-
+-    if result is None:
+-        error_element = ElementTree.SubElement(
+-            testcase_element, ResultstoreTreeTags.ERROR.value
+-        )
+-        error_element.set(
+-            ResultstoreTreeAttributes.MESSAGE.value, _TEST_INTERRUPTED_MESSAGE
+-        )
+-        error_element.text = _TEST_INTERRUPTED_MESSAGE
+-    elif (
+-            result == records.TestResultEnums.TEST_RESULT_FAIL
+-            or result == records.TestResultEnums.TEST_RESULT_ERROR
+-    ):
+-        error_message = (
+-            f'Details: {entry[records.TestResultEnums.RECORD_DETAILS]}')
+-        tag = (
+-            ResultstoreTreeTags.FAILURE.value
+-            if result == records.TestResultEnums.TEST_RESULT_FAIL
+-            else ResultstoreTreeTags.ERROR.value
+-        )
+-        failure_or_error_element = ElementTree.SubElement(testcase_element, tag)
+-        failure_or_error_element.set(
+-            ResultstoreTreeAttributes.MESSAGE.value, error_message
+-        )
+-        _add_or_update_property_element(
+-            properties_element,
+-            MoblyResultstoreProperties.ERROR_MESSAGE.value,
+-            error_message,
+-        )
+-
+-        # Add termination signal type and stack trace to the failure XML element
+-        # and the test case properties.
+-        termination_signal_type = entry[
+-            records.TestResultEnums.RECORD_TERMINATION_SIGNAL_TYPE
+-        ]
+-        if termination_signal_type is None:
+-            logging.warning(
+-                'Test %s has %s result without a termination signal type.',
+-                entry[records.TestResultEnums.RECORD_NAME],
+-                result,
+-            )
+-        else:
+-            failure_or_error_element.set(
+-                ResultstoreTreeAttributes.ERROR_TYPE.value,
+-                termination_signal_type
+-            )
+-            _add_or_update_property_element(
+-                properties_element,
+-                MoblyResultstoreProperties.ERROR_TYPE.value,
+-                termination_signal_type,
+-            )
+-        stack_trace = entry[records.TestResultEnums.RECORD_STACKTRACE]
+-        if stack_trace is None:
+-            logging.warning(
+-                'Test %s has %s result without a stack trace.',
+-                entry[records.TestResultEnums.RECORD_NAME],
+-                result,
+-            )
+-        else:
+-            failure_or_error_element.text = stack_trace
+-            _add_or_update_property_element(
+-                properties_element,
+-                MoblyResultstoreProperties.STACK_TRACE.value,
+-                stack_trace,
+-            )
+-    return testcase_element
+-
+-
+-def convert(
+-        mobly_results_path: pathlib.Path,
+-        mobly_base_directory: Optional[pathlib.Path] = None,
+-) -> ElementTree.ElementTree:
+-    """Converts a Mobly results summary file to Resultstore XML schema.
+-
+-    The mobly_base_directory will be used to compute the file links for each
+-    Resultstore tree element. If it is absent then the file links will be
+-    omitted.
+-
+-    Args:
+-      mobly_results_path: Path to the Mobly summary YAML file.
+-      mobly_base_directory: Base directory of the Mobly test.
+-
+-    Returns:
+-      A Resultstore XML tree for the Mobly test.
+-    """
+-    logging.info('Generating Resultstore tree...')
+-
+-    with mobly_results_path.open('r', encoding='utf-8') as f:
+-        summary_entries = list(
+-            yaml.safe_load_all(_ILLEGAL_YAML_CHARS.sub('', f.read()))
+-        )
+-
+-    summary_record = next(
+-        entry
+-        for entry in summary_entries
+-        if entry[_MOBLY_RECORD_TYPE_KEY]
+-        == records.TestSummaryEntryType.SUMMARY.value
+-    )
+-
+-    main_root = _create_mobly_root_element(summary_record)
+-
+-    mobly_test_root = main_root[0]
+-    mobly_root_properties = _create_or_return_properties_element(
+-        mobly_test_root)
+-    # Add files under the Mobly root directory to the Mobly test suite node.
+-    if mobly_base_directory is not None:
+-        file_counter = 0
+-        for file_path in mobly_base_directory.iterdir():
+-            if not file_path.is_file():
+-                continue
+-            relative_path = file_path.relative_to(mobly_base_directory)
+-            _add_or_update_property_element(
+-                mobly_root_properties,
+-                f'test_output{file_counter}',
+-                str(relative_path.as_posix()),
+-            )
+-            file_counter += 1
+-
+-    test_case_entries = [
+-        entry
+-        for entry in summary_entries
+-        if (entry[_MOBLY_RECORD_TYPE_KEY]
+-            == records.TestSummaryEntryType.RECORD.value)
+-    ]
+-    # Populate the class summaries.
+-    class_summaries = {}
+-    for entry in test_case_entries:
+-        class_name = entry[records.TestResultEnums.RECORD_CLASS]
+-
+-        if class_name not in class_summaries:
+-            class_summaries[class_name] = TestSuiteSummary(
+-                num_tests=0, num_errors=0, num_failures=0
+-            )
+-
+-        class_summaries[class_name].num_tests += 1
+-        if (
+-                entry[records.TestResultEnums.RECORD_RESULT]
+-                == records.TestResultEnums.TEST_RESULT_ERROR
+-        ):
+-            class_summaries[class_name].num_errors += 1
+-        elif (
+-                entry[records.TestResultEnums.RECORD_RESULT]
+-                == records.TestResultEnums.TEST_RESULT_FAIL
+-        ):
+-            class_summaries[class_name].num_failures += 1
+-
+-    # Create class nodes.
+-    class_elements = {}
+-    for class_name, summary in class_summaries.items():
+-        class_elements[class_name] = _create_class_element(class_name, summary)
+-        mobly_test_root.append(class_elements[class_name])
+-
+-    # Append test case nodes to test class nodes.
+-    reran_nodes = _get_reran_nodes(test_case_entries)
+-    for entry in test_case_entries:
+-        class_name = entry[records.TestResultEnums.RECORD_CLASS]
+-        if (
+-                records.TestResultEnums.RECORD_SIGNATURE in entry
+-                and
+-                entry[records.TestResultEnums.RECORD_SIGNATURE] in reran_nodes
+-        ):
+-            reran_node = reran_nodes[
+-                entry[records.TestResultEnums.RECORD_SIGNATURE]]
+-        else:
+-            reran_node = None
+-        class_elements[class_name].append(
+-            _process_record(entry, reran_node, mobly_base_directory)
+-        )
+-
+-    user_data_entries = [
+-        entry
+-        for entry in summary_entries
+-        if (entry[_MOBLY_RECORD_TYPE_KEY]
+-            == records.TestSummaryEntryType.USER_DATA.value)
+-    ]
+-
+-    for user_data_entry in user_data_entries:
+-        class_name = user_data_entry.get(records.TestResultEnums.RECORD_CLASS,
+-                                         None)
+-        test_name = user_data_entry.get(records.TestResultEnums.RECORD_NAME,
+-                                        None)
+-
+-        properties = user_data_entry.get('properties', None)
+-        if not isinstance(properties, dict):
+-            continue
+-        for element in _find_all_elements(mobly_test_root, class_name,
+-                                          test_name):
+-            properties_element = _create_or_return_properties_element(element)
+-            for name, value in properties.items():
+-                if name in _MOBLY_PROPERTY_VALUES:
+-                    # Do not override Mobly properties.
+-                    continue
+-                _add_or_update_property_element(
+-                    properties_element, str(name), str(value)
+-                )
+-
+-    return ElementTree.ElementTree(main_root)
+diff --git a/tools/results_uploader/src/results_uploader.py b/tools/results_uploader/src/results_uploader.py
+deleted file mode 100644
+index eff6e85..0000000
+--- a/tools/results_uploader/src/results_uploader.py
++++ /dev/null
+@@ -1,514 +0,0 @@
+-#!/usr/bin/env python3
+-
+-#  Copyright (C) 2024 The Android Open Source Project
+-#
+-#  Licensed under the Apache License, Version 2.0 (the "License");
+-#  you may not use this file except in compliance with the License.
+-#  You may obtain a copy of the License at
+-#
+-#       http://www.apache.org/licenses/LICENSE-2.0
+-#
+-#  Unless required by applicable law or agreed to in writing, software
+-#  distributed under the License is distributed on an "AS IS" BASIS,
+-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-#  See the License for the specific language governing permissions and
+-#  limitations under the License.
+-
+-"""CLI uploader for Mobly test results to Resultstore."""
+-
+-import argparse
+-import collections
+-import dataclasses
+-import datetime
+-from importlib import resources
+-import logging
+-import mimetypes
+-import pathlib
+-import platform
+-import shutil
+-import subprocess
+-import tempfile
+-import warnings
+-from xml.etree import ElementTree
+-
+-import google.auth
+-from google.cloud import api_keys_v2
+-from google.cloud import resourcemanager_v3
+-from google.cloud import storage
+-from googleapiclient import discovery
+-
+-import mobly_result_converter
+-import resultstore_client
+-
+-with warnings.catch_warnings():
+-    warnings.simplefilter('ignore')
+-    from google.cloud.storage import transfer_manager
+-
+-
+-_RESULTSTORE_SERVICE_NAME = 'resultstore'
+-_API_VERSION = 'v2'
+-_API_KEY_DISPLAY_NAME = 'resultstore'
+-_DISCOVERY_SERVICE_URL = (
+-    'https://{api}.googleapis.com/$discovery/rest?version={apiVersion}'
+-)
+-
+-_TEST_XML = 'test.xml'
+-_TEST_LOG = 'test.log'
+-_UNDECLARED_OUTPUTS = 'undeclared_outputs'
+-
+-_TEST_SUMMARY_YAML = 'test_summary.yaml'
+-_TEST_LOG_INFO = 'test_log.INFO'
+-
+-_SUITE_NAME = 'suite_name'
+-_RUN_IDENTIFIER = 'run_identifier'
+-
+-_GCS_BASE_LINK = 'https://console.cloud.google.com/storage/browser'
+-_GCS_DEFAULT_TIMEOUT_SECS = 300
+-
+-_ResultstoreTreeTags = mobly_result_converter.ResultstoreTreeTags
+-_ResultstoreTreeAttributes = mobly_result_converter.ResultstoreTreeAttributes
+-
+-_Status = resultstore_client.Status
+-
+-
+-@dataclasses.dataclass()
+-class _TestResultInfo:
+-    """Info from the parsed test summary used for the Resultstore invocation."""
+-
+-    # Aggregate status of the overall test run.
+-    status: _Status = _Status.UNKNOWN
+-    # Target ID for the test.
+-    target_id: str | None = None
+-
+-
+-def _setup_logging(verbose: bool) -> None:
+-    """Configures the logging for this module."""
+-    debug_log_path = tempfile.mkstemp('_upload_log.txt')[1]
+-    file_handler = logging.FileHandler(debug_log_path)
+-    file_handler.setLevel(logging.DEBUG)
+-    file_handler.setFormatter(logging.Formatter(
+-        '%(asctime)s %(levelname)s [%(module)s.%(funcName)s] %(message)s'
+-    ))
+-    stream_handler = logging.StreamHandler()
+-    stream_handler.setLevel(logging.DEBUG if verbose else logging.INFO)
+-    stream_handler.setFormatter(
+-        logging.Formatter('%(levelname)s: %(message)s'))
+-    logging.basicConfig(
+-        level=logging.DEBUG,
+-        handlers=(file_handler, stream_handler)
+-    )
+-
+-    logging.getLogger('googleapiclient').setLevel(logging.WARNING)
+-    logging.getLogger('google.auth').setLevel(logging.ERROR)
+-    logging.info('Debug logs are saved to %s', debug_log_path)
+-    print('-' * 50)
+-
+-
+-def _gcloud_login_and_set_project() -> None:
+-    """Get gcloud application default creds and set the desired GCP project."""
+-    logging.info('No credentials found. Performing initial setup.')
+-    project_id = ''
+-    while not project_id:
+-        project_id = input('Enter your GCP project ID: ')
+-    try:
+-        subprocess.run(['gcloud', 'auth', 'application-default', 'login',
+-                        '--no-launch-browser'])
+-        subprocess.run(['gcloud', 'auth', 'application-default',
+-                        'set-quota-project', project_id])
+-    except FileNotFoundError:
+-        logging.exception(
+-            'Failed to run `gcloud` commands. Please install the `gcloud` CLI!')
+-    logging.info('Initial setup complete!')
+-    print('-' * 50)
+-
+-
+-def _get_project_number(project_id: str) -> str:
+-    """Get the project number associated with a GCP project ID."""
+-    client = resourcemanager_v3.ProjectsClient()
+-    response = client.get_project(name=f'projects/{project_id}')
+-    return response.name.split('/', 1)[1]
+-
+-
+-def _retrieve_api_key(project_id: str) -> str | None:
+-    """Downloads the Resultstore API key for the given Google Cloud project."""
+-    project_number = _get_project_number(project_id)
+-    client = api_keys_v2.ApiKeysClient()
+-    keys = client.list_keys(
+-        parent=f'projects/{project_number}/locations/global'
+-    ).keys
+-    for key in keys:
+-        if key.display_name == _API_KEY_DISPLAY_NAME:
+-            return client.get_key_string(name=key.name).key_string
+-    return None
+-
+-
+-def _convert_results(
+-        mobly_dir: pathlib.Path, dest_dir: pathlib.Path) -> _TestResultInfo:
+-    """Converts Mobly test results into Resultstore test.xml and test.log."""
+-    test_result_info = _TestResultInfo()
+-    logging.info('Converting raw Mobly logs into Resultstore artifacts...')
+-    # Generate the test.xml
+-    mobly_yaml_path = mobly_dir.joinpath(_TEST_SUMMARY_YAML)
+-    if mobly_yaml_path.is_file():
+-        test_xml = mobly_result_converter.convert(mobly_yaml_path, mobly_dir)
+-        ElementTree.indent(test_xml)
+-        test_xml.write(
+-            str(dest_dir.joinpath(_TEST_XML)),
+-            encoding='utf-8',
+-            xml_declaration=True,
+-        )
+-        test_result_info = _get_test_result_info_from_test_xml(test_xml)
+-
+-    # Copy test_log.INFO to test.log
+-    test_log_info = mobly_dir.joinpath(_TEST_LOG_INFO)
+-    if test_log_info.is_file():
+-        shutil.copyfile(test_log_info, dest_dir.joinpath(_TEST_LOG))
+-
+-    return test_result_info
+-
+-
+-def _aggregate_testcase_iteration_results(
+-        iteration_results: list[str]):
+-    """Determines the aggregate result from a list of test case iterations.
+-
+-    This is only applicable to test cases with repeat/retry.
+-    """
+-    iterations_failed = [
+-        result == _Status.FAILED for result in iteration_results
+-        if result != _Status.SKIPPED
+-    ]
+-    # Skip if all iterations skipped
+-    if not iterations_failed:
+-        return _Status.SKIPPED
+-    # Fail if all iterations failed
+-    if all(iterations_failed):
+-        return _Status.FAILED
+-    # Flaky if some iterations failed
+-    if any(iterations_failed):
+-        return _Status.FLAKY
+-    # Pass otherwise
+-    return _Status.PASSED
+-
+-
+-def _aggregate_subtest_results(subtest_results: list[str]):
+-    """Determines the aggregate result from a list of subtest nodes.
+-
+-    This is used to provide a test class result based on the test cases, or
+-    a test suite result based on the test classes.
+-    """
+-    # Skip if all subtests skipped
+-    if all([result == _Status.SKIPPED for result in subtest_results]):
+-        return _Status.SKIPPED
+-
+-    any_flaky = False
+-    for result in subtest_results:
+-        # Fail if any subtest failed
+-        if result == _Status.FAILED:
+-            return _Status.FAILED
+-        # Record flaky subtest
+-        if result == _Status.FLAKY:
+-            any_flaky = True
+-    # Flaky if any subtest is flaky, pass otherwise
+-    return _Status.FLAKY if any_flaky else _Status.PASSED
+-
+-
+-def _get_test_status_from_xml(mobly_suite_element: ElementTree.Element):
+-    """Gets the overall status from the test XML."""
+-    test_class_elements = mobly_suite_element.findall(
+-        f'./{_ResultstoreTreeTags.TESTSUITE.value}')
+-    test_class_results = []
+-    for test_class_element in test_class_elements:
+-        test_case_results = []
+-        test_case_iteration_results = collections.defaultdict(list)
+-        test_case_elements = test_class_element.findall(
+-            f'./{_ResultstoreTreeTags.TESTCASE.value}')
+-        for test_case_element in test_case_elements:
+-            result = _Status.PASSED
+-            if test_case_element.get(
+-                    _ResultstoreTreeAttributes.RESULT.value) == 'skipped':
+-                result = _Status.SKIPPED
+-            if (
+-                    test_case_element.find(
+-                        f'./{_ResultstoreTreeTags.FAILURE.value}') is not None
+-                    or test_case_element.find(
+-                        f'./{_ResultstoreTreeTags.ERROR.value}') is not None
+-            ):
+-                result = _Status.FAILED
+-            # Add to iteration results if run as part of a repeat/retry
+-            # Otherwise, add to test case results directly
+-            if (
+-                    test_case_element.get(
+-                        _ResultstoreTreeAttributes.RETRY_NUMBER.value) or
+-                    test_case_element.get(
+-                        _ResultstoreTreeAttributes.REPEAT_NUMBER.value)
+-            ):
+-                test_case_iteration_results[
+-                    test_case_element.get(_ResultstoreTreeAttributes.NAME.value)
+-                ].append(result)
+-            else:
+-                test_case_results.append(result)
+-
+-        for iteration_result_list in test_case_iteration_results.values():
+-            test_case_results.append(
+-                _aggregate_testcase_iteration_results(iteration_result_list)
+-            )
+-        test_class_results.append(
+-            _aggregate_subtest_results(test_case_results)
+-        )
+-    return _aggregate_subtest_results(test_class_results)
+-
+-
+-def _get_test_result_info_from_test_xml(
+-        test_xml: ElementTree.ElementTree,
+-) -> _TestResultInfo:
+-    """Parses a test_xml element into a _TestResultInfo."""
+-    test_result_info = _TestResultInfo()
+-    mobly_suite_element = test_xml.getroot().find(
+-        f'./{_ResultstoreTreeTags.TESTSUITE.value}'
+-    )
+-    if mobly_suite_element is None:
+-        return test_result_info
+-    # Set aggregate test status
+-    test_result_info.status = _get_test_status_from_xml(mobly_suite_element)
+-
+-    # Set target ID based on test class names, suite name, and custom run
+-    # identifier.
+-    suite_name_value = None
+-    run_identifier_value = None
+-    properties_element = mobly_suite_element.find(
+-        f'./{_ResultstoreTreeTags.PROPERTIES.value}'
+-    )
+-    if properties_element is not None:
+-        suite_name = properties_element.find(
+-            f'./{_ResultstoreTreeTags.PROPERTY.value}'
+-            f'[@{_ResultstoreTreeAttributes.NAME.value}="{_SUITE_NAME}"]'
+-        )
+-        if suite_name is not None:
+-            suite_name_value = suite_name.get(
+-                _ResultstoreTreeAttributes.VALUE.value
+-            )
+-        run_identifier = properties_element.find(
+-            f'./{_ResultstoreTreeTags.PROPERTY.value}'
+-            f'[@{_ResultstoreTreeAttributes.NAME.value}="{_RUN_IDENTIFIER}"]'
+-        )
+-        if run_identifier is not None:
+-            run_identifier_value = run_identifier.get(
+-                _ResultstoreTreeAttributes.VALUE.value
+-            )
+-    if suite_name_value:
+-        target_id = suite_name_value
+-    else:
+-        test_class_elements = mobly_suite_element.findall(
+-            f'./{_ResultstoreTreeTags.TESTSUITE.value}')
+-        test_class_names = [
+-            test_class_element.get(_ResultstoreTreeAttributes.NAME.value)
+-            for test_class_element in test_class_elements
+-        ]
+-        target_id = '+'.join(test_class_names)
+-    if run_identifier_value:
+-        target_id = f'{target_id} {run_identifier_value}'
+-
+-    test_result_info.target_id = target_id
+-    return test_result_info
+-
+-
+-def _upload_dir_to_gcs(
+-        src_dir: pathlib.Path, gcs_bucket: str, gcs_dir: str, timeout: int
+-) -> list[str]:
+-    """Uploads the given directory to a GCS bucket."""
+-    # Set correct MIME types for certain text-format files.
+-    with resources.as_file(
+-            resources.files('data').joinpath('mime.types')) as path:
+-        mimetypes.init([path])
+-
+-    bucket_obj = storage.Client().bucket(gcs_bucket)
+-
+-    glob = src_dir.rglob('*')
+-    file_paths = [
+-        str(path.relative_to(src_dir).as_posix())
+-        for path in glob
+-        if path.is_file()
+-    ]
+-
+-    logging.info(
+-        'Uploading %s files from %s to Cloud Storage directory %s/%s...',
+-        len(file_paths),
+-        str(src_dir),
+-        gcs_bucket,
+-        gcs_dir,
+-    )
+-    # Ensure that the destination directory has a trailing '/'.
+-    blob_name_prefix = gcs_dir
+-    if blob_name_prefix and not blob_name_prefix.endswith('/'):
+-        blob_name_prefix += '/'
+-
+-    # If running on Windows, disable multiprocessing for upload.
+-    worker_type = (
+-        transfer_manager.THREAD
+-        if platform.system() == 'Windows'
+-        else transfer_manager.PROCESS
+-    )
+-    results = transfer_manager.upload_many_from_filenames(
+-        bucket_obj,
+-        file_paths,
+-        source_directory=str(src_dir),
+-        blob_name_prefix=blob_name_prefix,
+-        skip_if_exists=True,
+-        worker_type=worker_type,
+-        upload_kwargs={'timeout': timeout},
+-    )
+-
+-    success_paths = []
+-    for file_path, result in zip(file_paths, results):
+-        if isinstance(result, Exception):
+-            logging.warning('Failed to upload %s. Error: %s', file_path, result)
+-        else:
+-            logging.debug('Uploaded %s.', file_path)
+-            success_paths.append(file_path)
+-
+-    return [f'{gcs_dir}/{path}' for path in success_paths]
+-
+-
+-def _upload_to_resultstore(
+-        api_key: str,
+-        gcs_bucket: str,
+-        gcs_base_dir: str,
+-        file_paths: list[str],
+-        status: _Status,
+-        target_id: str | None,
+-        labels: list[str],
+-) -> None:
+-    """Uploads test results to Resultstore."""
+-    logging.info('Generating Resultstore link...')
+-    creds, project_id = google.auth.default()
+-    service = discovery.build(
+-        _RESULTSTORE_SERVICE_NAME,
+-        _API_VERSION,
+-        discoveryServiceUrl=_DISCOVERY_SERVICE_URL,
+-        developerKey=api_key,
+-    )
+-    client = resultstore_client.ResultstoreClient(service, creds, project_id)
+-    client.create_invocation(labels)
+-    client.create_default_configuration()
+-    client.create_target(target_id)
+-    client.create_configured_target()
+-    client.create_action(gcs_bucket, gcs_base_dir, file_paths)
+-    client.set_status(status)
+-    client.merge_configured_target()
+-    client.finalize_configured_target()
+-    client.merge_target()
+-    client.finalize_target()
+-    client.merge_invocation()
+-    client.finalize_invocation()
+-
+-
+-def main():
+-    parser = argparse.ArgumentParser()
+-    parser.add_argument(
+-        '-v', '--verbose', action='store_true', help='Enable debug logs.'
+-    )
+-    parser.add_argument(
+-        'mobly_dir',
+-        help='Directory on host where Mobly results are stored.',
+-    )
+-    parser.add_argument(
+-        '--gcs_bucket',
+-        help='Bucket in GCS where test artifacts are uploaded. If unspecified, '
+-             'use the current GCP project name as the bucket name.',
+-    )
+-    parser.add_argument(
+-        '--gcs_dir',
+-        help=(
+-            'Directory to save test artifacts in GCS. If unspecified or empty, '
+-            'use the current timestamp as the GCS directory name.'
+-        ),
+-    )
+-    parser.add_argument(
+-        '--gcs_upload_timeout',
+-        type=int,
+-        default=_GCS_DEFAULT_TIMEOUT_SECS,
+-        help=(
+-            'Timeout (in seconds) to upload each file to GCS. '
+-            f'Default: {_GCS_DEFAULT_TIMEOUT_SECS} seconds.'),
+-    )
+-    parser.add_argument(
+-        '--test_title',
+-        help='Custom test title to display in the result UI.'
+-    )
+-    parser.add_argument(
+-        '--label',
+-        action='append',
+-        help='Label to attach to the uploaded result. Can be repeated for '
+-             'multiple labels.'
+-    )
+-    parser.add_argument(
+-        '--no_convert_result',
+-        action='store_true',
+-        help=(
+-            'Upload the files as is, without first converting Mobly results to '
+-            'Resultstore\'s format. The source directory must contain at least '
+-            'a `test.xml` file, and an `undeclared_outputs` zip or '
+-            'subdirectory.')
+-    )
+-    args = parser.parse_args()
+-    _setup_logging(args.verbose)
+-    try:
+-        _, project_id = google.auth.default()
+-    except google.auth.exceptions.DefaultCredentialsError:
+-        _gcloud_login_and_set_project()
+-        _, project_id = google.auth.default()
+-    logging.info('Current GCP project ID: %s', project_id)
+-    api_key = _retrieve_api_key(project_id)
+-    if api_key is None:
+-        logging.error(
+-            'No API key with name [%s] found for project [%s]. Contact the '
+-            'project owner to create the required key.',
+-            _API_KEY_DISPLAY_NAME, project_id
+-        )
+-        return
+-    gcs_bucket = project_id if args.gcs_bucket is None else args.gcs_bucket
+-    gcs_base_dir = pathlib.PurePath(
+-        datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+-        if not args.gcs_dir
+-        else args.gcs_dir
+-    )
+-    mobly_dir = pathlib.Path(args.mobly_dir).absolute().expanduser()
+-
+-    if args.no_convert_result:
+-        # Determine the final status based on the test.xml
+-        test_xml = ElementTree.parse(mobly_dir.joinpath(_TEST_XML))
+-        test_result_info = _get_test_result_info_from_test_xml(test_xml)
+-        # Upload the contents of mobly_dir directly
+-        gcs_files = _upload_dir_to_gcs(
+-            mobly_dir, gcs_bucket, gcs_base_dir.as_posix(),
+-            args.gcs_upload_timeout
+-        )
+-    else:
+-        # Generate and upload test.xml and test.log
+-        with tempfile.TemporaryDirectory() as tmp:
+-            converted_dir = pathlib.Path(tmp).joinpath(gcs_base_dir)
+-            converted_dir.mkdir(parents=True)
+-            test_result_info = _convert_results(mobly_dir, converted_dir)
+-            gcs_files = _upload_dir_to_gcs(
+-                converted_dir, gcs_bucket, gcs_base_dir.as_posix(),
+-                args.gcs_upload_timeout
+-            )
+-        # Upload raw Mobly logs to undeclared_outputs/ subdirectory
+-        gcs_files += _upload_dir_to_gcs(
+-            mobly_dir, gcs_bucket,
+-            gcs_base_dir.joinpath(_UNDECLARED_OUTPUTS).as_posix(),
+-            args.gcs_upload_timeout
+-        )
+-    _upload_to_resultstore(
+-        api_key,
+-        gcs_bucket,
+-        gcs_base_dir.as_posix(),
+-        gcs_files,
+-        test_result_info.status,
+-        args.test_title or test_result_info.target_id,
+-        args.label
+-    )
+-
+-
+-if __name__ == '__main__':
+-    main()
+diff --git a/tools/results_uploader/src/resultstore_client.py b/tools/results_uploader/src/resultstore_client.py
+deleted file mode 100644
+index 67f47b1..0000000
+--- a/tools/results_uploader/src/resultstore_client.py
++++ /dev/null
+@@ -1,414 +0,0 @@
+-#!/usr/bin/env python3
+-
+-#  Copyright (C) 2024 The Android Open Source Project
+-#
+-#  Licensed under the Apache License, Version 2.0 (the "License");
+-#  you may not use this file except in compliance with the License.
+-#  You may obtain a copy of the License at
+-#
+-#       http://www.apache.org/licenses/LICENSE-2.0
+-#
+-#  Unless required by applicable law or agreed to in writing, software
+-#  distributed under the License is distributed on an "AS IS" BASIS,
+-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-#  See the License for the specific language governing permissions and
+-#  limitations under the License.
+-
+-"""Resultstore client for Mobly tests."""
+-
+-import datetime
+-import enum
+-import importlib.metadata
+-import logging
+-import pathlib
+-import urllib.parse
+-import uuid
+-
+-from google.auth import credentials
+-import google_auth_httplib2
+-from googleapiclient import discovery
+-import httplib2
+-
+-_DEFAULT_CONFIGURATION = 'default'
+-_RESULTSTORE_BASE_LINK = 'https://btx.cloud.google.com'
+-
+-_PACKAGE_NAME = 'results_uploader'
+-
+-
+-class Status(enum.Enum):
+-    """Aggregate status of the Resultstore invocation and target."""
+-    PASSED = 'PASSED'
+-    FAILED = 'FAILED'
+-    SKIPPED = 'SKIPPED'
+-    FLAKY = 'FLAKY'
+-    UNKNOWN = 'UNKNOWN'
+-
+-
+-class StatusCode(enum.IntEnum):
+-    """Test case statuses and their associated code in Resultstore.
+-
+-    Used to toggle the visibility of test cases with a particular status.
+-    """
+-    ERRORED = 1
+-    TIMED_OUT = 2
+-    FAILED = 3
+-    FLAKY = 4
+-    PASSED = 5
+-
+-
+-class ResultstoreClient:
+-    """Resultstore client for Mobly tests."""
+-
+-    def __init__(
+-            self,
+-            service: discovery.Resource,
+-            creds: credentials.Credentials,
+-            project_id: str,
+-    ):
+-        """Creates a ResultstoreClient.
+-
+-        Args:
+-          service: discovery.Resource object for interacting with the API.
+-          creds: credentials to add to HTTP request.
+-          project_id: GCP project ID for Resultstore.
+-        """
+-        self._service = service
+-        self._http = google_auth_httplib2.AuthorizedHttp(
+-            creds, http=httplib2.Http(timeout=30)
+-        )
+-        self._project_id = project_id
+-
+-        self._request_id = ''
+-        self._invocation_id = ''
+-        self._authorization_token = ''
+-        self._target_id = ''
+-        self._encoded_target_id = ''
+-
+-        self._status = Status.UNKNOWN
+-
+-    @property
+-    def _invocation_name(self):
+-        """The resource name for the invocation."""
+-        if not self._invocation_id:
+-            return ''
+-        return f'invocations/{self._invocation_id}'
+-
+-    @property
+-    def _target_name(self):
+-        """The resource name for the target."""
+-        if not (self._invocation_name or self._encoded_target_id):
+-            return ''
+-        return f'{self._invocation_name}/targets/{self._encoded_target_id}'
+-
+-    @property
+-    def _configured_target_name(self):
+-        """The resource name for the configured target."""
+-        if not self._target_name:
+-            return
+-        return f'{self._target_name}/configuredTargets/{_DEFAULT_CONFIGURATION}'
+-
+-    def set_status(self, status: Status) -> None:
+-        """Sets the overall test run status."""
+-        self._status = status
+-
+-    def create_invocation(self, labels: list[str]) -> str:
+-        """Creates an invocation.
+-
+-        Args:
+-            labels: A list of labels to attach to the invocation, as
+-              `invocation.invocationAttributes.labels`.
+-
+-        Returns:
+-          The invocation ID.
+-        """
+-        logging.debug('creating invocation...')
+-        if self._invocation_id:
+-            logging.warning(
+-                'invocation %s already exists, skipping creation...',
+-                self._invocation_id,
+-            )
+-            return None
+-        invocation = {
+-            'timing': {
+-                'startTime': datetime.datetime.utcnow().isoformat() + 'Z'
+-            },
+-            'invocationAttributes': {
+-                'projectId': self._project_id,
+-                'labels': labels,
+-            },
+-            'properties': [
+-                {
+-                    'key': _PACKAGE_NAME,
+-                    'value': importlib.metadata.version(_PACKAGE_NAME)
+-                }
+-            ]
+-        }
+-        self._request_id = str(uuid.uuid4())
+-        self._invocation_id = str(uuid.uuid4())
+-        self._authorization_token = str(uuid.uuid4())
+-        request = self._service.invocations().create(
+-            body=invocation,
+-            requestId=self._request_id,
+-            invocationId=self._invocation_id,
+-            authorizationToken=self._authorization_token,
+-        )
+-        res = request.execute(http=self._http)
+-        logging.debug('invocations.create: %s', res)
+-        return self._invocation_id
+-
+-    def create_default_configuration(self) -> None:
+-        """Creates a default configuration."""
+-        logging.debug('creating default configuration...')
+-        configuration = {
+-            'id': {
+-                'invocationId': self._invocation_id,
+-                'configurationId': _DEFAULT_CONFIGURATION,
+-            }
+-        }
+-        request = (
+-            self._service.invocations()
+-            .configs()
+-            .create(
+-                body=configuration,
+-                parent=f'invocations/{self._invocation_id}',
+-                configId=_DEFAULT_CONFIGURATION,
+-                authorizationToken=self._authorization_token,
+-            )
+-        )
+-        res = request.execute(http=self._http)
+-        logging.debug('invocations.configs.create: %s', res)
+-
+-    def create_target(self, target_id: str | None = None) -> str:
+-        """Creates a target.
+-
+-        Args:
+-          target_id: An optional custom target ID.
+-
+-        Returns:
+-          The target ID.
+-        """
+-        logging.debug('creating target in %s...', self._invocation_name)
+-        if self._target_id:
+-            logging.warning(
+-                'target %s already exists, skipping creation...',
+-                self._target_id,
+-            )
+-            return
+-        self._target_id = target_id or str(uuid.uuid4())
+-        self._encoded_target_id = urllib.parse.quote(self._target_id, safe='')
+-        target = {
+-            'id': {
+-                'invocationId': self._invocation_id,
+-                'targetId': self._target_id,
+-            },
+-            'targetAttributes': {'type': 'TEST', 'language': 'PY'},
+-            'visible': True,
+-        }
+-        request = (
+-            self._service.invocations()
+-            .targets()
+-            .create(
+-                body=target,
+-                parent=self._invocation_name,
+-                targetId=self._target_id,
+-                authorizationToken=self._authorization_token,
+-            )
+-        )
+-        res = request.execute(http=self._http)
+-        logging.debug('invocations.targets.create: %s', res)
+-        return self._target_id
+-
+-    def create_configured_target(self) -> None:
+-        """Creates a configured target."""
+-        logging.debug('creating configured target in %s...', self._target_name)
+-        configured_target = {
+-            'id': {
+-                'invocationId': self._invocation_id,
+-                'targetId': self._target_id,
+-                'configurationId': _DEFAULT_CONFIGURATION,
+-            },
+-        }
+-        request = (
+-            self._service.invocations()
+-            .targets()
+-            .configuredTargets()
+-            .create(
+-                body=configured_target,
+-                parent=self._target_name,
+-                configId=_DEFAULT_CONFIGURATION,
+-                authorizationToken=self._authorization_token,
+-            )
+-        )
+-        res = request.execute(http=self._http)
+-        logging.debug('invocations.targets.configuredTargets.create: %s', res)
+-
+-    def create_action(
+-            self, gcs_bucket: str, gcs_base_dir: str, artifacts: list[str]
+-    ) -> str:
+-        """Creates an action.
+-
+-        Args:
+-          gcs_bucket: The bucket in GCS where artifacts are stored.
+-          gcs_base_dir: Base directory of the artifacts in the GCS bucket.
+-          artifacts: List of paths (relative to gcs_bucket) to the test
+-            artifacts.
+-
+-        Returns:
+-          The action ID.
+-        """
+-        logging.debug('creating action in %s...', self._configured_target_name)
+-        action_id = str(uuid.uuid4())
+-
+-        files = []
+-        for path in artifacts:
+-            uid = str(pathlib.PurePosixPath(path).relative_to(gcs_base_dir))
+-            uri = f'gs://{gcs_bucket}/{path}'
+-            files.append({'uid': uid, 'uri': uri})
+-        action = {
+-            'id': {
+-                'invocationId': self._invocation_id,
+-                'targetId': self._target_id,
+-                'configurationId': _DEFAULT_CONFIGURATION,
+-                'actionId': action_id,
+-            },
+-            'testAction': {},
+-            'files': files,
+-        }
+-        request = (
+-            self._service.invocations()
+-            .targets()
+-            .configuredTargets()
+-            .actions()
+-            .create(
+-                body=action,
+-                parent=self._configured_target_name,
+-                actionId=action_id,
+-                authorizationToken=self._authorization_token,
+-            )
+-        )
+-        res = request.execute(http=self._http)
+-        logging.debug(
+-            'invocations.targets.configuredTargets.actions.create: %s', res
+-        )
+-        return action_id
+-
+-    def merge_configured_target(self):
+-        """Merges a configured target."""
+-        logging.debug('merging configured target %s...',
+-                      self._configured_target_name)
+-        merge_request = {
+-            'configuredTarget': {
+-                'statusAttributes': {'status': self._status.value},
+-            },
+-            'authorizationToken': self._authorization_token,
+-            'updateMask': 'statusAttributes',
+-        }
+-        request = (
+-            self._service.invocations()
+-            .targets()
+-            .configuredTargets()
+-            .merge(
+-                body=merge_request,
+-                name=self._configured_target_name,
+-            )
+-        )
+-        res = request.execute(http=self._http)
+-        logging.debug('invocations.targets.configuredTargets.merge: %s', res)
+-
+-    def finalize_configured_target(self):
+-        """Finalizes a configured target."""
+-        logging.debug('finalizing configured target %s...',
+-                      self._configured_target_name)
+-        finalize_request = {
+-            'authorizationToken': self._authorization_token,
+-        }
+-        request = (
+-            self._service.invocations()
+-            .targets()
+-            .configuredTargets()
+-            .finalize(
+-                body=finalize_request,
+-                name=self._configured_target_name,
+-            )
+-        )
+-        res = request.execute(http=self._http)
+-        logging.debug('invocations.targets.configuredTargets.finalize: %s', res)
+-
+-    def merge_target(self):
+-        """Merges a target."""
+-        logging.debug('merging target %s...', self._target_name)
+-        merge_request = {
+-            'target': {
+-                'statusAttributes': {'status': self._status.value},
+-            },
+-            'authorizationToken': self._authorization_token,
+-            'updateMask': 'statusAttributes',
+-        }
+-        request = (
+-            self._service.invocations()
+-            .targets()
+-            .merge(
+-                body=merge_request,
+-                name=self._target_name,
+-            )
+-        )
+-        res = request.execute(http=self._http)
+-        logging.debug('invocations.targets.merge: %s', res)
+-
+-    def finalize_target(self):
+-        """Finalizes a target."""
+-        logging.debug('finalizing target %s...', self._target_name)
+-        finalize_request = {
+-            'authorizationToken': self._authorization_token,
+-        }
+-        request = (
+-            self._service.invocations()
+-            .targets()
+-            .finalize(
+-                body=finalize_request,
+-                name=self._target_name,
+-            )
+-        )
+-        res = request.execute(http=self._http)
+-        logging.debug('invocations.targets.finalize: %s', res)
+-
+-    def merge_invocation(self):
+-        """Merges an invocation."""
+-        logging.debug('merging invocation %s...', self._invocation_name)
+-        merge_request = {
+-            'invocation': {'statusAttributes': {'status': self._status.value}},
+-            'updateMask': 'statusAttributes',
+-            'authorizationToken': self._authorization_token,
+-        }
+-        request = self._service.invocations().merge(body=merge_request,
+-                                                    name=self._invocation_name)
+-        res = request.execute(http=self._http)
+-        logging.debug('invocations.merge: %s', res)
+-
+-    def finalize_invocation(self):
+-        """Finalizes an invocation."""
+-        logging.debug('finalizing invocation %s...', self._invocation_name)
+-        finalize_request = {
+-            'authorizationToken': self._authorization_token,
+-        }
+-        request = self._service.invocations().finalize(
+-            body=finalize_request, name=self._invocation_name
+-        )
+-        res = request.execute(http=self._http)
+-        logging.debug('invocations.finalize: %s', res)
+-        print('-' * 50)
+-        # Make the URL show test cases regardless of status by default.
+-        show_statuses = (
+-            'showStatuses='
+-            f'{",".join(str(status_code) for status_code in StatusCode)}'
+-        )
+-        print(
+-            f'See results in {_RESULTSTORE_BASE_LINK}/'
+-            f'{self._target_name};config={_DEFAULT_CONFIGURATION}/tests;'
+-            f'{show_statuses}'
+-        )
+-        self._request_id = ''
+-        self._invocation_id = ''
+-        self._authorization_token = ''
+-        self._target_id = ''
+-        self._encoded_target_id = ''
+```
+

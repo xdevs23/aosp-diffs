@@ -1,0 +1,21 @@
+```
+aa4e5d6: Use GO:L3 on OCL Usages (#231) (John Machado <john.machado@intel.com>)
+520b229: Add Size Check When checking NoOptimizationPadding (#230) (John Machado <john.machado@intel.com>)
+e8a18f8: Add MOCS variable for Xe2 (#228) (John Machado <john.machado@intel.com>)
+88c3ffe: Force Tile4 instead of Linear for flipchain resources (#229) (John Machado <john.machado@intel.com>)
+c619472: Fix for type incompatibilities (#227) (John Machado <john.machado@intel.com>)
+8325c56: Fix to resolve Media and NEO sharing issue with Xe2compression on BMG (#... (John Machado <john.machado@intel.com>)
+9104c20: Introduce PTL Support  (#225) (John Machado <john.machado@intel.com>)
+6ea2f1d: Add new media compression mode to fix assertion (#224) (John Machado <john.machado@intel.com>)
+b94abb5: Adjust BaseWidth for RGB24 format (#64) (John Machado <john.machado@intel.com>)
+f5b23a0: Enable IsCpuCacheable in Linux (#214) (John Machado <john.machado@intel.com>)
+b971f28: PAT MOCS Programming for test (#223) (John Machado <john.machado@intel.com>)
+3a2ca19: Make R10G10B10_XR_BIAS_A2_UNORM as presentable (#222) (John Machado <john.machado@intel.com>)
+c75b754: Add new DG2 Device ID (#221) (John Machado <john.machado@intel.com>)
+f7f00b7: Update reserved PATIndex (#220) (John Machado <john.machado@intel.com>)
+31ee7e6: Extend helper Macros (#219) (John Machado <john.machado@intel.com>)
+8ec33e1: Add Media VP Perf Tag (#218) (John Machado <john.machado@intel.com>)
+c743f06: Add Android bp  (#217) (Jeevaka Prabu Badrappan <jeevakaprabu@gmail.com>)
+ca9f959: Fix ODR issue with LTO compilation in WaTable structure (#216) (John Machado <john.machado@intel.com>)
+```
+

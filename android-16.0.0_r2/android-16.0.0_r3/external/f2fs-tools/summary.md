@@ -1,0 +1,20 @@
+```
+6cb6e3e: Define a standalone fsck.f2fs.vendor module (Spandan Das <spandandas@google.com>)
+d8eac1f: f2fs-tools: introduce fault injection to fsck (Daeho Jeong <daehojeong@google.com>)
+29c1e18: fsck.f2fs: tune linear_lookup in f2fs_do_mount() (Chao Yu <chao@kernel.org>)
+f3baa19: fsck.f2fs: recognize STOP_CP_REASON_CORRUPTED_FREE_BITMAP (Chao Yu <chao@kernel.org>)
+f614bcc: resize.f2fs: fix to always change metadata for expand resize (Chao Yu <chao@kernel.org>)
+bf4b5c4: f2fs-tools: enable write hint by default (Jaegeuk Kim <jaegeuk@kernel.org>)
+42482e8: resize.f2fs: add caution message for resize (Chao Yu <chao@kernel.org>)
+b4394ae: Revert "resize.f2fs: add option for large_nat_bitmap feature" (Chao Yu <chao@kernel.org>)
+1102cc7: fsck.f2fs: fix to repair hash_code only if c.fix_on is true (Chao Yu <chao@kernel.org>)
+b6e94a3: dump.f2fs: support dump version_bitmap and chksum in checkpoint (Chao Yu <chao@kernel.org>)
+d6b206d: fsck.f2fs: support to tune linear lookup feature (Chao Yu <chao@kernel.org>)
+11b7f42: dump.f2fs: print s_encoding_flags (Chao Yu <chao@kernel.org>)
+300b156: dump.f2fs: support to dump hex of filename in dump_dirent() (Chao Yu <chao@kernel.org>)
+ea372df: f2fs-tools: apportion atomic write's total delay to its operations (Daeho Jeong <daehojeong@google.com>)
+a1f8e63: mkfs.f2fs: fix to update compact summary's footer correctly (Chao Yu <chao@kernel.org>)
+879a628: mkfs.f2fs: fix to calculate total segments correctly (Chao Yu <chao@kernel.org>)
+1578818: f2fs-tools: fix incorrect return type of f2fs_max_file_offset (LongPing Wei <weilongping@oppo.com>)
+```
+

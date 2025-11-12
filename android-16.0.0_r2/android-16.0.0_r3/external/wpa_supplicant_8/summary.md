@@ -1,0 +1,23 @@
+```
+da324a8c: cumilative patch from commit b01c4843b (sunilravi <sunilravi@google.com>)
+29741e48: Create genrule to create wpa_supplicant.conf (Bill Yang <yangbill@google.com>)
+f35860e5: AIDL: Add support to send force frequency in P2P Connect (Shivani Baranwal <quic_shivbara@quicinc.com>)
+fef118d8: aidl: Add support to set USD freq from the freq list of USD Subscribe (Shivani Baranwal <quic_shivbara@quicinc.com>)
+e0bbf7e6: Enable USD commands in wpa_cli (sunilravi <sunilravi@google.com>)
+c0acbadf: Move VINTF fragment to binary module (Kiyoung Kim <kiyoungkim@google.com>)
+e419e672: AIDL: Generate tlsconfig for minimum TLS version 1.0 (Hu Wang <quic_huw@quicinc.com>)
+848d08d6: Implement setDebugParams in the mainline supplicant. (Gabriel Biren <gbiren@google.com>)
+7175426c: Send assoc reject event for SAE auth failure with supplicant SME (sunilravi <sunilravi@google.com>)
+318122c3: Start the vendor supplicant as user 'wifi' instead of user 'root'. (Gabriel Biren <gbiren@google.com>)
+9e16a353: wifi: fix incorrect callback instance for mld AP (singal link) (Les Lee <lesl@google.com>)
+bc342f89: Revert "Remove unused properties from APEX module(s)" (Satish Yalla <satishy@google.com>)
+ea8a6cbe: Remove unused properties from APEX module(s) (Kiyoung Kim <kiyoungkim@google.com>)
+61c91cd3: Avoid calling wpa_supplicant_init in the mainline supplicant fuzzer. (Gabriel Biren <gbiren@google.com>)
+7be29eac: aidl: Add group interface non-empty check in condition to set auto_join (Shivani Baranwal <quic_shivbara@quicinc.com>)
+99abb473: P2P2: Resolve the issue in filling dirInfo in device found event (Shivani Baranwal <quic_shivbara@quicinc.com>)
+c8dff343: Fix error when building with -DANDROID_LIB_EVENT (Jonas Larsson <ljonas@google.com>)
+52cab635: P2P2: Resolve the SSI buffer corruption issue (Shivani Baranwal <quic_shivbara@quicinc.com>)
+aeaa3ac4: Both -DCONFIG_DRIVER_NL80211_QCA and -DCONFIG_DRIVER_NL80211_BRCM are in... (Isaac Chiou <isaacchiou@google.com>)
+a693369a: Disabled the code to get P2P2 feature set (sunilravi <sunilravi@google.com>)
+```
+

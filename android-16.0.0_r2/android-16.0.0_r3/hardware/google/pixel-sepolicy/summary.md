@@ -1,0 +1,22 @@
+```
+1b0721b: Grant google_battery-service permissions to access logbuffers (Adam Solawa <solawaa@google.com>)
+d53d10f: pixelstats: migrate the permissions for collecting pixel_stat or under /... (Ocean Chen <oceanchen@google.com>)
+d247149: pixelstats: migrate the permissions for accessing /sysfs/kernel/vendor_m... (Ocean Chen <oceanchen@google.com>)
+3cac12a: pixelstats: migrate the permissions for accessing /proc/vendor_mm for MM... (Ocean Chen <oceanchen@google.com>)
+ffea0c9: pixelstats: migrate the permissions for reading meminfo and stat under /... (Ocean Chen <oceanchen@google.com>)
+1dbb000: pixelstats: migrate the  permissions for reading PSI info (Ocean Chen <oceanchen@google.com>)
+a0a09d1: pixelstats: migrate the permission for querying persist used size (Ocean Chen <oceanchen@google.com>)
+9ab7c15: pixelstats: migrate the permissions for uevent listener and battery info... (Ocean Chen <oceanchen@google.com>)
+6f6e86e: pixelstats: migrate the permissions for reading smart_idle_maint_enabled... (Ocean Chen <oceanchen@google.com>)
+36e9d14: Refactor to gs-common (Tim Chen <gtchen@google.com>)
+8ab698e: Revert "Refactor to gs-common" (Pechetty Sravani (xWF) <pechetty@google.com>)
+a391eb9: Move connectivity_thermal_power_manager to gs-common. (Keith Mok <keithmok@google.com>)
+3a8a376: Introduce pixel_bluetooth_service attribute (Daphne Hou <wshou@google.com>)
+afd8299: Refactor to gs-common (Tim Chen <gtchen@google.com>)
+1183005: pixelstats: migrate the permissions for DMA heap metrics (Ocean Chen <oceanchen@google.com>)
+c4ee1c9: pixelstats: migrate the MM metrics via procfs and ION sysfs part (Ocean Chen <oceanchen@google.com>)
+6235661: pixelstats: migrate the ZRAM MM metrics part (Ocean Chen <oceanchen@google.com>)
+e127057: pixelstats: migrate the stats service interaction prop part (Ocean Chen <oceanchen@google.com>)
+10d7468: pixelstats: migrate the storage sysfs and boottime prop part (Ocean Chen <oceanchen@google.com>)
+```
+

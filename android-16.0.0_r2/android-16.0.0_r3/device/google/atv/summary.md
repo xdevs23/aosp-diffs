@@ -1,0 +1,23 @@
+```
+6e22fa2: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+7981649: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+6776f85: [owners] Remove arjundhaliwal@google.com, agazal@google.com and maitrim@... (Owner Cleanup Bot <swarming-tasks@owners-cleanup...)
+cb9e170: [owners] Remove maitrim@google.com from libraries/BluetoothServices/OWNE... (Owner Cleanup Bot <swarming-tasks@owners-cleanup...)
+ab67789: [owners] Remove maitrim@google.com from MdnsOffloadManagerService/OWNERS (Owner Cleanup Bot <swarming-tasks@owners-cleanup...)
+648e66e: Remove a reference to device/generic/goldfish-opengl (Roman Kiryanov <rkir@google.com>)
+5873db7: Add mainline module feature flags (Ray Chin <raychin@google.com>)
+8f5e7fc: [owners] Remove arjundhaliwal@google.com from MdnsOffloadManagerService/... (Owner Cleanup Bot <swarming-tasks@owners-cleanup...)
+bce4a4c: Configure TV to be a batteryless device. (Hongguang Chen <hgchen@google.com>)
+41082a9: [owners] Remove agazal@google.com from MdnsOffloadManagerService/OWNERS (Owner Cleanup Bot <swarming-tasks@owners-cleanup...)
+12031e6: Add copy of x86_64_cmdline.txt and kernel_modules.blocklist (Neeraj Kerkar <neerajkerkar@google.com>)
+b198a61: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+1446619: Create and Inherit TV specific kernel_fstab_32.mk (Neeraj Kerkar <neerajkerkar@google.com>)
+4cf384f: Temporarily disable backlight setting slice (Winni Chang <winnichang@google.com>)
+4b7dcb6: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+095af83: Point at the new location. (Christopher Ferris <cferris@google.com>)
+45abe4c: Mark non-TV hardware types with <unavailable-feature /> (Jared Duke <jdduke@google.com>)
+ea7c256: Convert PRODUCT_COPY_FILES for atv generic keylayout to Android.bp (Wei Li <weiwli@google.com>)
+e89f4bc: Import translations. DO NOT MERGE ANYWHERE (Bill Yi <byi@google.com>)
+c751a70: Override Generic.kl in product (Siarhei Vishniakou <svv@google.com>)
+```
+

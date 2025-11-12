@@ -1,0 +1,6 @@
+Original file: android-16.0.0_r2/android-16.0.0_r3/external/swiftshader/diff.md
+Original size: 158127953 bytes (158MB)
+Split date: Wed 12 Nov 18:29:44 CET 2025
+Chunk size: 50000000 bytes (50MB)
+Number of chunks: 4
+Command to recreate: cat android-16.0.0_r2/android-16.0.0_r3/external/swiftshader/.diff.md_chunks/*.part > "android-16.0.0_r2/android-16.0.0_r3/external/swiftshader/diff.md"
